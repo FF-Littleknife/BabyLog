@@ -92,6 +92,28 @@ function formatRecordTime(record: BabyRecord) {
   return `${date.getMonth() + 1}/${date.getDate()} ${clock}`;
 }
 
+function formatBreastDetail(record: BabyRecord) {
+  const parts = [];
+  const left = record.leftMin || 0;
+  const right = record.rightMin || 0;
+  const total = record.durationMin || left + right;
+
+  if (left > 0) parts.push(`左侧${left}分钟`);
+  if (right > 0) parts.push(`右侧${right}分钟`);
+
+  if (left > 0 && right > 0 && total > 0) {
+    parts.push(`共${total}分钟`);
+  }
+
+  if (!left && !right && record.durationMin) {
+    parts.push(`${record.durationMin}分钟`);
+  }
+
+  if (record.note) parts.push(record.note);
+
+  return parts;
+}
+
 function formatRecord(record: BabyRecord) {
   const time = formatRecordTime(record);
 
@@ -119,18 +141,7 @@ function formatRecord(record: BabyRecord) {
   }
 
   if (record.type === "breast") {
-    const parts = [];
-    const left = record.leftMin || 0;
-    const right = record.rightMin || 0;
-    const total = record.durationMin || left + right;
-
-    if (left || right) {
-      parts.push(`左侧${left}分钟 · 右侧${right}分钟 · 共${total}分钟`);
-    } else if (record.durationMin) {
-      parts.push(`共${record.durationMin}分钟`);
-    }
-
-    if (record.note) parts.push(record.note);
+    const parts = formatBreastDetail(record);
 
     return `${time} 母乳${parts.length ? `｜${parts.join(" · ")}` : ""}`;
   }
