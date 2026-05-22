@@ -8,6 +8,10 @@ import Summary24h from "./Summary24h";
 
 type SheetMode = "quick" | "full";
 
+type AddRecordOptions = {
+  silent?: boolean;
+};
+
 const HOME_TITLE = {
   text: "叶票票喂养记录",
   margin: "64px 0 30px",
@@ -54,7 +58,7 @@ export default function HomePanel({
   latestGrowth?: GrowthRecord;
   onOpen: (type: RecordType, mode?: SheetMode) => void;
   onQuickAdd: (type: RecordType) => void;
-  onSave: (record: BabyRecord) => void;
+  onSave: (record: BabyRecord, options?: AddRecordOptions) => void;
   onSmartReceipt: (text: string, warn?: boolean, undoIds?: string[]) => void;
   onDelete: (id: string) => void;
   onNurse: () => void;
@@ -125,7 +129,10 @@ export default function HomePanel({
       <div style={{ height: 18 }} />
 
       <div className="smart-section">
-        <SmartInput onSave={onSave} onReceipt={onSmartReceipt} />
+        <SmartInput
+          onSave={(record) => onSave(record, { silent: true })}
+          onReceipt={onSmartReceipt}
+        />
       </div>
 
       <QuickActions

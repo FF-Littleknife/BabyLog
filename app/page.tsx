@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BabyRecord, RecordType } from "@/lib/types";
+import { RECORD_LABEL } from "@/lib/types";
+import { formatClock } from "@/lib/time";
 import {
   deleteRecordFromCloud,
   fetchRecords,
@@ -34,6 +36,10 @@ const STORAGE_KEY = "baby-log-demo-records";
 
 type ViewType = "home" | "timeline";
 type SheetMode = "quick" | "full";
+
+type AddRecordOptions = {
+  silent?: boolean;
+};
 
 const PULL_REFRESH = {
   triggerDistance: 74,
@@ -96,6 +102,58 @@ const seedRecords: BabyRecord[] = [
     createdAt: new Date().toISOString(),
   },
 ];
+
+function formatReceiptRecord(record: BabyRecord) {
+  const time = formatClock(record.time);
+
+  if (record.type === "note") {
+    return `${time} ${record.note || "备注"}`;
+  }
+
+  if (record.type === "formula" || record.type === "bottle_breast") {
+    const amount = record.amountMl ? ` ${record.amountMl}ml` : "";
+    const note = record.note ? ` · ${record.note}` : "";
+
+    return `${time} ${RECORD_LABEL[record.type]}${amount}${note}`;
+  }
+
+  if (record.type === "pump") {
+    const parts = [];
+
+    if (record.amountMl) parts.push(`${record.amountMl}ml`);
+    if (record.durationMin) parts.push(`${record.durationMin}分钟`);
+    if (record.note) parts.push(record.note);
+
+    return `${time} ${RECORD_LABEL[record.type]}${
+      parts.length ? ` ${parts.join(" · ")}` : ""
+    }`;
+  }
+
+  if (record.type === "breast") {
+    const parts = [];
+    const left = record.leftMin || 0;
+    const right = record.rightMin || 0;
+    const total = record.durationMin || left + right;
+
+    if (left || right) {
+      parts.push(`左侧${left}分钟 · 右侧${right}分钟 · 共${total}分钟`);
+    } else if (record.durationMin) {
+      parts.push(`共${record.durationMin}分钟`);
+    }
+
+    if (record.note) parts.push(record.note);
+
+    return `${time} 母乳${parts.length ? `｜${parts.join(" · ")}` : ""}`;
+  }
+
+  if (record.type === "pee" || record.type === "poop") {
+    return `${time} ${RECORD_LABEL[record.type]}${
+      record.note ? ` · ${record.note}` : ""
+    }`;
+  }
+
+  return `${time} ${RECORD_LABEL[record.type]}`;
+}
 
 export default function Home() {
   const [records, setRecords] = useState<BabyRecord[]>([]);
@@ -326,7 +384,7 @@ export default function Home() {
     setActiveSheetMode("quick");
   }
 
-  async function addRecord(record: BabyRecord) {
+  async function addRecord(record: BabyRecord, options: AddRecordOptions = {}) {
     setRecords((prev) =>
       [record, ...prev].sort(
         (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
@@ -335,6 +393,12 @@ export default function Home() {
 
     closeSheet();
     buzz();
+
+    if (!options.silent) {
+      showSmartReceipt(`已记录：${formatReceiptRecord(record)}`, false, [
+        record.id,
+      ]);
+    }
 
     try {
       await insertRecord(record);
