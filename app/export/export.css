@@ -1,0 +1,242 @@
+:root {
+  /* 页面基础颜色 */
+  --export-bg: #f2f2f6; /* 页面背景色，也是导出 PDF 的页边距颜色 */
+  --export-text: #111111; /* 主文字颜色 */
+  --export-muted: #8e8e93; /* 灰色辅助文字 */
+  --export-blue: #0a84ff; /* 主按钮蓝色 */
+  --export-white: #ffffff; /* 白色 */
+
+  /* 页面整体 */
+  --export-page-padding: 28px; /* 页面四周留白，同时控制 PDF 里的底色页边距 */
+
+  /* 顶部标题区域 */
+  --toolbar-gap: 18px; /* 标题区内部上下距离 */
+  --toolbar-margin-bottom: 22px; /* 顶部区域到底部筛选区的距离 */
+
+  --title-size: 28px; /* 页面大标题字号 */
+  --title-letter-spacing: -0.04em; /* 页面大标题字间距 */
+
+  --desc-size: 13px; /* 标题下说明文字字号 */
+  --desc-margin-top: 8px; /* 说明文字距离标题的距离 */
+
+  /* 顶部操作按钮 */
+  --action-gap: 10px; /* 操作按钮之间的距离 */
+
+  --control-height: 52px; /* 筛选框/按钮高度 */
+  --control-radius: 999px; /* 筛选框/按钮圆角 */
+  --control-padding-x: 16px; /* 筛选框/按钮左右内边距 */
+  --control-bg: rgba(255, 255, 255, 0.86); /* 筛选框/普通按钮背景 */
+
+  /* 筛选区域 */
+  --filters-type-width: 160px; /* 类型筛选宽度 */
+  --filters-date-width: 220px; /* 日期筛选宽度 */
+  --filters-gap: 12px; /* 筛选项之间的距离 */
+  --filters-margin-bottom: 28px; /* 筛选区域到记录标题的距离 */
+  --filter-label-gap: 6px; /* 筛选标签和输入框之间的距离 */
+  --filter-label-size: 12px; /* 筛选标签字号 */
+  --filter-label-weight: 700; /* 筛选标签字重 */
+
+  /* 导出正文标题区域 */
+  --print-header-margin-bottom: 18px; /* 标题区域到底部表格的距离 */
+  --print-title-size: 20px; /* “叶票票喂养记录”字号 */
+  --print-desc-size: 13px; /* “共 X 条记录”字号 */
+  --print-desc-margin-top: 6px; /* “共 X 条记录”距离标题的距离 */
+
+  /* 每一天的表格模块 */
+  --day-block-margin-bottom: 28px; /* 每天表格之间的距离 */
+  --day-title-size: 14px; /* 日期标题字号 */
+  --day-title-margin-bottom: 10px; /* 日期标题到表格的距离 */
+
+  /* 表格整体 */
+  --table-radius: 18px; /* 表格圆角 */
+  --table-bg: #ffffff; /* 表格背景色 */
+  --table-head-bg: rgba(0, 0, 0, 0.04); /* 表头背景色 */
+  --table-border: 1px solid rgba(0, 0, 0, 0.08); /* 表格横线 */
+
+  /* 表格文字和间距 */
+  --table-cell-padding-y: 12px; /* 表格单元格上下内边距 */
+  --table-cell-padding-x: 10px; /* 表格单元格左右内边距 */
+  --table-cell-size: 12px; /* 表格正文字号 */
+  --table-head-weight: 760; /* 表头字重 */
+
+  /* 表格列宽 */
+  --table-date-width: 22%; /* 日期列宽 */
+  --table-time-width: 16%; /* 时间列宽 */
+  --table-type-width: 18%; /* 类型列宽 */
+  --table-detail-width: 26%; /* 详情列宽 */
+  --table-note-width: 18%; /* 备注列宽 */
+}
+
+.export-page {
+  min-height: 100vh;
+  background: var(--export-bg);
+  color: var(--export-text);
+  padding: var(--export-page-padding);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+    "Helvetica Neue", Arial, sans-serif;
+}
+
+/*
+  PDF 导出的截图区域。
+  这里故意使用负 margin 把正文区域扩回页面边缘，
+  再用 padding 补回留白。
+  这样导出的 PDF 页边距颜色永远跟 --export-bg 一致。
+*/
+.export-document {
+  background: var(--export-bg);
+  padding: var(--export-page-padding);
+  margin: 0 calc(var(--export-page-padding) * -1)
+    calc(var(--export-page-padding) * -1);
+}
+
+.export-toolbar {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--toolbar-gap);
+  margin-bottom: var(--toolbar-margin-bottom);
+}
+
+.export-toolbar h1 {
+  margin: 0;
+  font-size: var(--title-size);
+  letter-spacing: var(--title-letter-spacing);
+}
+
+.export-toolbar p {
+  margin: var(--desc-margin-top) 0 0;
+  color: var(--export-muted);
+  font-size: var(--desc-size);
+}
+
+.export-actions {
+  display: flex;
+  gap: var(--action-gap);
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.export-actions button,
+.export-filters select,
+.export-filters input {
+  height: var(--control-height);
+  border: 0;
+  border-radius: var(--control-radius);
+  padding: 0 var(--control-padding-x);
+  background: var(--control-bg);
+  color: var(--export-text);
+  font: inherit;
+}
+
+.export-actions button.primary {
+  background: var(--export-blue);
+  color: var(--export-white);
+  font-weight: 760;
+}
+
+.export-filters {
+  display: grid;
+  grid-template-columns:
+    var(--filters-type-width)
+    var(--filters-date-width)
+    var(--filters-date-width);
+  gap: var(--filters-gap);
+  align-items: end;
+  margin-bottom: var(--filters-margin-bottom);
+}
+
+.export-filters label {
+  display: grid;
+  gap: var(--filter-label-gap);
+  color: var(--export-muted);
+  font-size: var(--filter-label-size);
+  font-weight: var(--filter-label-weight);
+}
+
+.print-header {
+  margin-bottom: var(--print-header-margin-bottom);
+}
+
+.print-header h2 {
+  margin: 0;
+  font-size: var(--print-title-size);
+}
+
+.print-header p {
+  margin: var(--print-desc-margin-top) 0 0;
+  color: var(--export-muted);
+  font-size: var(--print-desc-size);
+}
+
+.day-table-block {
+  margin-bottom: var(--day-block-margin-bottom);
+}
+
+.day-table-block h3 {
+  margin: 0 0 var(--day-title-margin-bottom);
+  font-size: var(--day-title-size);
+  color: var(--export-text);
+}
+
+.export-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  background: var(--table-bg);
+  border-radius: var(--table-radius);
+  overflow: hidden;
+}
+
+.export-table th,
+.export-table td {
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+  border-bottom: var(--table-border);
+  text-align: left;
+  font-size: var(--table-cell-size);
+  vertical-align: top;
+  word-break: break-word;
+}
+
+.export-table th {
+  background: var(--table-head-bg);
+  color: var(--export-muted);
+  font-weight: var(--table-head-weight);
+}
+
+.export-table th:nth-child(1),
+.export-table td:nth-child(1) {
+  width: var(--table-date-width);
+}
+
+.export-table th:nth-child(2),
+.export-table td:nth-child(2) {
+  width: var(--table-time-width);
+}
+
+.export-table th:nth-child(3),
+.export-table td:nth-child(3) {
+  width: var(--table-type-width);
+}
+
+.export-table th:nth-child(4),
+.export-table td:nth-child(4) {
+  width: var(--table-detail-width);
+}
+
+.export-table th:nth-child(5),
+.export-table td:nth-child(5) {
+  width: var(--table-note-width);
+}
+
+.export-table tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (max-width: 720px) {
+  .export-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .export-actions {
+    justify-content: flex-start;
+  }
+}
