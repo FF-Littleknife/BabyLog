@@ -60,6 +60,17 @@ const AUTO_REFRESH = {
   tickMs: 60 * 1000,
 };
 
+/**
+ * 顶部渐隐遮罩
+ * 页面内容向上滚动消失时，会先进入这层渐变，不会被屏幕边缘硬切。
+ */
+const TOP_FADE = {
+  height: 64,
+  zIndex: 35,
+  background:
+    "linear-gradient(to bottom, rgba(244,241,246,1) 0%, rgba(244,241,246,.86) 36%, rgba(244,241,246,0) 100%)",
+};
+
 const SMART_RECEIPT = {
   bottom: 126,
   left: "50%",
@@ -642,6 +653,20 @@ export default function Home() {
           }
         }
       `}</style>
+
+      <div
+        aria-hidden
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: `calc(${TOP_FADE.height}px + env(safe-area-inset-top))`,
+          zIndex: TOP_FADE.zIndex,
+          pointerEvents: "none",
+          background: TOP_FADE.background,
+        }}
+      />
 
       {(pullDistance > 0 || refreshing) && (
         <div

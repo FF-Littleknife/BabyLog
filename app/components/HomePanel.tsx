@@ -18,7 +18,7 @@ type AddRecordOptions = {
 
 const HOME_TITLE = {
   text: "叶票票喂养记录",
-  margin: "42px 0 30px",
+  margin: "74px 0 30px",
   fontSize: 24,
   lineHeight: 1.05,
   fontWeight: 950,
@@ -27,7 +27,7 @@ const HOME_TITLE = {
 };
 
 const GROWTH_BUTTON = {
-  top: 30,
+  top: 68,
   right: 4,
   zIndex: 30,
   size: 42,

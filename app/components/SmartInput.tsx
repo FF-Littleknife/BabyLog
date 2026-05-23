@@ -36,7 +36,7 @@ const SMART_INPUT_CONFIG = {
 
   // iOS Safari 里 input 字号小于 16px 会自动放大页面。
   // 由于首页在小屏会整体 zoom 缩放，所以这里用 20 更稳。
-  inputSize: 20,
+  inputSize: 16,
   inputLineHeight: 1.2,
 
   /* =========================
