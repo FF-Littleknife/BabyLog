@@ -1,22 +1,41 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { GrowthRecord } from "@/lib/growthApi";
 
+/**
+ * 成长曲线卡片参数
+ * 后面想调卡片高度、曲线颜色、日期、点间距、默认滚动位置，优先改这里。
+ */
 const CHARTS = {
-  marginTop: 16,
+  /* =========================
+     整体布局
+     ========================= */
 
-  listGap: 12,
+  marginTop: 10,
+  listGap: 10,
 
-  cardHeight: 158,
+  /* =========================
+     单张曲线卡片
+     ========================= */
+
+  cardHeight: 160,
   cardBg: "rgba(255,255,255,.82)",
   cardRadius: 26,
   cardPadding: 14,
   cardShadow: "0 10px 34px rgba(0,0,0,.05)",
 
+  /* =========================
+     卡片标题
+     ========================= */
+
   titleColor: "#8e8e93",
   titleSize: 12,
-  titleWeight: 760,
+  titleWeight: 400,
+
+  /* =========================
+     当前最新数值
+     ========================= */
 
   valueColor: "#111111",
   valueSize: 22,
@@ -25,14 +44,23 @@ const CHARTS = {
   unitColor: "#8e8e93",
   unitSize: 12,
   unitWeight: 650,
+  unitMarginLeft: 3,
+
+  /* =========================
+     右上角最新日期
+     ========================= */
 
   dateColor: "rgba(142,142,147,.72)",
   dateSize: 10,
 
-  chartMarginTop: 10,
+  /* =========================
+     曲线区域
+     ========================= */
 
-  svgHeight: 82,
+  chartMarginTop: 10,
   chartHeight: 96,
+  svgHeight: 82,
+
   pointGap: 54,
   minChartWidth: 300,
   chartPaddingX: 18,
@@ -46,9 +74,18 @@ const CHARTS = {
   axisColor: "rgba(0,0,0,.08)",
   labelColor: "rgba(142,142,147,.72)",
   labelSize: 10,
+  labelWeight: 400,
+
+  /* =========================
+     空状态
+     ========================= */
 
   emptyColor: "rgba(142,142,147,.68)",
   emptySize: 12,
+
+  /* =========================
+     三项曲线颜色
+     ========================= */
 
   heightColor: "#0a84ff",
   weightColor: "#ff3b30",
@@ -60,12 +97,6 @@ type GrowthMetric = {
   title: string;
   unit: string;
   color: string;
-};
-
-type MetricPoint = {
-  id: string;
-  date: string;
-  value: number;
 };
 
 const METRICS: GrowthMetric[] = [
@@ -159,7 +190,7 @@ function normalizePoints(values: number[], chartWidth: number) {
 
     const ratio = range === 0 ? 0.5 : (value - min) / range;
 
-    // 曲线区域控制在轴线以上，给底部日期留空间
+    // 曲线区域控制在横轴上方，底部留给日期
     const y = CHARTS.axisY - ratio * 42 - 8;
 
     return { x, y };
@@ -173,18 +204,31 @@ function GrowthMiniChartCard({
   metric: GrowthMetric;
   records: GrowthRecord[];
 }) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
   const points = useMemo(
     () => getMetricPoints(records, metric.key),
     [records, metric.key]
   );
 
   const latest = points[points.length - 1];
+
   const chartWidth = getChartWidth(points.length);
+
   const normalizedPoints = normalizePoints(
     points.map((point) => point.value),
     chartWidth
   );
+
   const path = makePath(normalizedPoints);
+
+  useEffect(() => {
+    const scrollEl = scrollRef.current;
+    if (!scrollEl) return;
+
+    // 默认展示最新数据：滚到最右侧
+    scrollEl.scrollLeft = scrollEl.scrollWidth;
+  }, [points.length, chartWidth]);
 
   return (
     <article
@@ -234,7 +278,7 @@ function GrowthMiniChartCard({
             {latest && (
               <span
                 style={{
-                  marginLeft: 3,
+                  marginLeft: CHARTS.unitMarginLeft,
                   color: CHARTS.unitColor,
                   fontSize: CHARTS.unitSize,
                   fontWeight: CHARTS.unitWeight,
@@ -260,6 +304,7 @@ function GrowthMiniChartCard({
       </div>
 
       <div
+        ref={scrollRef}
         style={{
           marginTop: CHARTS.chartMarginTop,
           height: CHARTS.chartHeight,
@@ -269,6 +314,14 @@ function GrowthMiniChartCard({
           scrollbarWidth: "none",
         }}
       >
+        <style jsx>{`
+          div::-webkit-scrollbar {
+            display: none;
+            width: 0;
+            height: 0;
+          }
+        `}</style>
+
         {!points.length ? (
           <div
             style={{
@@ -328,7 +381,7 @@ function GrowthMiniChartCard({
                   textAnchor="middle"
                   fill={CHARTS.labelColor}
                   fontSize={CHARTS.labelSize}
-                  fontWeight="600"
+                  fontWeight={CHARTS.labelWeight}
                 >
                   {formatDate(points[index].date)}
                 </text>
