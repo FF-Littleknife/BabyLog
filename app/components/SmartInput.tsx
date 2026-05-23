@@ -10,20 +10,12 @@ import { formatClock } from "@/lib/time";
  * 后面想调标题、输入框、add 图标、预览提示，优先改这里。
  */
 const SMART_INPUT_CONFIG = {
-  /* =========================
-     顶部小标题
-     ========================= */
-
   titleText: "快捷记录",
   titleMargin: "0 0 8px 4px",
   titleColor: "#8e8e93",
   titleSize: 12,
   titleWeight: 700,
   titleLetterSpacing: "0.04em",
-
-  /* =========================
-     输入框外壳
-     ========================= */
 
   placeholder: "",
 
@@ -33,25 +25,13 @@ const SMART_INPUT_CONFIG = {
   boxRadius: 22,
   boxShadow: "0 10px 34px rgba(0,0,0,.05)",
 
-  /* =========================
-     输入文字
-     ========================= */
-
   inputColor: "#111111",
   inputPlaceholderColor: "#8e8e93",
   inputPadding: "13px 10px",
 
-  /* =========================
-     add 图标按钮
-     ========================= */
-
   buttonSize: 44,
   iconSize: 28,
   iconOpacity: 0.9,
-
-  /* =========================
-     记录预览
-     ========================= */
 
   previewPrefix: "将记录",
   previewMarginTop: 8,
@@ -59,10 +39,6 @@ const SMART_INPUT_CONFIG = {
   previewColor: "#8e8e93",
   previewPastDateColor: "#c27a19",
   previewWarnColor: "#ff9500",
-
-  /* =========================
-     提交反馈小票
-     ========================= */
 
   receiptPrefix: "已记录",
 };
@@ -85,9 +61,7 @@ function formatRecordTime(record: BabyRecord) {
   const date = new Date(record.time);
   const clock = formatClock(record.time);
 
-  if (isToday(date)) {
-    return clock;
-  }
+  if (isToday(date)) return clock;
 
   return `${date.getMonth() + 1}/${date.getDate()} ${clock}`;
 }
@@ -117,8 +91,11 @@ function formatBreastDetail(record: BabyRecord) {
 function formatRecord(record: BabyRecord) {
   const time = formatRecordTime(record);
 
-  if (record.type === "note") {
-    return `${time} ${record.note || "备注"}`;
+  if (record.type === "other") {
+    const content = record.content || record.note || "其他";
+    const note = record.content && record.note ? ` · ${record.note}` : "";
+
+    return `${time} ${content}${note}`;
   }
 
   if (record.type === "formula" || record.type === "bottle_breast") {

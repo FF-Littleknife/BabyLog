@@ -110,7 +110,7 @@ const TIMELINE_CONFIG = {
   peeColor: "#00b8c8", // 小便颜色
   poopColor: "#7ac70c", // 大便颜色
   pumpColor: "#af52de", // 泵奶颜色
-  noteColor: "#8e8e93", // note / 备注类颜色，例如乳糖酶、维生素D
+  otherColor: "#8e8e93", // 其他类颜色，例如乳糖酶、维生素D
 
   /* =========================
      交互
@@ -144,12 +144,12 @@ function formatInterval(from: string, to: string) {
 }
 
 function title(record: BabyRecord) {
-  if (record.type === "note") return record.note || "备注";
+  if (record.type === "other") return record.content || record.note || "其他";
   return RECORD_LABEL[record.type];
 }
 
 function detail(record: BabyRecord) {
-  if (record.type === "note") return "";
+  if (record.type === "other") return record.note || "";
 
   if (record.type === "pump") {
     const parts = [];
@@ -199,7 +199,7 @@ function getDotColor(type: BabyRecord["type"]) {
 
   if (type === "pee") return TIMELINE_CONFIG.peeColor;
   if (type === "poop") return TIMELINE_CONFIG.poopColor;
-  if (type === "note") return TIMELINE_CONFIG.noteColor;
+  if (type === "other") return TIMELINE_CONFIG.otherColor;
 
   return "#8e8e93";
 }

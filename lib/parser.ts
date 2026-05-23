@@ -82,13 +82,6 @@ function isFutureTime(date: Date) {
   return date.getTime() > Date.now() + FUTURE_TOLERANCE_MS;
 }
 
-/**
- * 如果用户没写日期，只写了时间，
- * 并且这个时间比现在还晚，就默认理解为昨天。
- *
- * 例如现在是 00:24：
- * 23点小便 → 昨天 23:00
- */
 function normalizeFutureTimeWithoutExplicitDate(
   date: Date,
   hasExplicitDate: boolean
@@ -104,25 +97,6 @@ function normalizeFutureTimeWithoutExplicitDate(
   return date;
 }
 
-/**
- * 识别日期
- *
- * 支持：
- * 今天
- * 昨天
- * 前天
- * 明天
- * 后天
- * 5月22日
- * 5月22号
- * 5/22
- * 5-22
- * 5.22
- * 2026-5-22
- * 2026/5/22
- * 2026.5.22
- * 2026年5月22日
- */
 function findDate(text: string): DateInfo | null {
   if (/后天/.test(text)) {
     return {
@@ -211,16 +185,6 @@ function findDate(text: string): DateInfo | null {
   return null;
 }
 
-/**
- * 识别相对时间
- *
- * 支持：
- * 刚刚
- * 现在
- * 半小时前
- * 20分钟前
- * 1小时前
- */
 function findRelativeTime(text: string): TimeInfo | null {
   const now = new Date();
 
@@ -275,24 +239,6 @@ function findRelativeTime(text: string): TimeInfo | null {
   return null;
 }
 
-/**
- * 识别时间
- *
- * 支持：
- * 刚刚
- * 现在
- * 半小时前
- * 20分钟前
- * 1小时前
- * 10:00
- * 10：00
- * 10点
- * 10点整
- * 10点半
- * 10点05
- * 10点5分
- * 10点05分
- */
 function findTime(text: string, baseDate: Date): TimeInfo | null {
   const relative = findRelativeTime(text);
   if (relative) return relative;
@@ -340,7 +286,7 @@ function hasAnyWord(text: string, words: string[]) {
   return words.some((word) => text.includes(word));
 }
 
-function getWordsByType(type: Exclude<RecordType, "note">) {
+function getWordsByType(type: Exclude<RecordType, "other">) {
   return SMART_RECORD_RULES.filter((rule) => rule.type === type).flatMap(
     (rule) => rule.words
   );
@@ -358,19 +304,6 @@ function makeWordsPattern(words: string[]) {
   return words.map(escapeRegExp).join("|");
 }
 
-/**
- * 拆分事件
- *
- * 常规按逗号、顿号、分号、换行拆。
- *
- * 另外支持：
- * 小便 大便一点点 → 小便 / 大便一点点
- * 大便 小便一点点 → 大便 / 小便一点点
- *
- * 但不会拆：
- * 大小便一点点
- * 因为这是组合事件，后面的备注要同时给大小便。
- */
 function splitEvents(input: string) {
   const peePattern = makeWordsPattern(getPeeWords());
   const poopPattern = makeWordsPattern(getPoopWords());
@@ -539,7 +472,7 @@ function cleanNote(text: string, type: RecordType) {
     ""
   );
 
-  if (type !== "note") {
+  if (type !== "other") {
     note = removeRuleWords(note);
   }
 
@@ -577,10 +510,12 @@ function cleanNote(text: string, type: RecordType) {
 function makeSimpleRecord({
   type,
   time,
+  content,
   note,
 }: {
   type: RecordType;
   time: Date;
+  content?: string;
   note?: string;
 }): BabyRecord {
   return {
@@ -588,19 +523,20 @@ function makeSimpleRecord({
     type,
     time: time.toISOString(),
     createdAt: createdAt(),
+    content,
     note,
   };
 }
 
-function makeNoteRecord(raw: string, time: Date): BabyRecord | null {
-  const note = stripDateTime(raw).trim();
+function makeOtherRecord(raw: string, time: Date): BabyRecord | null {
+  const content = stripDateTime(raw).trim();
 
-  if (!note) return null;
+  if (!content) return null;
 
   return makeSimpleRecord({
-    type: "note",
+    type: "other",
     time,
-    note,
+    content,
   });
 }
 
@@ -620,12 +556,6 @@ function parsePart(
     Boolean(dateInfo)
   );
 
-  /**
-   * 最终保险：
-   * 不允许生成未来记录。
-   *
-   * 明确写了未来日期 / 明天 / 后天，都会在这里被拦住。
-   */
   if (isFutureTime(recordTime)) {
     return null;
   }
@@ -634,8 +564,8 @@ function parsePart(
   const type = detectType(text);
 
   if (!type) {
-    const noteRecord = makeNoteRecord(raw, recordTime);
-    return noteRecord ? [noteRecord] : null;
+    const otherRecord = makeOtherRecord(raw, recordTime);
+    return otherRecord ? [otherRecord] : null;
   }
 
   if (hasAnyWord(text, PEE_POOP_COMBO_WORDS)) {
@@ -733,13 +663,6 @@ export function parseSmartInputs(input: string): ParseResult {
         Boolean(dateInfo)
       );
 
-      /**
-       * 明确未来时间不继承。
-       * 例如：
-       * 明天10点小便，11点大便
-       *
-       * 这里不应该让 11点继承明天。
-       */
       if (!isFutureTime(normalizedTime)) {
         inheritedTime = normalizedTime;
         inheritedDate = cloneDateOnly(normalizedTime);

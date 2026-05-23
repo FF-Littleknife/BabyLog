@@ -71,6 +71,16 @@ function textToNumber(value: string) {
   return Number.isFinite(num) ? num : undefined;
 }
 
+function editTitle(record: BabyRecord) {
+  if (record.type === "other") return "编辑其他记录";
+  return `编辑${RECORD_LABEL[record.type]}`;
+}
+
+function deleteTitle(record: BabyRecord) {
+  if (record.type === "other") return record.content || record.note || "其他记录";
+  return RECORD_LABEL[record.type];
+}
+
 function Field({
   label,
   children,
@@ -127,7 +137,10 @@ export default function EditRecordSheet({
   );
   const [leftMin, setLeftMin] = useState(numberToText(record.leftMin));
   const [rightMin, setRightMin] = useState(numberToText(record.rightMin));
-  const [note, setNote] = useState(record.note ?? "");
+  const [content, setContent] = useState(record.content ?? record.note ?? "");
+  const [note, setNote] = useState(record.content ? record.note ?? "" : "");
+
+  const isOther = record.type === "other";
 
   const showAmount =
     record.type === "formula" ||
@@ -153,12 +166,13 @@ export default function EditRecordSheet({
       durationMin: showDuration ? autoDuration : undefined,
       leftMin: showBreastSides ? nextLeft : undefined,
       rightMin: showBreastSides ? nextRight : undefined,
+      content: isOther ? content.trim() || undefined : undefined,
       note: note.trim() || undefined,
     });
   }
 
   function remove() {
-    const ok = window.confirm(`删除这条「${RECORD_LABEL[record.type]}」记录吗？`);
+    const ok = window.confirm(`删除这条「${deleteTitle(record)}」记录吗？`);
 
     if (!ok) return;
 
@@ -186,7 +200,7 @@ export default function EditRecordSheet({
                 fontWeight: EDIT_SHEET.titleWeight,
               }}
             >
-              编辑{RECORD_LABEL[record.type]}
+              {editTitle(record)}
             </div>
 
             <div
@@ -294,6 +308,17 @@ export default function EditRecordSheet({
                 value={durationMin}
                 onChange={(e) => setDurationMin(e.target.value)}
                 style={inputStyle()}
+              />
+            </Field>
+          )}
+
+          {isOther && (
+            <Field label="内容">
+              <input
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                style={inputStyle()}
+                placeholder="比如：乳糖酶 / 维生素D / 洗澡"
               />
             </Field>
           )}

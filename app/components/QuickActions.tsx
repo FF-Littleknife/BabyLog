@@ -70,6 +70,12 @@ const QUICK_ITEMS: {
     mode: "full",
     doubleQuickAdd: true,
   },
+  {
+    title: "其他",
+    icon: "/add.svg",
+    type: "other",
+    mode: "full",
+  },
 ];
 
 type QuickCircleProps = {

@@ -26,6 +26,7 @@ const TYPE_OPTIONS: { label: string; value: "all" | RecordType }[] = [
   { label: "小便", value: "pee" },
   { label: "大便", value: "poop" },
   { label: "泵奶", value: "pump" },
+  { label: "其他", value: "other" },
 ];
 
 function formatDate(iso: string) {
@@ -43,6 +44,10 @@ function formatTime(iso: string) {
 function formatDetail(record: BabyRecord) {
   const parts: string[] = [];
 
+  if (record.type === "other") {
+    return record.content || record.note || "";
+  }
+
   if (record.amountMl) parts.push(`${record.amountMl}ml`);
 
   if (record.leftMin || record.rightMin) {
@@ -52,6 +57,14 @@ function formatDetail(record: BabyRecord) {
   }
 
   return parts.join(" · ");
+}
+
+function formatNote(record: BabyRecord) {
+  if (record.type === "other" && !record.content) {
+    return "";
+  }
+
+  return record.note || "";
 }
 
 function toDateInputValue(date: Date) {
@@ -247,7 +260,7 @@ export default function ExportTable() {
                     <td>{formatTime(record.time)}</td>
                     <td>{RECORD_LABEL[record.type]}</td>
                     <td>{formatDetail(record) || "—"}</td>
-                    <td>{record.note || "—"}</td>
+                    <td>{formatNote(record) || "—"}</td>
                   </tr>
                 ))}
               </tbody>

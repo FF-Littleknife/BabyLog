@@ -27,6 +27,7 @@ import BottleBreastSheet from "./components/sheets/BottleBreastSheet";
 import EditRecordSheet from "./components/sheets/EditRecordSheet";
 import FormulaSheet from "./components/sheets/FormulaSheet";
 import GrowthSheet from "./components/sheets/GrowthSheet";
+import OtherSheet from "./components/sheets/OtherSheet";
 import PeeSheet from "./components/sheets/PeeSheet";
 import PoopSheet from "./components/sheets/PoopSheet";
 import PumpSheet from "./components/sheets/PumpSheet";
@@ -128,8 +129,11 @@ function formatBreastDetail(record: BabyRecord) {
 function formatReceiptRecord(record: BabyRecord) {
   const time = formatClock(record.time);
 
-  if (record.type === "note") {
-    return `${time} ${record.note || "备注"}`;
+  if (record.type === "other") {
+    const content = record.content || record.note || "其他";
+    const note = record.content && record.note ? ` · ${record.note}` : "";
+
+    return `${time} ${content}${note}`;
   }
 
   if (record.type === "formula" || record.type === "bottle_breast") {
@@ -650,11 +654,16 @@ export default function Home() {
         <PumpSheet onClose={closeSheet} onSave={addRecord} />
       )}
 
+      {activeSheet === "other" && (
+        <OtherSheet onClose={closeSheet} onSave={addRecord} />
+      )}
+
       {activeSheet &&
         activeSheet !== "breast" &&
         activeSheet !== "bottle_breast" &&
         activeSheet !== "formula" &&
         activeSheet !== "pump" &&
+        activeSheet !== "other" &&
         !(activeSheet === "pee" && activeSheetMode === "full") &&
         !(activeSheet === "poop" && activeSheetMode === "full") && (
           <RecordSheet
@@ -675,7 +684,7 @@ export default function Home() {
 
       {growthOpen && (
         <GrowthSheet
-          latest={latestGrowth}
+          records={growthRecords}
           onClose={() => setGrowthOpen(false)}
           onSave={addGrowthRecord}
         />

@@ -1,7 +1,12 @@
-import type { BabyRecord } from "@/lib/types";
+import type { BabyRecord, RecordType } from "@/lib/types";
 import { supabase } from "@/lib/supabase";
 
 const BABY_ID = "yepiaopiao";
+
+function normalizeRecordType(type: string): RecordType {
+  if (type === "note") return "other";
+  return type as RecordType;
+}
 
 function toDbRecord(record: BabyRecord) {
   return {
@@ -17,6 +22,7 @@ function toDbRecord(record: BabyRecord) {
     duration_min: record.durationMin ?? null,
     left_min: record.leftMin ?? null,
     right_min: record.rightMin ?? null,
+    content: record.content ?? null,
     note: record.note ?? null,
 
     source: null,
@@ -34,14 +40,17 @@ function toDbUpdate(record: BabyRecord) {
     duration_min: record.durationMin ?? null,
     left_min: record.leftMin ?? null,
     right_min: record.rightMin ?? null,
+    content: record.content ?? null,
     note: record.note ?? null,
   };
 }
 
 function fromDbRecord(row: any): BabyRecord {
+  const type = normalizeRecordType(row.type);
+
   return {
     id: row.id,
-    type: row.type,
+    type,
     time: row.time,
     createdAt: row.created_at,
 
@@ -49,7 +58,20 @@ function fromDbRecord(row: any): BabyRecord {
     durationMin: row.duration_min ?? undefined,
     leftMin: row.left_min ?? undefined,
     rightMin: row.right_min ?? undefined,
-    note: row.note ?? undefined,
+
+    // 兼容旧数据：
+    // 旧 note / other 记录曾经把“乳糖酶”存在 note 里。
+    // 如果 content 为空，就把旧 note 当 content 读出来。
+    content:
+      row.content ??
+      (type === "other" && row.note ? row.note : undefined),
+
+    // 如果是旧 other/note 且 content 为空，note 已经被当 content 使用，
+    // 这里就不再重复显示成备注。
+    note:
+      type === "other" && !row.content
+        ? undefined
+        : row.note ?? undefined,
   };
 }
 

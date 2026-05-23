@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { GrowthRecord } from "@/lib/growthApi";
+import GrowthCharts from "@/app/components/GrowthCharts";
 
 const GROWTH_SHEET = {
   overlayBg: "rgba(244,241,246,.36)",
@@ -16,18 +17,19 @@ const GROWTH_SHEET = {
   titleSize: 20,
   titleWeight: 820,
 
-  subColor: "#8e8e93",
-  subSize: 13,
+  ageTextColor: "#8e8e93",
+  ageTextSize: 12,
+  ageTextWeight: 650,
+  ageTextMarginTop: 8,
+
+  titleMarginBottom: 22,
 
   cardBg: "rgba(255,255,255,.82)",
   cardRadius: 28,
-  cardPadding: "18px 20px",
+  cardPadding: "20px 20px 18px",
   cardShadow: "0 10px 34px rgba(0,0,0,.05)",
 
   statGap: 16,
-  labelColor: "#8e8e93",
-  labelSize: 12,
-  labelWeight: 700,
 
   valueColor: "#111111",
   valueSize: 28,
@@ -37,7 +39,21 @@ const GROWTH_SHEET = {
   unitSize: 13,
   unitWeight: 600,
 
+  statDateColor: "rgba(142,142,147,.72)",
+  statDateSize: 10,
+  statDateMarginTop: 7,
+
+  addIconWrapMarginTop: 18,
+  addIconButtonSize: 58,
+  addIconButtonBg: "rgba(255,255,255,.82)",
+  addIconButtonShadow: "0 10px 34px rgba(0,0,0,.05)",
+  addIconSize: 30,
+  addIconOpacity: 0.92,
+
   fieldGap: 12,
+  labelColor: "#8e8e93",
+  labelSize: 12,
+  labelWeight: 700,
 
   inputBg: "rgba(255,255,255,.76)",
   inputColor: "#111111",
@@ -47,8 +63,6 @@ const GROWTH_SHEET = {
 
   saveBg: "#0a84ff",
   saveColor: "#ffffff",
-  addBg: "#0a84ff",
-  addColor: "#ffffff",
   cancelBg: "rgba(0,0,0,.06)",
   cancelColor: "#8e8e93",
 
@@ -56,6 +70,63 @@ const GROWTH_SHEET = {
   buttonPadding: 16,
   buttonWeight: 760,
 };
+
+const BABY_BIRTH_DATE = "2026-04-19";
+
+type StatKey = "weightKg" | "heightCm" | "headCm";
+
+function getBabyAgeText() {
+  const birth = new Date(`${BABY_BIRTH_DATE}T00:00:00`);
+  const today = new Date();
+
+  const todayDate = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
+  );
+
+  const birthDate = new Date(
+    birth.getFullYear(),
+    birth.getMonth(),
+    birth.getDate()
+  );
+
+  const diffDays = Math.max(
+    0,
+    Math.floor((todayDate.getTime() - birthDate.getTime()) / 86400000)
+  );
+
+  const birthDayIndex = diffDays + 1;
+
+  let months =
+    (todayDate.getFullYear() - birthDate.getFullYear()) * 12 +
+    todayDate.getMonth() -
+    birthDate.getMonth();
+
+  if (todayDate.getDate() < birthDate.getDate()) {
+    months -= 1;
+  }
+
+  const safeMonths = Math.max(0, months);
+
+  const monthAnchor = new Date(
+    birthDate.getFullYear(),
+    birthDate.getMonth() + safeMonths,
+    birthDate.getDate()
+  );
+
+  const extraDays = Math.max(
+    0,
+    Math.floor((todayDate.getTime() - monthAnchor.getTime()) / 86400000)
+  );
+
+  const monthAgeText =
+    safeMonths > 0
+      ? `${safeMonths}月龄${extraDays ? `${extraDays}天` : ""}`
+      : `${diffDays}天龄`;
+
+  return `出生${birthDayIndex}天 · ${monthAgeText}`;
+}
 
 function todayValue() {
   const date = new Date();
@@ -78,6 +149,18 @@ function textToNumber(value: string) {
 
   const num = Number(value);
   return Number.isFinite(num) ? num : undefined;
+}
+
+function findLatestValueRecord(records: GrowthRecord[], key: StatKey) {
+  return [...records]
+    .filter((record) => typeof record[key] === "number")
+    .sort((a, b) => {
+      const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+
+      if (dateDiff !== 0) return dateDiff;
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    })[0];
 }
 
 function Field({
@@ -105,27 +188,16 @@ function Field({
 }
 
 function StatItem({
-  label,
   value,
   unit,
+  date,
 }: {
-  label: string;
   value?: number;
   unit: string;
+  date?: string;
 }) {
   return (
-    <div>
-      <div
-        style={{
-          color: GROWTH_SHEET.labelColor,
-          fontSize: GROWTH_SHEET.labelSize,
-          fontWeight: GROWTH_SHEET.labelWeight,
-          marginBottom: 7,
-        }}
-      >
-        {label}
-      </div>
-
+    <div style={{ textAlign: "left" }}>
       <div style={{ whiteSpace: "nowrap" }}>
         <span
           style={{
@@ -151,6 +223,18 @@ function StatItem({
           </span>
         )}
       </div>
+
+      <div
+        style={{
+          marginTop: GROWTH_SHEET.statDateMarginTop,
+          color: GROWTH_SHEET.statDateColor,
+          fontSize: GROWTH_SHEET.statDateSize,
+          lineHeight: 1,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {date ? formatDate(date) : "暂无日期"}
+      </div>
     </div>
   );
 }
@@ -168,11 +252,11 @@ function inputStyle() {
 }
 
 export default function GrowthSheet({
-  latest,
+  records,
   onClose,
   onSave,
 }: {
-  latest?: GrowthRecord;
+  records: GrowthRecord[];
   onClose: () => void;
   onSave: (record: GrowthRecord) => void;
 }) {
@@ -182,6 +266,21 @@ export default function GrowthSheet({
   const [heightCm, setHeightCm] = useState("");
   const [headCm, setHeadCm] = useState("");
   const [note, setNote] = useState("");
+
+  const latestWeight = useMemo(
+    () => findLatestValueRecord(records, "weightKg"),
+    [records]
+  );
+
+  const latestHeight = useMemo(
+    () => findLatestValueRecord(records, "heightCm"),
+    [records]
+  );
+
+  const latestHead = useMemo(
+    () => findLatestValueRecord(records, "headCm"),
+    [records]
+  );
 
   useEffect(() => {
     const oldOverflow = document.body.style.overflow;
@@ -240,52 +339,30 @@ export default function GrowthSheet({
       >
         <div
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: 14,
-            marginBottom: 20,
+            textAlign: "center",
+            marginBottom: GROWTH_SHEET.titleMarginBottom,
           }}
         >
-          <div>
-            <div
-              style={{
-                color: GROWTH_SHEET.titleColor,
-                fontSize: GROWTH_SHEET.titleSize,
-                fontWeight: GROWTH_SHEET.titleWeight,
-              }}
-            >
-              体测数据
-            </div>
-
-            <div
-              style={{
-                color: GROWTH_SHEET.subColor,
-                fontSize: GROWTH_SHEET.subSize,
-                marginTop: 5,
-              }}
-            >
-              最新记录：{formatDate(latest?.date)}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onClose}
+          <div
             style={{
-              width: 42,
-              height: 42,
-              border: 0,
-              borderRadius: 999,
-              background: "rgba(0,0,0,.06)",
-              color: "#8e8e93",
-              fontSize: 24,
-              lineHeight: 1,
-              flexShrink: 0,
+              color: GROWTH_SHEET.titleColor,
+              fontSize: GROWTH_SHEET.titleSize,
+              fontWeight: GROWTH_SHEET.titleWeight,
             }}
           >
-            ×
-          </button>
+            叶票票成长记录
+          </div>
+
+          <div
+            style={{
+              marginTop: GROWTH_SHEET.ageTextMarginTop,
+              color: GROWTH_SHEET.ageTextColor,
+              fontSize: GROWTH_SHEET.ageTextSize,
+              fontWeight: GROWTH_SHEET.ageTextWeight,
+            }}
+          >
+            {getBabyAgeText()}
+          </div>
         </div>
 
         {!adding ? (
@@ -304,30 +381,71 @@ export default function GrowthSheet({
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr",
                   gap: GROWTH_SHEET.statGap,
+                  alignItems: "start",
                 }}
               >
-                <StatItem label="体重" value={latest?.weightKg} unit="kg" />
-                <StatItem label="身高" value={latest?.heightCm} unit="cm" />
-                <StatItem label="头围" value={latest?.headCm} unit="cm" />
+                <StatItem
+                  value={latestHeight?.heightCm}
+                  unit="cm"
+                  date={latestHeight?.date}
+                />
+
+                <StatItem
+                  value={latestWeight?.weightKg}
+                  unit="kg"
+                  date={latestWeight?.date}
+                />
+
+                <StatItem
+                  value={latestHead?.headCm}
+                  unit="cm"
+                  date={latestHead?.date}
+                />
               </div>
             </section>
 
-            <div style={{ display: "grid", gap: 10, marginTop: 18 }}>
+            <GrowthCharts records={records} />
+
+            <div
+              style={{
+                marginTop: GROWTH_SHEET.addIconWrapMarginTop,
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
               <button
                 type="button"
+                aria-label="新增数据"
                 onClick={() => setAdding(true)}
                 style={{
+                  width: GROWTH_SHEET.addIconButtonSize,
+                  height: GROWTH_SHEET.addIconButtonSize,
                   border: 0,
-                  borderRadius: GROWTH_SHEET.buttonRadius,
-                  padding: GROWTH_SHEET.buttonPadding,
-                  background: GROWTH_SHEET.addBg,
-                  color: GROWTH_SHEET.addColor,
-                  fontWeight: GROWTH_SHEET.buttonWeight,
+                  borderRadius: 999,
+                  background: GROWTH_SHEET.addIconButtonBg,
+                  boxShadow: GROWTH_SHEET.addIconButtonShadow,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
-                新增数据
+                <img
+                  src="/add.svg"
+                  alt=""
+                  style={{
+                    width: GROWTH_SHEET.addIconSize,
+                    height: GROWTH_SHEET.addIconSize,
+                    objectFit: "contain",
+                    display: "block",
+                    opacity: GROWTH_SHEET.addIconOpacity,
+                  }}
+                />
               </button>
+            </div>
 
+            <div style={{ display: "grid", gap: 10, marginTop: 30 }}>
               <button
                 type="button"
                 onClick={onClose}
@@ -368,20 +486,20 @@ export default function GrowthSheet({
                   gap: 10,
                 }}
               >
-                <Field label="体重 kg">
-                  <input
-                    inputMode="decimal"
-                    value={weightKg}
-                    onChange={(e) => setWeightKg(e.target.value)}
-                    style={inputStyle()}
-                  />
-                </Field>
-
                 <Field label="身高 cm">
                   <input
                     inputMode="decimal"
                     value={heightCm}
                     onChange={(e) => setHeightCm(e.target.value)}
+                    style={inputStyle()}
+                  />
+                </Field>
+
+                <Field label="体重 kg">
+                  <input
+                    inputMode="decimal"
+                    value={weightKg}
+                    onChange={(e) => setWeightKg(e.target.value)}
                     style={inputStyle()}
                   />
                 </Field>
