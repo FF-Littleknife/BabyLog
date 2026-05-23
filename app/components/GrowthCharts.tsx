@@ -361,10 +361,10 @@ function GrowthMiniChartCard({
   const latest = points[points.length - 1];
 
   useEffect(() => {
-    const cardEl = cardRef.current;
-    if (!cardEl) return;
-
     function updateWidth() {
+      const cardEl = cardRef.current;
+      if (!cardEl) return;
+
       const innerWidth = Math.max(
         1,
         cardEl.clientWidth - CHARTS.cardPadding * 2
@@ -374,6 +374,9 @@ function GrowthMiniChartCard({
     }
 
     updateWidth();
+
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
 
     const observer = new ResizeObserver(updateWidth);
     observer.observe(cardEl);
