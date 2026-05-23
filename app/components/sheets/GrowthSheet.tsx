@@ -15,6 +15,7 @@ const GROWTH_SHEET = {
 
   overlayBg: "rgba(244,241,246,.36)", // 整个页面遮罩颜色。越大越白，越小越透
   overlayBlur: "blur(18px) saturate(120%)", // 背景模糊强度和饱和度
+  overlayPadding: "10px", // 弹窗距离屏幕边缘的安全距离，小手机别太大
 
   /* =========================
      内容容器
@@ -22,11 +23,11 @@ const GROWTH_SHEET = {
      只作为内容排版和滚动区域
      ========================= */
 
-  panelWidth: "min(calc(100% - 44px), 386px)", // 整个成长记录内容宽度
-  panelMaxHeight: "calc(100svh - 44px)", // 最大高度，超过后内部滚动
+  panelWidth: "min(calc(100% - 20px), 410px)", // 整个成长记录内容宽度
+  panelMaxHeight: "calc(100svh - 20px)", // 最大高度，超过后内部滚动
   panelRadius: 0, // 大容器圆角。当前透明，所以一般不用调
   panelBg: "transparent", // 大容器背景。保持 transparent 就是不要大外框
-  panelPadding: "22px", // 内容整体内边距
+  panelPadding: "12px", // 内容整体内边距
   panelShadow: "none", // 大容器阴影。当前不要大框，所以为 none
 
   /* =========================
@@ -54,10 +55,10 @@ const GROWTH_SHEET = {
 
   cardBg: "rgba(255,255,255,.82)", // 白色卡片背景
   cardRadius: 28, // 白色卡片圆角
-  cardPadding: "20px 20px 18px", // 白色卡片内边距
+  cardPadding: "20px 16px 18px", // 白色卡片内边距
   cardShadow: "0 10px 34px rgba(0,0,0,.05)", // 白色卡片阴影
 
-  statGap: 18, // 身高 / 体重 / 头围三列之间的距离
+  statGap: 10, // 身高 / 体重 / 头围三列之间的距离
 
   valueColor: "#111111", // 数值颜色
   valueSize: 28, // 数值字号
@@ -125,7 +126,7 @@ const GROWTH_SHEET = {
 
   buttonRadius: 22, // 保存/返回按钮圆角
   buttonPadding: 16, // 保存/返回按钮内边距
-  buttonWeight: 760, // 保存/返回按钮字重
+  buttonWeight: 760,
 };
 
 const BABY_BIRTH_DATE = "2026-04-19";
@@ -255,7 +256,12 @@ function StatItem({
   date?: string;
 }) {
   return (
-    <div style={{ textAlign: "left" }}>
+    <div
+      style={{
+        textAlign: "left",
+        minWidth: 0,
+      }}
+    >
       <div style={{ whiteSpace: "nowrap" }}>
         <span
           style={{
@@ -306,6 +312,7 @@ function inputStyle() {
     background: GROWTH_SHEET.inputBg,
     color: GROWTH_SHEET.inputColor,
     outline: "none",
+    boxSizing: "border-box" as const,
   };
 }
 
@@ -427,8 +434,9 @@ export default function GrowthSheet({
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "22px",
+        padding: GROWTH_SHEET.overlayPadding,
         overscrollBehavior: "contain",
+        boxSizing: "border-box",
       }}
     >
       <style jsx>{`
@@ -454,6 +462,7 @@ export default function GrowthSheet({
           background: GROWTH_SHEET.panelBg,
           padding: GROWTH_SHEET.panelPadding,
           boxShadow: GROWTH_SHEET.panelShadow,
+          boxSizing: "border-box",
         }}
       >
         <div
@@ -493,6 +502,7 @@ export default function GrowthSheet({
                 borderRadius: GROWTH_SHEET.cardRadius,
                 padding: GROWTH_SHEET.cardPadding,
                 boxShadow: GROWTH_SHEET.cardShadow,
+                boxSizing: "border-box",
               }}
             >
               <div
@@ -561,6 +571,7 @@ export default function GrowthSheet({
                 borderRadius: GROWTH_SHEET.cardRadius,
                 padding: GROWTH_SHEET.cardPadding,
                 boxShadow: GROWTH_SHEET.cardShadow,
+                boxSizing: "border-box",
               }}
             >
               <Field label="日期">

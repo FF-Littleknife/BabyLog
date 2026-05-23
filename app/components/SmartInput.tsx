@@ -10,12 +10,20 @@ import { formatClock } from "@/lib/time";
  * 后面想调标题、输入框、add 图标、预览提示，优先改这里。
  */
 const SMART_INPUT_CONFIG = {
+  /* =========================
+     顶部小标题
+     ========================= */
+
   titleText: "快捷记录",
   titleMargin: "0 0 8px 4px",
   titleColor: "#8e8e93",
   titleSize: 12,
   titleWeight: 700,
   titleLetterSpacing: "0.04em",
+
+  /* =========================
+     输入框外壳
+     ========================= */
 
   placeholder: "",
 
@@ -25,13 +33,34 @@ const SMART_INPUT_CONFIG = {
   boxRadius: 22,
   boxShadow: "0 10px 34px rgba(0,0,0,.05)",
 
+  /* =========================
+     输入文字
+     ========================= */
+
   inputColor: "#111111",
   inputPlaceholderColor: "#8e8e93",
   inputPadding: "13px 10px",
 
+  // iOS Safari 里 input 字号小于 16px 会自动放大页面。
+  // 由于首页在小屏会整体 zoom 缩放，所以这里用 20 更稳。
+  inputSize: 20,
+  inputLineHeight: 1.2,
+
+  /* =========================
+     add 图标按钮
+     ========================= */
+
   buttonSize: 44,
   iconSize: 28,
   iconOpacity: 0.9,
+
+  // add.svg 的视觉重心微调。
+  // 正数向下，负数向上。比如 1 / -1。
+  iconTranslateY: 0,
+
+  /* =========================
+     记录预览
+     ========================= */
 
   previewPrefix: "将记录",
   previewMarginTop: 8,
@@ -39,6 +68,10 @@ const SMART_INPUT_CONFIG = {
   previewColor: "#8e8e93",
   previewPastDateColor: "#c27a19",
   previewWarnColor: "#ff9500",
+
+  /* =========================
+     提交反馈小票
+     ========================= */
 
   receiptPrefix: "已记录",
 };
@@ -61,7 +94,9 @@ function formatRecordTime(record: BabyRecord) {
   const date = new Date(record.time);
   const clock = formatClock(record.time);
 
-  if (isToday(date)) return clock;
+  if (isToday(date)) {
+    return clock;
+  }
 
   return `${date.getMonth() + 1}/${date.getDate()} ${clock}`;
 }
@@ -184,6 +219,19 @@ function formatReceipt(records: BabyRecord[], failed: string[]) {
   return "";
 }
 
+function safeParseSmartInputs(input: string) {
+  try {
+    return parseSmartInputs(input);
+  } catch (error) {
+    console.error("parseSmartInputs error:", error);
+
+    return {
+      records: [],
+      failed: [input],
+    };
+  }
+}
+
 export default function SmartInput({
   onSave,
   onReceipt,
@@ -203,7 +251,7 @@ export default function SmartInput({
       };
     }
 
-    return parseSmartInputs(trimmed);
+    return safeParseSmartInputs(trimmed);
   }, [text]);
 
   const preview = useMemo(
@@ -218,7 +266,7 @@ export default function SmartInput({
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    const result = parseSmartInputs(trimmed);
+    const result = safeParseSmartInputs(trimmed);
 
     if (!result.records.length && !result.failed.length) return;
 
@@ -252,6 +300,8 @@ export default function SmartInput({
         className="smart-box"
         style={
           {
+            display: "flex",
+            alignItems: "center",
             gap: SMART_INPUT_CONFIG.boxGap,
             padding: SMART_INPUT_CONFIG.boxPadding,
             background: SMART_INPUT_CONFIG.boxBg,
@@ -271,6 +321,8 @@ export default function SmartInput({
           placeholder={SMART_INPUT_CONFIG.placeholder}
           style={{
             color: SMART_INPUT_CONFIG.inputColor,
+            fontSize: SMART_INPUT_CONFIG.inputSize,
+            lineHeight: SMART_INPUT_CONFIG.inputLineHeight,
             padding: SMART_INPUT_CONFIG.inputPadding,
             background: "transparent",
             WebkitTapHighlightColor: "transparent",
@@ -305,6 +357,7 @@ export default function SmartInput({
               objectFit: "contain",
               display: "block",
               opacity: SMART_INPUT_CONFIG.iconOpacity,
+              transform: `translateY(${SMART_INPUT_CONFIG.iconTranslateY}px)`,
             }}
           />
         </button>

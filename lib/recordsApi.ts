@@ -59,15 +59,10 @@ function fromDbRecord(row: any): BabyRecord {
     leftMin: row.left_min ?? undefined,
     rightMin: row.right_min ?? undefined,
 
-    // 兼容旧数据：
-    // 旧 note / other 记录曾经把“乳糖酶”存在 note 里。
-    // 如果 content 为空，就把旧 note 当 content 读出来。
     content:
       row.content ??
       (type === "other" && row.note ? row.note : undefined),
 
-    // 如果是旧 other/note 且 content 为空，note 已经被当 content 使用，
-    // 这里就不再重复显示成备注。
     note:
       type === "other" && !row.content
         ? undefined
@@ -92,7 +87,15 @@ export async function fetchRecords() {
 }
 
 export async function insertRecord(record: BabyRecord) {
-  const { error } = await supabase.from("records").insert(toDbRecord(record));
+  /**
+   * 用 upsert 而不是 insert：
+   * 离线补传时如果同一个 id 已经成功传过，重复上传不会炸。
+   */
+  const { error } = await supabase
+    .from("records")
+    .upsert(toDbRecord(record), {
+      onConflict: "id",
+    });
 
   if (error) {
     console.error("insertRecord error:", error);

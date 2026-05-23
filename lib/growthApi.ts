@@ -59,9 +59,15 @@ export async function fetchGrowthRecords() {
 }
 
 export async function insertGrowthRecord(record: GrowthRecord) {
+  /**
+   * 用 upsert 兜底：
+   * 离线队列补传时，即使重复同步同一个 id，也不会生成重复记录。
+   */
   const { error } = await supabase
     .from("growth_records")
-    .insert(toDbRecord(record));
+    .upsert(toDbRecord(record), {
+      onConflict: "id",
+    });
 
   if (error) {
     console.error("insertGrowthRecord error:", error);

@@ -15,6 +15,12 @@ import {
   insertGrowthRecord,
   type GrowthRecord,
 } from "@/lib/growthApi";
+import {
+  enqueueGrowthSync,
+  enqueueRecordSync,
+  getPendingSyncItems,
+  removePendingSyncItems,
+} from "@/lib/offlineQueue";
 import type { TimelineFilterKey } from "./components/TimelineFilterBar";
 
 import BottomBar from "./components/BottomBar";
@@ -34,6 +40,7 @@ import PumpSheet from "./components/sheets/PumpSheet";
 import RecordSheet from "./components/sheets/RecordSheet";
 
 const STORAGE_KEY = "baby-log-demo-records";
+const GROWTH_STORAGE_KEY = "baby-log-growth-records";
 
 type ViewType = "home" | "timeline";
 type SheetMode = "quick" | "full";
@@ -72,6 +79,26 @@ const SMART_RECEIPT = {
   undoFontWeight: 800,
 };
 
+const TOAST_CONFIG = {
+  bottom: 72,
+  left: "50%",
+  width: "fit-content",
+  maxWidth: "min(calc(100% - 40px), 360px)",
+  zIndex: 130,
+
+  padding: "9px 14px",
+  radius: 999,
+
+  bg: "rgba(255,255,255,.86)",
+  color: "#111111",
+  fontSize: 12,
+  fontWeight: 680,
+  lineHeight: 1.25,
+
+  shadow: "0 12px 30px rgba(0,0,0,.12)",
+  blur: "blur(18px)",
+};
+
 const seedRecords: BabyRecord[] = [
   {
     id: "demo-1",
@@ -103,6 +130,30 @@ const seedRecords: BabyRecord[] = [
     createdAt: new Date().toISOString(),
   },
 ];
+
+function sortBabyRecords(records: BabyRecord[]) {
+  return [...records].sort(
+    (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
+  );
+}
+
+function sortGrowthRecords(records: GrowthRecord[]) {
+  return [...records].sort((a, b) => {
+    const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
+    if (dateDiff !== 0) return dateDiff;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
+}
+
+function readLocalBabyRecords() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  return saved ? (JSON.parse(saved) as BabyRecord[]) : seedRecords;
+}
+
+function readLocalGrowthRecords() {
+  const saved = localStorage.getItem(GROWTH_STORAGE_KEY);
+  return saved ? (JSON.parse(saved) as GrowthRecord[]) : [];
+}
 
 function formatBreastDetail(record: BabyRecord) {
   const parts = [];
@@ -194,6 +245,7 @@ export default function Home() {
   const pullingRef = useRef(false);
   const toastTimerRef = useRef<number | null>(null);
   const smartReceiptTimerRef = useRef<number | null>(null);
+  const syncingPendingRef = useRef(false);
 
   function showToast(text: string) {
     setToast(text);
@@ -230,12 +282,57 @@ export default function Home() {
     }, 5200);
   }
 
+  async function syncPendingQueue({ silent = false }: { silent?: boolean } = {}) {
+    if (syncingPendingRef.current) return;
+
+    const pendingItems = getPendingSyncItems();
+    if (!pendingItems.length) return;
+
+    syncingPendingRef.current = true;
+
+    const syncedItems: { kind: "record" | "growth"; id: string }[] = [];
+
+    try {
+      for (const item of pendingItems) {
+        try {
+          if (item.kind === "record") {
+            await insertRecord(item.record);
+          }
+
+          if (item.kind === "growth") {
+            await insertGrowthRecord(item.record);
+          }
+
+          syncedItems.push({
+            kind: item.kind,
+            id: item.id,
+          });
+        } catch (error) {
+          console.error("sync pending item failed:", error);
+        }
+      }
+
+      if (syncedItems.length) {
+        removePendingSyncItems(syncedItems);
+
+        if (!silent) {
+          showToast(`已自动同步 ${syncedItems.length} 条离线记录`);
+        }
+      }
+    } finally {
+      syncingPendingRef.current = false;
+    }
+  }
+
   async function undoSmartReceipt() {
     const ids = smartReceiptUndoIds;
 
     if (!ids.length) return;
 
     setRecords((prev) => prev.filter((record) => !ids.includes(record.id)));
+
+    removePendingSyncItems(ids.map((id) => ({ kind: "record", id })));
+
     clearSmartReceipt();
     buzz();
     showToast("已撤销");
@@ -249,18 +346,15 @@ export default function Home() {
   }
 
   async function reloadRecords({ showSuccess }: { showSuccess?: boolean }) {
+    await syncPendingQueue({ silent: true });
+
     const [cloudRecords, cloudGrowthRecords] = await Promise.all([
       fetchRecords(),
       fetchGrowthRecords(),
     ]);
 
-    setRecords(
-      cloudRecords.sort(
-        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
-      )
-    );
-
-    setGrowthRecords(cloudGrowthRecords);
+    setRecords(sortBabyRecords(cloudRecords));
+    setGrowthRecords(sortGrowthRecords(cloudGrowthRecords));
     setNowTick(Date.now());
 
     if (showSuccess) showToast("✓ 已刷新");
@@ -273,14 +367,8 @@ export default function Home() {
       } catch (error) {
         console.error(error);
 
-        const saved = localStorage.getItem(STORAGE_KEY);
-        const list = saved ? (JSON.parse(saved) as BabyRecord[]) : seedRecords;
-
-        setRecords(
-          list.sort(
-            (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
-          )
-        );
+        setRecords(sortBabyRecords(readLocalBabyRecords()));
+        setGrowthRecords(sortGrowthRecords(readLocalGrowthRecords()));
 
         showToast("云端读取失败，已使用本地缓存");
       }
@@ -294,21 +382,35 @@ export default function Home() {
       setNowTick(Date.now());
     }, AUTO_REFRESH.tickMs);
 
-    function handleVisibilityChange() {
+    async function handleVisibilityChange() {
       if (document.visibilityState !== "visible") return;
 
       setNowTick(Date.now());
 
-      reloadRecords({}).catch((error) => {
+      try {
+        await syncPendingQueue({ silent: false });
+        await reloadRecords({});
+      } catch (error) {
         console.error(error);
-      });
+      }
+    }
+
+    async function handleOnline() {
+      try {
+        await syncPendingQueue({ silent: false });
+        await reloadRecords({});
+      } catch (error) {
+        console.error(error);
+      }
     }
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("online", handleOnline);
 
     return () => {
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("online", handleOnline);
 
       if (toastTimerRef.current) {
         window.clearTimeout(toastTimerRef.current);
@@ -321,16 +423,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (records.length) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
   }, [records]);
 
+  useEffect(() => {
+    localStorage.setItem(GROWTH_STORAGE_KEY, JSON.stringify(growthRecords));
+  }, [growthRecords]);
+
   const sortedRecords = useMemo(
-    () =>
-      [...records].sort(
-        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
-      ),
+    () => sortBabyRecords(records),
     [records, nowTick]
   );
 
@@ -400,11 +501,7 @@ export default function Home() {
   }
 
   async function addRecord(record: BabyRecord, options: AddRecordOptions = {}) {
-    setRecords((prev) =>
-      [record, ...prev].sort(
-        (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
-      )
-    );
+    setRecords((prev) => sortBabyRecords([record, ...prev]));
 
     closeSheet();
     buzz();
@@ -419,19 +516,13 @@ export default function Home() {
       await insertRecord(record);
     } catch (error) {
       console.error(error);
-      showToast("本地已记录，云端同步失败");
+      enqueueRecordSync(record);
+      showToast("本地已记录，联网后自动同步");
     }
   }
 
   async function addGrowthRecord(record: GrowthRecord) {
-    setGrowthRecords((prev) =>
-      [record, ...prev].sort((a, b) => {
-        const dateDiff =
-          new Date(b.date).getTime() - new Date(a.date).getTime();
-        if (dateDiff !== 0) return dateDiff;
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      })
-    );
+    setGrowthRecords((prev) => sortGrowthRecords([record, ...prev]));
 
     setGrowthOpen(false);
     buzz();
@@ -441,7 +532,8 @@ export default function Home() {
       await insertGrowthRecord(record);
     } catch (error) {
       console.error(error);
-      showToast("本地已显示，云端同步失败");
+      enqueueGrowthSync(record);
+      showToast("本地已显示，联网后自动同步");
     }
   }
 
@@ -449,9 +541,7 @@ export default function Home() {
     const oldRecord = records.find((item) => item.id === record.id);
 
     setRecords((prev) =>
-      prev
-        .map((item) => (item.id === record.id ? record : item))
-        .sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+      sortBabyRecords(prev.map((item) => (item.id === record.id ? record : item)))
     );
 
     setEditingRecord(null);
@@ -465,11 +555,9 @@ export default function Home() {
 
       if (oldRecord) {
         setRecords((prev) =>
-          prev
-            .map((item) => (item.id === oldRecord.id ? oldRecord : item))
-            .sort(
-              (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
-            )
+          sortBabyRecords(
+            prev.map((item) => (item.id === oldRecord.id ? oldRecord : item))
+          )
         );
       }
 
@@ -491,6 +579,9 @@ export default function Home() {
 
     setRecords((prev) => prev.filter((record) => record.id !== id));
     setEditingRecord(null);
+
+    removePendingSyncItems([{ kind: "record", id }]);
+
     showToast("已删除");
 
     try {
@@ -499,11 +590,7 @@ export default function Home() {
       console.error(error);
 
       if (deletedRecord) {
-        setRecords((prev) =>
-          [deletedRecord, ...prev].sort(
-            (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()
-          )
-        );
+        setRecords((prev) => sortBabyRecords([deletedRecord, ...prev]));
       }
 
       showToast("云端删除失败，已恢复记录");
@@ -755,7 +842,39 @@ export default function Home() {
         </div>
       )}
 
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div
+          className="toast"
+          style={{
+            position: "fixed",
+            left: TOAST_CONFIG.left,
+            bottom: `calc(${TOAST_CONFIG.bottom}px + env(safe-area-inset-bottom))`,
+            transform: "translateX(-50%)",
+            width: TOAST_CONFIG.width,
+            maxWidth: TOAST_CONFIG.maxWidth,
+            zIndex: TOAST_CONFIG.zIndex,
+
+            padding: TOAST_CONFIG.padding,
+            borderRadius: TOAST_CONFIG.radius,
+
+            background: TOAST_CONFIG.bg,
+            color: TOAST_CONFIG.color,
+            fontSize: TOAST_CONFIG.fontSize,
+            fontWeight: TOAST_CONFIG.fontWeight,
+            lineHeight: TOAST_CONFIG.lineHeight,
+
+            boxShadow: TOAST_CONFIG.shadow,
+            backdropFilter: TOAST_CONFIG.blur,
+            WebkitBackdropFilter: TOAST_CONFIG.blur,
+
+            textAlign: "center",
+            pointerEvents: "none",
+            whiteSpace: "normal",
+          }}
+        >
+          {toast}
+        </div>
+      )}
     </main>
   );
 }
