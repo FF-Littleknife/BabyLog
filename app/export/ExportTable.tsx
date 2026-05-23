@@ -48,7 +48,21 @@ function formatDetail(record: BabyRecord) {
     return record.content || record.note || "";
   }
 
-  if (record.amountMl) parts.push(`${record.amountMl}ml`);
+  if (record.amountMl) {
+    parts.push(`${record.amountMl}ml`);
+  }
+
+  if (record.type === "breast") {
+    const left = record.leftMin || 0;
+    const right = record.rightMin || 0;
+    const total = record.durationMin || left + right;
+
+    if (left > 0) parts.push(`左${left}分钟`);
+    if (right > 0) parts.push(`右${right}分钟`);
+    if (total > 0) parts.push(`共${total}分钟`);
+
+    return parts.join(" / ");
+  }
 
   if (record.leftMin || record.rightMin) {
     parts.push(`左${record.leftMin || 0}分钟 / 右${record.rightMin || 0}分钟`);
