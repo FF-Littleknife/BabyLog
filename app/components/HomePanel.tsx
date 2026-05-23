@@ -38,10 +38,10 @@ const GROWTH_BUTTON = {
 
 const SECTION_LABEL = {
   margin: "0 0 8px 4px",
-  color: "#8e8e93",
-  fontSize: 12,
-  fontWeight: 700,
-  letterSpacing: "0.04em",
+  color: "rgba(142,142,147,.72)",
+  fontSize: 10.5,
+  fontWeight: 650,
+  letterSpacing: "0.03em",
 };
 
 /**
@@ -155,6 +155,8 @@ export default function HomePanel({
           padding-bottom: calc(
             ${HOME_LAYOUT.bottomPadding}px + env(safe-area-inset-bottom)
           );
+          -webkit-text-size-adjust: 100%;
+          text-size-adjust: 100%;
         }
 
         .home-main-layout {
@@ -273,6 +275,8 @@ export default function HomePanel({
             />
 
             <div style={{ height: HOME_LAYOUT.mobileStatusBottomGap }} />
+
+            <SectionLabel>快捷记录</SectionLabel>
 
             <div className="smart-section">
               <SmartInput

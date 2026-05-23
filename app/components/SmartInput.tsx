@@ -7,20 +7,13 @@ import { formatClock } from "@/lib/time";
 
 /**
  * 一句话记录参数
- * 后面想调标题、输入框、add 图标、预览提示，优先改这里。
+ * 后面想调输入框、add 图标、预览提示，优先改这里。
+ *
+ * 注意：
+ * 「快捷记录」标题现在由 HomePanel 的 SectionLabel 统一渲染，
+ * 这里不再单独显示标题，避免 Safari / PWA 模式下字号不一致。
  */
 const SMART_INPUT_CONFIG = {
-  /* =========================
-     顶部小标题
-     ========================= */
-
-  titleText: "快捷记录",
-  titleMargin: "0 0 8px 4px",
-  titleColor: "#8e8e93",
-  titleSize: 12,
-  titleWeight: 700,
-  titleLetterSpacing: "0.04em",
-
   /* =========================
      输入框外壳
      ========================= */
@@ -284,18 +277,6 @@ export default function SmartInput({
 
   return (
     <div>
-      <div
-        style={{
-          margin: SMART_INPUT_CONFIG.titleMargin,
-          color: SMART_INPUT_CONFIG.titleColor,
-          fontSize: SMART_INPUT_CONFIG.titleSize,
-          fontWeight: SMART_INPUT_CONFIG.titleWeight,
-          letterSpacing: SMART_INPUT_CONFIG.titleLetterSpacing,
-        }}
-      >
-        {SMART_INPUT_CONFIG.titleText}
-      </div>
-
       <div
         className="smart-box"
         style={
