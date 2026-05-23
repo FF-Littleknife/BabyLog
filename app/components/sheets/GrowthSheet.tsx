@@ -258,11 +258,23 @@ function StatItem({
   return (
     <div
       style={{
-        textAlign: "left",
+        width: "100%",
         minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
       }}
     >
-      <div style={{ whiteSpace: "nowrap" }}>
+      <div
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "center",
+          whiteSpace: "nowrap",
+        }}
+      >
         <span
           style={{
             color: GROWTH_SHEET.valueColor,
@@ -290,11 +302,13 @@ function StatItem({
 
       <div
         style={{
+          width: "100%",
           marginTop: GROWTH_SHEET.statDateMarginTop,
           color: GROWTH_SHEET.statDateColor,
           fontSize: GROWTH_SHEET.statDateSize,
           lineHeight: 1,
           whiteSpace: "nowrap",
+          textAlign: "center",
         }}
       >
         {date ? formatDate(date) : "暂无日期"}
@@ -508,9 +522,10 @@ export default function GrowthSheet({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
                   gap: GROWTH_SHEET.statGap,
                   alignItems: "start",
+                  justifyItems: "stretch",
                 }}
               >
                 <StatItem

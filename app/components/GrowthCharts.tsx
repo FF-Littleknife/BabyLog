@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { GrowthRecord } from "@/lib/growthApi";
 
 /**
  * 成长曲线卡片参数
- * 后面想调卡片高度、曲线颜色、日期、点间距、默认滚动位置，优先改这里。
+ * 后面想调卡片高度、曲线颜色、日期、点间距、默认滚动位置、展开明细，优先改这里。
  */
 const CHARTS = {
   /* =========================
@@ -19,11 +19,12 @@ const CHARTS = {
      单张曲线卡片
      ========================= */
 
-  cardHeight: 160,
+  cardMinHeight: 160,
   cardBg: "rgba(255,255,255,.82)",
   cardRadius: 26,
   cardPadding: 14,
   cardShadow: "0 10px 34px rgba(0,0,0,.05)",
+  cardTransition: "height .22s ease, box-shadow .22s ease",
 
   /* =========================
      卡片标题
@@ -47,11 +48,15 @@ const CHARTS = {
   unitMarginLeft: 3,
 
   /* =========================
-     右上角最新日期
+     右上角最新日期 / 展开箭头
      ========================= */
 
   dateColor: "rgba(142,142,147,.72)",
   dateSize: 10,
+  arrowSize: 12,
+  arrowColor: "rgba(142,142,147,.72)",
+  arrowGap: 6,
+  arrowTransition: "transform .18s ease",
 
   /* =========================
      曲线区域
@@ -62,7 +67,6 @@ const CHARTS = {
   svgHeight: 82,
 
   pointGap: 54,
-  minChartWidth: 300,
   chartPaddingX: 18,
 
   lineWidth: 3,
@@ -75,6 +79,33 @@ const CHARTS = {
   labelColor: "rgba(142,142,147,.72)",
   labelSize: 10,
   labelWeight: 400,
+
+  /* =========================
+     展开明细
+     ========================= */
+
+  detailMarginTop: 10,
+  detailPaddingTop: 10,
+  detailBorderTop: "1px solid rgba(0,0,0,.06)",
+  detailMaxHeight: 156,
+  detailRowPadding: "8px 0",
+  detailRowBorder: "1px solid rgba(0,0,0,.045)",
+
+  detailDateColor: "rgba(142,142,147,.82)",
+  detailDateSize: 11,
+  detailDateWeight: 500,
+
+  detailValueColor: "#111111",
+  detailValueSize: 13,
+  detailValueWeight: 760,
+
+  detailUnitColor: "#8e8e93",
+  detailUnitSize: 11,
+  detailUnitWeight: 650,
+
+  detailEmptyText: "暂无记录",
+  detailEmptyColor: "rgba(142,142,147,.68)",
+  detailEmptySize: 12,
 
   /* =========================
      空状态
@@ -97,6 +128,13 @@ type GrowthMetric = {
   title: string;
   unit: string;
   color: string;
+};
+
+type GrowthPoint = {
+  id: string;
+  date: string;
+  value: number;
+  createdAt: string;
 };
 
 const METRICS: GrowthMetric[] = [
@@ -127,6 +165,13 @@ function formatDate(dateString?: string) {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
+function formatFullDate(dateString?: string) {
+  if (!dateString) return "";
+
+  const date = new Date(`${dateString}T00:00:00`);
+  return `${date.getFullYear()}/${date.getMonth() + 1}/${date.getDate()}`;
+}
+
 function formatValue(value?: number) {
   if (typeof value !== "number") return "—";
   if (Number.isInteger(value)) return String(value);
@@ -147,6 +192,7 @@ function getMetricPoints(records: GrowthRecord[], key: GrowthMetric["key"]) {
       id: record.id,
       date: record.date,
       value: record[key] as number,
+      createdAt: record.createdAt,
     }));
 }
 
@@ -163,13 +209,14 @@ function makePath(points: { x: number; y: number }[]) {
     .join(" ");
 }
 
-function getChartWidth(count: number) {
-  if (count <= 1) return CHARTS.minChartWidth;
+function getChartWidth(count: number, containerWidth: number) {
+  const safeContainerWidth = Math.max(1, containerWidth);
 
-  return Math.max(
-    CHARTS.minChartWidth,
-    CHARTS.chartPaddingX * 2 + (count - 1) * CHARTS.pointGap
-  );
+  if (count <= 1) return safeContainerWidth;
+
+  const dataWidth = CHARTS.chartPaddingX * 2 + (count - 1) * CHARTS.pointGap;
+
+  return Math.max(safeContainerWidth, dataWidth);
 }
 
 function normalizePoints(values: number[], chartWidth: number) {
@@ -197,6 +244,103 @@ function normalizePoints(values: number[], chartWidth: number) {
   });
 }
 
+function GrowthDetailList({
+  points,
+  unit,
+}: {
+  points: GrowthPoint[];
+  unit: string;
+}) {
+  const list = [...points].reverse();
+
+  if (!list.length) {
+    return (
+      <div
+        style={{
+          padding: CHARTS.detailRowPadding,
+          color: CHARTS.detailEmptyColor,
+          fontSize: CHARTS.detailEmptySize,
+          textAlign: "center",
+        }}
+      >
+        {CHARTS.detailEmptyText}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        maxHeight: CHARTS.detailMaxHeight,
+        overflowY: "auto",
+        WebkitOverflowScrolling: "touch",
+        scrollbarWidth: "none",
+      }}
+    >
+      <style jsx>{`
+        div::-webkit-scrollbar {
+          display: none;
+          width: 0;
+          height: 0;
+        }
+      `}</style>
+
+      {list.map((point, index) => (
+        <div
+          key={`${point.id}-${point.date}-${index}`}
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            gap: 12,
+            padding: CHARTS.detailRowPadding,
+            borderTop: index === 0 ? 0 : CHARTS.detailRowBorder,
+          }}
+        >
+          <div
+            style={{
+              color: CHARTS.detailDateColor,
+              fontSize: CHARTS.detailDateSize,
+              fontWeight: CHARTS.detailDateWeight,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {formatFullDate(point.date)}
+          </div>
+
+          <div
+            style={{
+              whiteSpace: "nowrap",
+              textAlign: "right",
+            }}
+          >
+            <span
+              style={{
+                color: CHARTS.detailValueColor,
+                fontSize: CHARTS.detailValueSize,
+                fontWeight: CHARTS.detailValueWeight,
+              }}
+            >
+              {formatValue(point.value)}
+            </span>
+
+            <span
+              style={{
+                marginLeft: CHARTS.unitMarginLeft,
+                color: CHARTS.detailUnitColor,
+                fontSize: CHARTS.detailUnitSize,
+                fontWeight: CHARTS.detailUnitWeight,
+              }}
+            >
+              {unit}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function GrowthMiniChartCard({
   metric,
   records,
@@ -204,7 +348,10 @@ function GrowthMiniChartCard({
   metric: GrowthMetric;
   records: GrowthRecord[];
 }) {
+  const cardRef = useRef<HTMLElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [chartViewportWidth, setChartViewportWidth] = useState(1);
+  const [expanded, setExpanded] = useState(false);
 
   const points = useMemo(
     () => getMetricPoints(records, metric.key),
@@ -213,7 +360,30 @@ function GrowthMiniChartCard({
 
   const latest = points[points.length - 1];
 
-  const chartWidth = getChartWidth(points.length);
+  useEffect(() => {
+    const cardEl = cardRef.current;
+    if (!cardEl) return;
+
+    function updateWidth() {
+      const innerWidth = Math.max(
+        1,
+        cardEl.clientWidth - CHARTS.cardPadding * 2
+      );
+
+      setChartViewportWidth(innerWidth);
+    }
+
+    updateWidth();
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(cardEl);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  const chartWidth = getChartWidth(points.length, chartViewportWidth);
 
   const normalizedPoints = normalizePoints(
     points.map((point) => point.value),
@@ -232,15 +402,20 @@ function GrowthMiniChartCard({
 
   return (
     <article
+      ref={cardRef}
+      onClick={() => setExpanded((value) => !value)}
       style={{
         width: "100%",
-        height: CHARTS.cardHeight,
+        minHeight: CHARTS.cardMinHeight,
         borderRadius: CHARTS.cardRadius,
         background: CHARTS.cardBg,
         boxShadow: CHARTS.cardShadow,
         padding: CHARTS.cardPadding,
         boxSizing: "border-box",
         overflow: "hidden",
+        cursor: "pointer",
+        transition: CHARTS.cardTransition,
+        WebkitTapHighlightColor: "transparent",
       }}
     >
       <div
@@ -292,6 +467,9 @@ function GrowthMiniChartCard({
 
         <div
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: CHARTS.arrowGap,
             color: CHARTS.dateColor,
             fontSize: CHARTS.dateSize,
             lineHeight: 1,
@@ -299,12 +477,27 @@ function GrowthMiniChartCard({
             marginTop: 1,
           }}
         >
-          {latest ? formatDate(latest.date) : "暂无"}
+          <span>{latest ? formatDate(latest.date) : "暂无"}</span>
+
+          <span
+            aria-hidden
+            style={{
+              display: "inline-block",
+              color: CHARTS.arrowColor,
+              fontSize: CHARTS.arrowSize,
+              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: CHARTS.arrowTransition,
+              lineHeight: 1,
+            }}
+          >
+            ⌄
+          </span>
         </div>
       </div>
 
       <div
         ref={scrollRef}
+        onClick={(event) => event.stopPropagation()}
         style={{
           marginTop: CHARTS.chartMarginTop,
           height: CHARTS.chartHeight,
@@ -312,6 +505,7 @@ function GrowthMiniChartCard({
           overflowY: "hidden",
           WebkitOverflowScrolling: "touch",
           scrollbarWidth: "none",
+          cursor: "default",
         }}
       >
         <style jsx>{`
@@ -390,6 +584,20 @@ function GrowthMiniChartCard({
           </svg>
         )}
       </div>
+
+      {expanded && (
+        <div
+          onClick={(event) => event.stopPropagation()}
+          style={{
+            marginTop: CHARTS.detailMarginTop,
+            paddingTop: CHARTS.detailPaddingTop,
+            borderTop: CHARTS.detailBorderTop,
+            cursor: "default",
+          }}
+        >
+          <GrowthDetailList points={points} unit={metric.unit} />
+        </div>
+      )}
     </article>
   );
 }
@@ -401,6 +609,7 @@ export default function GrowthCharts({ records }: { records: GrowthRecord[] }) {
         marginTop: CHARTS.marginTop,
         display: "grid",
         gap: CHARTS.listGap,
+        width: "100%",
       }}
     >
       {METRICS.map((metric) => (
