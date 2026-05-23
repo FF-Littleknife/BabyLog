@@ -40,6 +40,40 @@ const SECTION_LABEL = {
   letterSpacing: "0.04em",
 };
 
+/**
+ * 首页响应式布局参数
+ * 后面想调 iPad / 电脑端两列宽度、整体居中、摘要宽度，优先改这里。
+ */
+const HOME_LAYOUT = {
+  /* =========================
+     响应式断点
+     ========================= */
+
+  wideBreakpoint: 860, // 屏幕宽度达到这个值后，首页变成左右两列
+
+  /* =========================
+     手机端
+     ========================= */
+
+  mobileMaxWidth: 430, // 手机端首页最大宽度
+
+  /* =========================
+     宽屏端两列布局
+     ========================= */
+
+  wideMaxWidth: 780, // 宽屏时两列整体总宽度：左列 430 + 间距 30 + 右列 320
+  wideLeftWidth: 430, // 左列宽度：最近记录 + 快捷记录 + 快捷按钮
+  wideSummaryWidth: 320, // 右列宽度：摘要
+  wideGap: 30, // 左右两列之间的距离
+
+  /* =========================
+     间距
+     ========================= */
+
+  mobileStatusBottomGap: 18, // 最近记录和快捷记录之间的距离
+  summaryStickyTop: 18, // 宽屏时右侧摘要 sticky 的顶部距离
+};
+
 function SectionLabel({ children }: { children: string }) {
   return <div style={SECTION_LABEL}>{children}</div>;
 }
@@ -67,11 +101,61 @@ export default function HomePanel({
 }) {
   return (
     <section
-      className="view-panel"
+      className="view-panel home-panel"
       style={{
         position: "relative",
       }}
     >
+      <style jsx>{`
+        .home-panel {
+          width: min(100%, ${HOME_LAYOUT.mobileMaxWidth}px);
+          max-width: ${HOME_LAYOUT.mobileMaxWidth}px;
+          margin-left: auto;
+          margin-right: auto;
+        }
+
+        .home-main-layout {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0;
+          align-items: start;
+        }
+
+        .home-summary-column {
+          margin-top: ${HOME_LAYOUT.mobileStatusBottomGap}px;
+        }
+
+        @media (min-width: ${HOME_LAYOUT.wideBreakpoint}px) {
+          .home-panel {
+            width: min(calc(100vw - 48px), ${HOME_LAYOUT.wideMaxWidth}px);
+            max-width: ${HOME_LAYOUT.wideMaxWidth}px;
+            margin-left: 0;
+            margin-right: 0;
+            left: 50%;
+            transform: translateX(-50%);
+          }
+
+          .home-main-layout {
+            grid-template-columns:
+              ${HOME_LAYOUT.wideLeftWidth}px
+              ${HOME_LAYOUT.wideSummaryWidth}px;
+            gap: ${HOME_LAYOUT.wideGap}px;
+            align-items: start;
+          }
+
+          .home-left-column,
+          .home-summary-column {
+            min-width: 0;
+          }
+
+          .home-summary-column {
+            margin-top: 0;
+            position: sticky;
+            top: ${HOME_LAYOUT.summaryStickyTop}px;
+          }
+        }
+      `}</style>
+
       <button
         type="button"
         onClick={onOpenGrowth}
@@ -123,28 +207,38 @@ export default function HomePanel({
         {HOME_TITLE.text}
       </h1>
 
-      <SectionLabel>最近记录</SectionLabel>
-      <StatusCards records={records} onOpenTimelineFilter={onOpenTimelineFilter} />
+      <div className="home-main-layout">
+        <div className="home-left-column">
+          <SectionLabel>最近记录</SectionLabel>
 
-      <div style={{ height: 18 }} />
+          <StatusCards
+            records={records}
+            onOpenTimelineFilter={onOpenTimelineFilter}
+          />
 
-      <div className="smart-section">
-        <SmartInput
-          onSave={(record) => onSave(record, { silent: true })}
-          onReceipt={onSmartReceipt}
-        />
+          <div style={{ height: HOME_LAYOUT.mobileStatusBottomGap }} />
+
+          <div className="smart-section">
+            <SmartInput
+              onSave={(record) => onSave(record, { silent: true })}
+              onReceipt={onSmartReceipt}
+            />
+          </div>
+
+          <QuickActions
+            records={records}
+            onOpen={onOpen}
+            onQuickAdd={onQuickAdd}
+            onSave={onSave}
+            onNurse={onNurse}
+          />
+        </div>
+
+        <aside className="home-summary-column">
+          <SectionLabel>摘要</SectionLabel>
+          <Summary24h records={records} />
+        </aside>
       </div>
-
-      <QuickActions
-        records={records}
-        onOpen={onOpen}
-        onQuickAdd={onQuickAdd}
-        onSave={onSave}
-        onNurse={onNurse}
-      />
-
-      <SectionLabel>摘要</SectionLabel>
-      <Summary24h records={records} />
     </section>
   );
 }
