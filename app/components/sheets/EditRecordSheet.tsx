@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
+import DateField from "@/app/components/DateField";
+import LoopWheelColumn from "@/app/components/LoopWheelColumn";
 import type { BabyRecord } from "@/lib/types";
 import { RECORD_LABEL } from "@/lib/types";
 
 const EDIT_SHEET = {
+  maxWidth: 430,
+  bg: "rgba(244,241,246,.98)",
+  radius: 28,
+  padding: 22,
+  outerGap: 18,
+
   titleColor: "#111111",
   titleSize: 20,
   titleWeight: 820,
@@ -23,6 +32,32 @@ const EDIT_SHEET = {
   inputPadding: "14px 14px",
   inputBorder: "1px solid rgba(0,0,0,.06)",
 
+  timePickerBg: "rgba(0, 0, 0, 0.045)",
+  timePickerRadius: 22,
+  timePickerPadding: 8,
+  timePickerBorder: "1px solid rgba(0,0,0,.06)",
+  timePickerGap: 6,
+
+  colonColor: "#8e8e93",
+  colonSize: 24,
+  colonWeight: 760,
+
+  wheelHeight: 138,
+  wheelItemHeight: 46,
+  wheelRadius: 18,
+  wheelBg: "rgba(255,255,255,.72)",
+  wheelMaskBg: "rgba(0,0,0,.06)",
+  wheelMaskBorder: "1px solid rgba(0,0,0,.08)",
+  wheelTextColor: "rgba(0,0,0,.38)",
+  wheelActiveColor: "#111111",
+  wheelTextSize: 20,
+  wheelActiveSize: 24,
+  wheelTextWeight: 680,
+  wheelActiveWeight: 780,
+
+  wheelLoopCycles: 21,
+  wheelRecenterDelay: 760,
+
   actionGap: 10,
   saveBg: "#0a84ff",
   saveColor: "#ffffff",
@@ -34,6 +69,17 @@ const EDIT_SHEET = {
   buttonRadius: 22,
   buttonPadding: 16,
   buttonWeight: 760,
+
+  closeBg: "rgba(0,0,0,.06)",
+  closeColor: "#8e8e93",
+  closeSize: 44,
+  closeLineWidth: 22,
+  closeLineHeight: 3,
+
+  sheetEnterMs: 420,
+  sheetExitMs: 280,
+  sheetEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
+  sheetExitEasing: "cubic-bezier(0.32, 0, 0.67, 0)",
 };
 
 function toDateValue(iso: string) {
@@ -45,17 +91,16 @@ function toDateValue(iso: string) {
   )}-${String(date.getDate()).padStart(2, "0")}`;
 }
 
-function toTimeValue(iso: string) {
-  const date = new Date(iso);
-
-  return `${String(date.getHours()).padStart(2, "0")}:${String(
-    date.getMinutes()
-  ).padStart(2, "0")}`;
+function toHourValue(iso: string) {
+  return new Date(iso).getHours();
 }
 
-function mergeDateTime(dateValue: string, timeValue: string) {
+function toMinuteValue(iso: string) {
+  return new Date(iso).getMinutes();
+}
+
+function mergeDateTime(dateValue: string, hour: number, minute: number) {
   const [year, month, day] = dateValue.split("-").map(Number);
-  const [hour, minute] = timeValue.split(":").map(Number);
 
   return new Date(year, month - 1, day, hour, minute, 0, 0).toISOString();
 }
@@ -86,12 +131,13 @@ function Field({
   children,
 }: {
   label: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <label className="field">
+    <div className="field">
       <span
         style={{
+          display: "block",
           color: EDIT_SHEET.labelColor,
           fontSize: EDIT_SHEET.labelSize,
           fontWeight: EDIT_SHEET.labelWeight,
@@ -102,19 +148,30 @@ function Field({
       </span>
 
       {children}
-    </label>
+    </div>
   );
 }
 
-function inputStyle() {
+function inputStyle(): CSSProperties {
   return {
     width: "100%",
+    minWidth: 0,
+    maxWidth: "100%",
+    boxSizing: "border-box",
+
     border: EDIT_SHEET.inputBorder,
     borderRadius: EDIT_SHEET.inputRadius,
     padding: EDIT_SHEET.inputPadding,
+
     background: EDIT_SHEET.inputBg,
+    backgroundColor: EDIT_SHEET.inputBg,
     color: EDIT_SHEET.inputColor,
+    colorScheme: "light",
+
     outline: "none",
+
+    WebkitAppearance: "none",
+    appearance: "none",
   };
 }
 
@@ -130,7 +187,9 @@ export default function EditRecordSheet({
   onDelete: (id: string) => void;
 }) {
   const [dateValue, setDateValue] = useState(toDateValue(record.time));
-  const [timeValue, setTimeValue] = useState(toTimeValue(record.time));
+  const [hour, setHour] = useState(toHourValue(record.time));
+  const [minute, setMinute] = useState(toMinuteValue(record.time));
+
   const [amountMl, setAmountMl] = useState(numberToText(record.amountMl));
   const [durationMin, setDurationMin] = useState(
     numberToText(record.durationMin)
@@ -139,6 +198,9 @@ export default function EditRecordSheet({
   const [rightMin, setRightMin] = useState(numberToText(record.rightMin));
   const [content, setContent] = useState(record.content ?? record.note ?? "");
   const [note, setNote] = useState(record.content ? record.note ?? "" : "");
+  const [closing, setClosing] = useState(false);
+
+  const closeTimerRef = useRef<number | null>(null);
 
   const isOther = record.type === "other";
 
@@ -149,6 +211,61 @@ export default function EditRecordSheet({
 
   const showDuration = record.type === "breast" || record.type === "pump";
   const showBreastSides = record.type === "breast";
+
+  useEffect(() => {
+    const scrollY = window.scrollY;
+
+    function preventTouchMove(event: TouchEvent) {
+      const target = event.target as HTMLElement | null;
+
+      if (target?.closest(".ios-wheel")) return;
+      if (target?.closest(".date-field-overlay")) return;
+
+      event.preventDefault();
+    }
+
+    document.addEventListener("touchmove", preventTouchMove, {
+      passive: false,
+    });
+
+    document.documentElement.style.overflow = "hidden";
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+
+    return () => {
+      document.removeEventListener("touchmove", preventTouchMove);
+
+      document.documentElement.style.overflow = "";
+
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+
+      window.scrollTo(0, scrollY);
+    };
+  }, []);
+
+  function requestClose() {
+    if (closing) return;
+
+    setClosing(true);
+
+    closeTimerRef.current = window.setTimeout(() => {
+      onClose();
+    }, EDIT_SHEET.sheetExitMs);
+  }
 
   function save() {
     const nextLeft = textToNumber(leftMin);
@@ -161,7 +278,7 @@ export default function EditRecordSheet({
 
     onSave({
       ...record,
-      time: mergeDateTime(dateValue, timeValue),
+      time: mergeDateTime(dateValue, hour, minute),
       amountMl: showAmount ? textToNumber(amountMl) : undefined,
       durationMin: showDuration ? autoDuration : undefined,
       leftMin: showBreastSides ? nextLeft : undefined,
@@ -180,15 +297,56 @@ export default function EditRecordSheet({
   }
 
   return (
-    <div className="sheet-backdrop">
+    <div
+      className="sheet-backdrop"
+      onClick={requestClose}
+      style={{
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <style jsx>{`
+        @keyframes sheetSlideUp {
+          from {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+
+          to {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+
+        @keyframes sheetSlideDown {
+          from {
+            transform: translate3d(0, 0, 0);
+          }
+
+          to {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+        }
+      `}</style>
+
       <section
         className="sheet"
+        onClick={(e) => e.stopPropagation()}
         style={{
-          width: "min(100%, 430px)",
-          borderRadius: "34px 34px 0 0",
-          background: "rgba(244,241,246,.98)",
-          padding: "22px",
+          width: `min(calc(100% - ${EDIT_SHEET.outerGap * 2}px), ${
+            EDIT_SHEET.maxWidth
+          }px)`,
+
+          borderRadius: EDIT_SHEET.radius,
+          background: EDIT_SHEET.bg,
+          padding: EDIT_SHEET.padding,
+
+          marginBottom: `calc(${EDIT_SHEET.outerGap}px + env(safe-area-inset-bottom))`,
+
           boxShadow: "0 -24px 80px rgba(0,0,0,.18)",
+
+          animation: closing
+            ? `sheetSlideDown ${EDIT_SHEET.sheetExitMs}ms ${EDIT_SHEET.sheetExitEasing} both`
+            : `sheetSlideUp ${EDIT_SHEET.sheetEnterMs}ms ${EDIT_SHEET.sheetEasing} both`,
+          willChange: "transform",
         }}
       >
         <div className="sheet-head">
@@ -217,16 +375,61 @@ export default function EditRecordSheet({
           <button
             className="close"
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
+            aria-label="关闭"
             style={{
-              width: 42,
-              height: 42,
-              background: "rgba(0,0,0,.06)",
-              color: "#8e8e93",
-              fontSize: 24,
+              width: EDIT_SHEET.closeSize,
+              height: EDIT_SHEET.closeSize,
+              minWidth: EDIT_SHEET.closeSize,
+              border: 0,
+              borderRadius: 999,
+              background: EDIT_SHEET.closeBg,
+              color: EDIT_SHEET.closeColor,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
-            ×
+            <span
+              aria-hidden
+              style={{
+                position: "relative",
+                width: 20,
+                height: 20,
+                display: "block",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: EDIT_SHEET.closeLineWidth,
+                  height: EDIT_SHEET.closeLineHeight,
+                  borderRadius: 999,
+                  background: EDIT_SHEET.closeColor,
+                  transform: "translate(-50%, -50%) rotate(45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: EDIT_SHEET.closeLineWidth,
+                  height: EDIT_SHEET.closeLineHeight,
+                  borderRadius: 999,
+                  background: EDIT_SHEET.closeColor,
+                  transform: "translate(-50%, -50%) rotate(-45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+            </span>
           </button>
         </div>
 
@@ -236,31 +439,51 @@ export default function EditRecordSheet({
             gap: EDIT_SHEET.fieldGap,
           }}
         >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 10,
-            }}
-          >
-            <Field label="日期">
-              <input
-                type="date"
-                value={dateValue}
-                onChange={(e) => setDateValue(e.target.value)}
-                style={inputStyle()}
-              />
-            </Field>
+          <Field label="日期">
+            <DateField
+              value={dateValue}
+              onChange={setDateValue}
+              inputStyle={inputStyle()}
+            />
+          </Field>
 
-            <Field label="时间">
-              <input
-                type="time"
-                value={timeValue}
-                onChange={(e) => setTimeValue(e.target.value)}
-                style={inputStyle()}
+          <Field label="时间">
+            <div
+              className="ios-time-picker"
+              style={{
+                gap: EDIT_SHEET.timePickerGap,
+                padding: EDIT_SHEET.timePickerPadding,
+                background: EDIT_SHEET.timePickerBg,
+                borderRadius: EDIT_SHEET.timePickerRadius,
+                border: EDIT_SHEET.timePickerBorder,
+              }}
+            >
+              <LoopWheelColumn
+                value={hour}
+                max={23}
+                onChange={setHour}
+                config={EDIT_SHEET}
               />
-            </Field>
-          </div>
+
+              <div
+                className="ios-time-colon"
+                style={{
+                  color: EDIT_SHEET.colonColor,
+                  fontSize: EDIT_SHEET.colonSize,
+                  fontWeight: EDIT_SHEET.colonWeight,
+                }}
+              >
+                :
+              </div>
+
+              <LoopWheelColumn
+                value={minute}
+                max={59}
+                onChange={setMinute}
+                config={EDIT_SHEET}
+              />
+            </div>
+          </Field>
 
           {showAmount && (
             <Field label="奶量 ml">
@@ -372,7 +595,7 @@ export default function EditRecordSheet({
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             style={{
               border: 0,
               borderRadius: EDIT_SHEET.buttonRadius,

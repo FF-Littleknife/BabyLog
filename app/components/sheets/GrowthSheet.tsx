@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { GrowthRecord } from "@/lib/growthApi";
+import DateField from "@/app/components/DateField";
 import GrowthCharts from "@/app/components/GrowthCharts";
 
 /**
@@ -229,9 +230,10 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <label className="field">
+    <div className="field">
       <span
         style={{
+          display: "block",
           color: GROWTH_SHEET.labelColor,
           fontSize: GROWTH_SHEET.labelSize,
           fontWeight: GROWTH_SHEET.labelWeight,
@@ -242,7 +244,7 @@ function Field({
       </span>
 
       {children}
-    </label>
+    </div>
   );
 }
 
@@ -320,13 +322,19 @@ function StatItem({
 function inputStyle() {
   return {
     width: "100%",
+    minWidth: 0,
+    maxWidth: "100%",
     border: GROWTH_SHEET.inputBorder,
     borderRadius: GROWTH_SHEET.inputRadius,
     padding: GROWTH_SHEET.inputPadding,
     background: GROWTH_SHEET.inputBg,
+    backgroundColor: GROWTH_SHEET.inputBg,
     color: GROWTH_SHEET.inputColor,
+    colorScheme: "light",
     outline: "none",
     boxSizing: "border-box" as const,
+    WebkitAppearance: "none" as const,
+    appearance: "none" as const,
   };
 }
 
@@ -437,7 +445,15 @@ export default function GrowthSheet({
   return (
     <div
       className="growth-sheet-backdrop"
-      onTouchMove={(e) => e.preventDefault()}
+      onTouchMove={(event) => {
+        const target = event.target as HTMLElement | null;
+
+        if (target?.closest(".ios-wheel")) return;
+        if (target?.closest(".date-field-overlay")) return;
+        if (target?.closest(".growth-sheet-panel")) return;
+
+        event.preventDefault();
+      }}
       style={{
         position: "fixed",
         inset: 0,
@@ -590,11 +606,10 @@ export default function GrowthSheet({
               }}
             >
               <Field label="日期">
-                <input
-                  type="date"
+                <DateField
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  style={inputStyle()}
+                  onChange={setDate}
+                  inputStyle={inputStyle()}
                 />
               </Field>
 

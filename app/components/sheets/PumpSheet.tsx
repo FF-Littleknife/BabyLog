@@ -1,13 +1,15 @@
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BabyRecord } from "@/lib/types";
+import DateField from "@/app/components/DateField";
+import LoopWheelColumn from "@/app/components/LoopWheelColumn";
 
 const SHEET = {
   maxWidth: 430,
   bg: "rgba(255, 255, 255, 0.9)",
   radius: 28,
   padding: 18,
-  bottomGap: 30,
+  outerGap: 18,
 
   title: "泵奶",
   titleColor: "#111111",
@@ -46,9 +48,21 @@ const SHEET = {
   wheelTextWeight: 680,
   wheelActiveWeight: 780,
 
+  wheelLoopCycles: 21,
+  wheelRecenterDelay: 760,
+
   closeBg: "rgba(0,0,0,.08)",
   closeColor: "#0a84ff",
+  closeSize: 44,
+  closeLineWidth: 22,
+  closeLineHeight: 3,
+
   submitBg: "#0a84ff",
+
+  sheetEnterMs: 420,
+  sheetExitMs: 280,
+  sheetEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
+  sheetExitEasing: "cubic-bezier(0.32, 0, 0.67, 0)",
 };
 
 function pad2(v: number) {
@@ -56,7 +70,9 @@ function pad2(v: number) {
 }
 
 function dateValue(date: Date) {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(
+    date.getDate()
+  )}`;
 }
 
 function makeDate(dateValueString: string, hour: number, minute: number) {
@@ -74,92 +90,6 @@ function makeDate(dateValueString: string, hour: number, minute: number) {
   return date;
 }
 
-function WheelColumn({
-  value,
-  max,
-  onChange,
-}: {
-  value: number;
-  max: number;
-  onChange: (value: number) => void;
-}) {
-  const wheelRef = useRef<HTMLDivElement | null>(null);
-  const scrollTimer = useRef<number | null>(null);
-  const values = Array.from({ length: max + 1 }, (_, index) => index);
-
-  useEffect(() => {
-    const wheel = wheelRef.current;
-    if (!wheel) return;
-    wheel.scrollTop = value * SHEET.wheelItemHeight;
-  }, [value]);
-
-  function updateByScroll() {
-    const wheel = wheelRef.current;
-    if (!wheel) return;
-
-    const nextValue = Math.round(wheel.scrollTop / SHEET.wheelItemHeight);
-    const safeValue = Math.max(0, Math.min(max, nextValue));
-
-    if (safeValue !== value) onChange(safeValue);
-
-    if (scrollTimer.current) window.clearTimeout(scrollTimer.current);
-
-    scrollTimer.current = window.setTimeout(() => {
-      wheel.scrollTo({
-        top: safeValue * SHEET.wheelItemHeight,
-        behavior: "smooth",
-      });
-    }, 80);
-  }
-
-  return (
-    <div
-      className="ios-wheel"
-      ref={wheelRef}
-      onScroll={updateByScroll}
-      style={{
-        height: SHEET.wheelHeight,
-        borderRadius: SHEET.wheelRadius,
-        background: SHEET.wheelBg,
-      }}
-    >
-      <div
-        className="ios-wheel-mask"
-        style={{
-          top: SHEET.wheelItemHeight,
-          height: SHEET.wheelItemHeight,
-          marginBottom: -SHEET.wheelItemHeight,
-          background: SHEET.wheelMaskBg,
-          borderTop: SHEET.wheelMaskBorder,
-          borderBottom: SHEET.wheelMaskBorder,
-        }}
-      />
-
-      <div className="ios-wheel-list" style={{ padding: `${SHEET.wheelItemHeight}px 0` }}>
-        {values.map((item) => {
-          const active = item === value;
-
-          return (
-            <button
-              type="button"
-              key={item}
-              onClick={() => onChange(item)}
-              style={{
-                height: SHEET.wheelItemHeight,
-                color: active ? SHEET.wheelActiveColor : SHEET.wheelTextColor,
-                fontSize: active ? SHEET.wheelActiveSize : SHEET.wheelTextSize,
-                fontWeight: active ? SHEET.wheelActiveWeight : SHEET.wheelTextWeight,
-              }}
-            >
-              {pad2(item)}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 export default function PumpSheet({
   onClose,
   onSave,
@@ -175,19 +105,28 @@ export default function PumpSheet({
   const [durationMin, setDurationMin] = useState("");
   const [amountMl, setAmountMl] = useState("");
   const [note, setNote] = useState("");
+  const [closing, setClosing] = useState(false);
+
+  const closeTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const scrollY = window.scrollY;
 
     function preventTouchMove(event: TouchEvent) {
       const target = event.target as HTMLElement | null;
+
       if (target?.closest(".ios-wheel")) return;
+      if (target?.closest(".date-field-overlay")) return;
+
       event.preventDefault();
     }
 
-    document.addEventListener("touchmove", preventTouchMove, { passive: false });
+    document.addEventListener("touchmove", preventTouchMove, {
+      passive: false,
+    });
 
     document.documentElement.style.overflow = "hidden";
+
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
     document.body.style.top = `-${scrollY}px`;
@@ -199,6 +138,7 @@ export default function PumpSheet({
       document.removeEventListener("touchmove", preventTouchMove);
 
       document.documentElement.style.overflow = "";
+
       document.body.style.overflow = "";
       document.body.style.position = "";
       document.body.style.top = "";
@@ -206,11 +146,17 @@ export default function PumpSheet({
       document.body.style.right = "";
       document.body.style.width = "";
 
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+
       window.scrollTo(0, scrollY);
     };
   }, []);
 
-  const fieldStyle: CSSProperties = { margin: "14px 0" };
+  const fieldStyle: CSSProperties = {
+    margin: "14px 0",
+  };
 
   const labelStyle: CSSProperties = {
     display: "block",
@@ -224,15 +170,31 @@ export default function PumpSheet({
     minWidth: 0,
     maxWidth: "100%",
     boxSizing: "border-box",
+
     border: SHEET.inputBorder,
     background: SHEET.inputBg,
+    backgroundColor: SHEET.inputBg,
     color: SHEET.inputColor,
+    colorScheme: "light",
+
     borderRadius: SHEET.inputRadius,
     padding: SHEET.inputPadding,
+
     outline: "none",
+
     WebkitAppearance: "none",
     appearance: "none",
   };
+
+  function requestClose() {
+    if (closing) return;
+
+    setClosing(true);
+
+    closeTimerRef.current = window.setTimeout(() => {
+      onClose();
+    }, SHEET.sheetExitMs);
+  }
 
   function save() {
     const recordDate = makeDate(date, hour, minute);
@@ -249,17 +211,57 @@ export default function PumpSheet({
   }
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div
+      className="sheet-backdrop"
+      onClick={requestClose}
+      style={{
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <style jsx>{`
+        @keyframes sheetSlideUp {
+          from {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+
+          to {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+
+        @keyframes sheetSlideDown {
+          from {
+            transform: translate3d(0, 0, 0);
+          }
+
+          to {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+        }
+      `}</style>
+
       <div
         className="sheet"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: `min(100%, ${SHEET.maxWidth}px)`,
+          width: `min(calc(100% - ${SHEET.outerGap * 2}px), ${
+            SHEET.maxWidth
+          }px)`,
+
           background: SHEET.bg,
+
           borderRadius: SHEET.radius,
           padding: SHEET.padding,
-          marginBottom: SHEET.bottomGap,
+
+          marginBottom: `calc(${SHEET.outerGap}px + env(safe-area-inset-bottom))`,
+
           boxShadow: "0 -24px 80px rgba(0,0,0,.16)",
+
+          animation: closing
+            ? `sheetSlideDown ${SHEET.sheetExitMs}ms ${SHEET.sheetExitEasing} both`
+            : `sheetSlideUp ${SHEET.sheetEnterMs}ms ${SHEET.sheetEasing} both`,
+          willChange: "transform",
         }}
       >
         <div className="sheet-head">
@@ -275,20 +277,70 @@ export default function PumpSheet({
           </div>
 
           <button
+            type="button"
             className="close"
-            onClick={onClose}
+            onClick={requestClose}
+            aria-label="关闭"
             style={{
+              width: SHEET.closeSize,
+              height: SHEET.closeSize,
+              minWidth: SHEET.closeSize,
+              border: 0,
+              borderRadius: 999,
               background: SHEET.closeBg,
               color: SHEET.closeColor,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
-            ×
+            <span
+              aria-hidden
+              style={{
+                position: "relative",
+                width: 20,
+                height: 20,
+                display: "block",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: SHEET.closeLineWidth,
+                  height: SHEET.closeLineHeight,
+                  borderRadius: 999,
+                  background: SHEET.closeColor,
+                  transform: "translate(-50%, -50%) rotate(45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: SHEET.closeLineWidth,
+                  height: SHEET.closeLineHeight,
+                  borderRadius: 999,
+                  background: SHEET.closeColor,
+                  transform: "translate(-50%, -50%) rotate(-45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+            </span>
           </button>
         </div>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>日期</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+
+          <DateField value={date} onChange={setDate} inputStyle={inputStyle} />
         </div>
 
         <div className="time-picker-field" style={fieldStyle}>
@@ -304,7 +356,12 @@ export default function PumpSheet({
               border: SHEET.timePickerBorder,
             }}
           >
-            <WheelColumn value={hour} max={23} onChange={setHour} />
+            <LoopWheelColumn
+              value={hour}
+              max={23}
+              onChange={setHour}
+              config={SHEET}
+            />
 
             <div
               className="ios-time-colon"
@@ -317,25 +374,54 @@ export default function PumpSheet({
               :
             </div>
 
-            <WheelColumn value={minute} max={59} onChange={setMinute} />
+            <LoopWheelColumn
+              value={minute}
+              max={59}
+              onChange={setMinute}
+              config={SHEET}
+            />
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 10 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+            gap: 10,
+          }}
+        >
           <div style={fieldStyle}>
             <label style={labelStyle}>时长 分钟</label>
-            <input inputMode="numeric" value={durationMin} onChange={(e) => setDurationMin(e.target.value)} style={inputStyle} />
+
+            <input
+              inputMode="numeric"
+              value={durationMin}
+              onChange={(e) => setDurationMin(e.target.value)}
+              style={inputStyle}
+            />
           </div>
 
           <div style={fieldStyle}>
             <label style={labelStyle}>泵奶量 ml</label>
-            <input inputMode="numeric" value={amountMl} onChange={(e) => setAmountMl(e.target.value)} style={inputStyle} />
+
+            <input
+              inputMode="numeric"
+              value={amountMl}
+              onChange={(e) => setAmountMl(e.target.value)}
+              style={inputStyle}
+            />
           </div>
         </div>
 
         <div style={fieldStyle}>
           <label style={labelStyle}>备注 可选</label>
-          <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="" style={inputStyle} />
+
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder=""
+            style={inputStyle}
+          />
         </div>
 
         <div className="sheet-actions">
@@ -345,8 +431,10 @@ export default function PumpSheet({
             style={{
               background: SHEET.submitBg,
               color: "white",
+
               borderRadius: 20,
               padding: 16,
+
               fontWeight: 760,
             }}
           >

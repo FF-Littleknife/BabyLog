@@ -2,38 +2,33 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { BabyRecord, RecordType } from "@/lib/types";
 import { RECORD_LABEL } from "@/lib/types";
+import DateField from "@/app/components/DateField";
+import LoopWheelColumn from "@/app/components/LoopWheelColumn";
 
-const RECORD_SHEET_CONFIG = {
-  sheetMaxWidth: 430,
-  sheetBg: "#2c2c2e",
-  sheetRadius: 28,
-  sheetPadding: 18,
-  sheetShadow: "0 -20px 70px rgba(0, 0, 0, 0.45)",
+const SHEET = {
+  maxWidth: 430,
+  bg: "rgba(255, 255, 255, 0.9)",
+  radius: 28,
+  padding: 18,
+  outerGap: 18,
 
+  titleColor: "#111111",
   titleSize: 24,
   titleWeight: 760,
-  titleColor: "#ffffff",
 
-  closeSize: 34,
-  closeBg: "rgba(255, 255, 255, 0.08)",
-  closeColor: "#ffffff",
-  closeFontSize: 22,
-
-  fieldMargin: "14px 0",
   labelColor: "#8e8e93",
   labelSize: 13,
-  labelMarginBottom: 8,
 
-  inputBg: "#1c1c1e",
-  inputColor: "#ffffff",
+  inputBg: "rgba(0, 0, 0, 0.045)",
+  inputColor: "#111111",
   inputRadius: 18,
   inputPadding: 14,
-  inputBorder: "1px solid rgba(255, 255, 255, 0.08)",
+  inputBorder: "1px solid rgba(0,0,0,.06)",
 
-  timePickerBg: "#1c1c1e",
+  timePickerBg: "rgba(0, 0, 0, 0.045)",
   timePickerRadius: 22,
   timePickerPadding: 8,
-  timePickerBorder: "1px solid rgba(255, 255, 255, 0.08)",
+  timePickerBorder: "1px solid rgba(0,0,0,.06)",
   timePickerGap: 6,
 
   colonColor: "#8e8e93",
@@ -43,35 +38,45 @@ const RECORD_SHEET_CONFIG = {
   wheelHeight: 138,
   wheelItemHeight: 46,
   wheelRadius: 18,
-  wheelBg: "rgba(255, 255, 255, 0.045)",
-  wheelMaskBg: "rgba(255, 255, 255, 0.085)",
-  wheelMaskBorder: "1px solid rgba(255, 255, 255, 0.08)",
-  wheelTextColor: "rgba(255, 255, 255, 0.42)",
-  wheelActiveColor: "#ffffff",
+  wheelBg: "rgba(255,255,255,.72)",
+  wheelMaskBg: "rgba(0,0,0,.06)",
+  wheelMaskBorder: "1px solid rgba(0,0,0,.08)",
+  wheelTextColor: "rgba(0,0,0,.38)",
+  wheelActiveColor: "#111111",
   wheelTextSize: 20,
   wheelActiveSize: 24,
   wheelTextWeight: 680,
   wheelActiveWeight: 780,
 
+  wheelLoopCycles: 21,
+  wheelRecenterDelay: 760,
+
+  closeBg: "rgba(0,0,0,.08)",
+  closeColor: "#0a84ff",
+  closeSize: 44,
+  closeLineWidth: 22,
+  closeLineHeight: 3,
+
   submitBg: "#0a84ff",
-  submitColor: "#ffffff",
-  submitRadius: 20,
-  submitPadding: 16,
-  submitWeight: 760,
+
+  sheetEnterMs: 420,
+  sheetExitMs: 280,
+  sheetEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
+  sheetExitEasing: "cubic-bezier(0.32, 0, 0.67, 0)",
 };
 
-function pad2(value: number) {
-  return String(value).padStart(2, "0");
+function pad2(v: number) {
+  return String(v).padStart(2, "0");
 }
 
-function toDateInputValue(date: Date) {
+function dateValue(date: Date) {
   return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(
     date.getDate()
   )}`;
 }
 
-function makeDate(dateValue: string, hour: number, minute: number) {
-  const [year, month, day] = dateValue.split("-").map(Number);
+function makeDate(dateValueString: string, hour: number, minute: number) {
+  const [year, month, day] = dateValueString.split("-").map(Number);
   const date = new Date();
 
   date.setFullYear(year);
@@ -85,192 +90,258 @@ function makeDate(dateValue: string, hour: number, minute: number) {
   return date;
 }
 
-function WheelColumn({
-  value,
-  max,
-  onChange,
-}: {
-  value: number;
-  max: number;
-  onChange: (value: number) => void;
-}) {
-  const wheelRef = useRef<HTMLDivElement | null>(null);
-  const values = Array.from({ length: max + 1 }, (_, index) => index);
-
-  useEffect(() => {
-    const wheel = wheelRef.current;
-    if (!wheel) return;
-
-    wheel.scrollTop = value * RECORD_SHEET_CONFIG.wheelItemHeight;
-  }, [value]);
-
-  return (
-    <div
-      className="ios-wheel"
-      ref={wheelRef}
-      style={{
-        height: RECORD_SHEET_CONFIG.wheelHeight,
-        borderRadius: RECORD_SHEET_CONFIG.wheelRadius,
-        background: RECORD_SHEET_CONFIG.wheelBg,
-      }}
-    >
-      <div
-        className="ios-wheel-mask"
-        style={{
-          top: RECORD_SHEET_CONFIG.wheelItemHeight,
-          height: RECORD_SHEET_CONFIG.wheelItemHeight,
-          marginBottom: -RECORD_SHEET_CONFIG.wheelItemHeight,
-          background: RECORD_SHEET_CONFIG.wheelMaskBg,
-          borderTop: RECORD_SHEET_CONFIG.wheelMaskBorder,
-          borderBottom: RECORD_SHEET_CONFIG.wheelMaskBorder,
-        }}
-      />
-
-      <div
-        className="ios-wheel-list"
-        style={{
-          padding: `${RECORD_SHEET_CONFIG.wheelItemHeight}px 0`,
-        }}
-      >
-        {values.map((item) => {
-          const active = item === value;
-
-          return (
-            <button
-              type="button"
-              key={item}
-              className={active ? "active" : ""}
-              onClick={() => onChange(item)}
-              style={{
-                height: RECORD_SHEET_CONFIG.wheelItemHeight,
-                color: active
-                  ? RECORD_SHEET_CONFIG.wheelActiveColor
-                  : RECORD_SHEET_CONFIG.wheelTextColor,
-                fontSize: active
-                  ? RECORD_SHEET_CONFIG.wheelActiveSize
-                  : RECORD_SHEET_CONFIG.wheelTextSize,
-                fontWeight: active
-                  ? RECORD_SHEET_CONFIG.wheelActiveWeight
-                  : RECORD_SHEET_CONFIG.wheelTextWeight,
-              }}
-            >
-              {pad2(item)}
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 export default function RecordSheet({
+  title,
   type,
   onClose,
   onSave,
 }: {
+  title?: string;
   type: RecordType;
   onClose: () => void;
-  onSave: (r: BabyRecord) => void;
+  onSave: (record: BabyRecord) => void;
 }) {
   const now = useMemo(() => new Date(), []);
+  const sheetTitle = title || `记录${RECORD_LABEL[type]}`;
 
-  const [dateValue, setDateValue] = useState(toDateInputValue(now));
+  const [date, setDate] = useState(dateValue(now));
   const [hour, setHour] = useState(now.getHours());
   const [minute, setMinute] = useState(now.getMinutes());
-
-  const [amountMl, setAmountMl] = useState(
-    type === "formula" || type === "bottle_breast" ? "60" : ""
-  );
-  const [durationMin, setDurationMin] = useState(type === "breast" ? "10" : "");
   const [note, setNote] = useState("");
+  const [closing, setClosing] = useState(false);
 
-  function save() {
-    const selectedDate = makeDate(dateValue, hour, minute);
+  const closeTimerRef = useRef<number | null>(null);
 
-    const record: BabyRecord = {
-      id: crypto.randomUUID(),
-      type,
-      time: selectedDate.toISOString(),
-      createdAt: new Date().toISOString(),
-      amountMl: amountMl ? Number(amountMl) : undefined,
-      durationMin: durationMin ? Number(durationMin) : undefined,
-      note: note || undefined,
+  useEffect(() => {
+    const scrollY = window.scrollY;
+
+    function preventTouchMove(event: TouchEvent) {
+      const target = event.target as HTMLElement | null;
+
+      if (target?.closest(".ios-wheel")) return;
+      if (target?.closest(".date-field-overlay")) return;
+
+      event.preventDefault();
+    }
+
+    document.addEventListener("touchmove", preventTouchMove, {
+      passive: false,
+    });
+
+    document.documentElement.style.overflow = "hidden";
+
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = "0";
+    document.body.style.right = "0";
+    document.body.style.width = "100%";
+
+    return () => {
+      document.removeEventListener("touchmove", preventTouchMove);
+
+      document.documentElement.style.overflow = "";
+
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
+
+      window.scrollTo(0, scrollY);
     };
-
-    onSave(record);
-  }
+  }, []);
 
   const fieldStyle: CSSProperties = {
-    margin: RECORD_SHEET_CONFIG.fieldMargin,
-    minWidth: 0,
+    margin: "14px 0",
   };
 
   const labelStyle: CSSProperties = {
-    color: RECORD_SHEET_CONFIG.labelColor,
-    fontSize: RECORD_SHEET_CONFIG.labelSize,
-    marginBottom: RECORD_SHEET_CONFIG.labelMarginBottom,
+    display: "block",
+    color: SHEET.labelColor,
+    fontSize: SHEET.labelSize,
+    marginBottom: 8,
   };
 
   const inputStyle: CSSProperties = {
     width: "100%",
     minWidth: 0,
+    maxWidth: "100%",
     boxSizing: "border-box",
-    border: RECORD_SHEET_CONFIG.inputBorder,
-    background: RECORD_SHEET_CONFIG.inputBg,
-    color: RECORD_SHEET_CONFIG.inputColor,
-    borderRadius: RECORD_SHEET_CONFIG.inputRadius,
-    padding: RECORD_SHEET_CONFIG.inputPadding,
+
+    border: SHEET.inputBorder,
+    background: SHEET.inputBg,
+    backgroundColor: SHEET.inputBg,
+    color: SHEET.inputColor,
+    colorScheme: "light",
+
+    borderRadius: SHEET.inputRadius,
+    padding: SHEET.inputPadding,
+
     outline: "none",
+
+    WebkitAppearance: "none",
+    appearance: "none",
   };
 
+  function requestClose() {
+    if (closing) return;
+
+    setClosing(true);
+
+    closeTimerRef.current = window.setTimeout(() => {
+      onClose();
+    }, SHEET.sheetExitMs);
+  }
+
+  function save() {
+    const recordDate = makeDate(date, hour, minute);
+
+    onSave({
+      id: crypto.randomUUID(),
+      type,
+      time: recordDate.toISOString(),
+      createdAt: new Date().toISOString(),
+      note: note || undefined,
+    });
+  }
+
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
+    <div
+      className="sheet-backdrop"
+      onClick={requestClose}
+      style={{
+        alignItems: "flex-end",
+        justifyContent: "center",
+      }}
+    >
+      <style jsx>{`
+        @keyframes sheetSlideUp {
+          from {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+
+          to {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+
+        @keyframes sheetSlideDown {
+          from {
+            transform: translate3d(0, 0, 0);
+          }
+
+          to {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+        }
+      `}</style>
+
       <div
         className="sheet"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: `min(100%, ${RECORD_SHEET_CONFIG.sheetMaxWidth}px)`,
-          background: RECORD_SHEET_CONFIG.sheetBg,
-          borderRadius: RECORD_SHEET_CONFIG.sheetRadius,
-          padding: RECORD_SHEET_CONFIG.sheetPadding,
-          boxShadow: RECORD_SHEET_CONFIG.sheetShadow,
+          width: `min(calc(100% - ${SHEET.outerGap * 2}px), ${
+            SHEET.maxWidth
+          }px)`,
+
+          background: SHEET.bg,
+
+          borderRadius: SHEET.radius,
+          padding: SHEET.padding,
+
+          marginBottom: `calc(${SHEET.outerGap}px + env(safe-area-inset-bottom))`,
+
+          boxShadow: "0 -24px 80px rgba(0,0,0,.16)",
+
+          animation: closing
+            ? `sheetSlideDown ${SHEET.sheetExitMs}ms ${SHEET.sheetExitEasing} both`
+            : `sheetSlideUp ${SHEET.sheetEnterMs}ms ${SHEET.sheetEasing} both`,
+          willChange: "transform",
         }}
       >
         <div className="sheet-head">
           <div
             className="sheet-title"
             style={{
-              color: RECORD_SHEET_CONFIG.titleColor,
-              fontSize: RECORD_SHEET_CONFIG.titleSize,
-              fontWeight: RECORD_SHEET_CONFIG.titleWeight,
+              color: SHEET.titleColor,
+              fontSize: SHEET.titleSize,
+              fontWeight: SHEET.titleWeight,
             }}
           >
-            {RECORD_LABEL[type]}
+            {sheetTitle}
           </div>
 
           <button
+            type="button"
             className="close"
-            onClick={onClose}
+            onClick={requestClose}
+            aria-label="关闭"
             style={{
-              width: RECORD_SHEET_CONFIG.closeSize,
-              height: RECORD_SHEET_CONFIG.closeSize,
-              background: RECORD_SHEET_CONFIG.closeBg,
-              color: RECORD_SHEET_CONFIG.closeColor,
-              fontSize: RECORD_SHEET_CONFIG.closeFontSize,
+              width: SHEET.closeSize,
+              height: SHEET.closeSize,
+              minWidth: SHEET.closeSize,
+              border: 0,
+              borderRadius: 999,
+              background: SHEET.closeBg,
+              color: SHEET.closeColor,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 0,
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
             }}
           >
-            ×
+            <span
+              aria-hidden
+              style={{
+                position: "relative",
+                width: 20,
+                height: 20,
+                display: "block",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: SHEET.closeLineWidth,
+                  height: SHEET.closeLineHeight,
+                  borderRadius: 999,
+                  background: SHEET.closeColor,
+                  transform: "translate(-50%, -50%) rotate(45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: SHEET.closeLineWidth,
+                  height: SHEET.closeLineHeight,
+                  borderRadius: 999,
+                  background: SHEET.closeColor,
+                  transform: "translate(-50%, -50%) rotate(-45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+            </span>
           </button>
         </div>
 
-        <div className="field" style={fieldStyle}>
+        <div style={fieldStyle}>
           <label style={labelStyle}>日期</label>
-          <input
-            type="date"
-            value={dateValue}
-            onChange={(e) => setDateValue(e.target.value)}
-            style={inputStyle}
-          />
+
+          <DateField value={date} onChange={setDate} inputStyle={inputStyle} />
         </div>
 
         <div className="time-picker-field" style={fieldStyle}>
@@ -279,60 +350,47 @@ export default function RecordSheet({
           <div
             className="ios-time-picker"
             style={{
-              gap: RECORD_SHEET_CONFIG.timePickerGap,
-              padding: RECORD_SHEET_CONFIG.timePickerPadding,
-              background: RECORD_SHEET_CONFIG.timePickerBg,
-              borderRadius: RECORD_SHEET_CONFIG.timePickerRadius,
-              border: RECORD_SHEET_CONFIG.timePickerBorder,
+              gap: SHEET.timePickerGap,
+              padding: SHEET.timePickerPadding,
+              background: SHEET.timePickerBg,
+              borderRadius: SHEET.timePickerRadius,
+              border: SHEET.timePickerBorder,
             }}
           >
-            <WheelColumn value={hour} max={23} onChange={setHour} />
+            <LoopWheelColumn
+              value={hour}
+              max={23}
+              onChange={setHour}
+              config={SHEET}
+            />
 
             <div
               className="ios-time-colon"
               style={{
-                color: RECORD_SHEET_CONFIG.colonColor,
-                fontSize: RECORD_SHEET_CONFIG.colonSize,
-                fontWeight: RECORD_SHEET_CONFIG.colonWeight,
+                color: SHEET.colonColor,
+                fontSize: SHEET.colonSize,
+                fontWeight: SHEET.colonWeight,
               }}
             >
               :
             </div>
 
-            <WheelColumn value={minute} max={59} onChange={setMinute} />
+            <LoopWheelColumn
+              value={minute}
+              max={59}
+              onChange={setMinute}
+              config={SHEET}
+            />
           </div>
         </div>
 
-        {(type === "formula" || type === "bottle_breast") && (
-          <div className="field" style={fieldStyle}>
-            <label style={labelStyle}>奶量 ml</label>
-            <input
-              inputMode="numeric"
-              value={amountMl}
-              onChange={(e) => setAmountMl(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-        )}
-
-        {type === "breast" && (
-          <div className="field" style={fieldStyle}>
-            <label style={labelStyle}>时长 分钟</label>
-            <input
-              inputMode="numeric"
-              value={durationMin}
-              onChange={(e) => setDurationMin(e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-        )}
-
-        <div className="field" style={fieldStyle}>
+        <div style={fieldStyle}>
           <label style={labelStyle}>备注 可选</label>
+
           <input
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="比如：颜色、状态、左/右侧"
+            placeholder=""
             style={inputStyle}
           />
         </div>
@@ -342,11 +400,11 @@ export default function RecordSheet({
             className="record-submit"
             onClick={save}
             style={{
-              background: RECORD_SHEET_CONFIG.submitBg,
-              color: RECORD_SHEET_CONFIG.submitColor,
-              borderRadius: RECORD_SHEET_CONFIG.submitRadius,
-              padding: RECORD_SHEET_CONFIG.submitPadding,
-              fontWeight: RECORD_SHEET_CONFIG.submitWeight,
+              background: SHEET.submitBg,
+              color: "white",
+              borderRadius: 20,
+              padding: 16,
+              fontWeight: 760,
             }}
           >
             记录
