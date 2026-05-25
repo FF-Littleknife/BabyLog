@@ -8,7 +8,7 @@ const SUMMARY_CONFIG = {
 
   cardBg: "rgba(255, 255, 255, 0.9)",
   cardRadius: 30,
-  cardPadding: "18px 20px 20px",
+  cardPadding: "22px 20px 20px",
   cardShadow: "0 12px 38px rgba(0,0,0,.05)",
 
   icon: "/time.svg",

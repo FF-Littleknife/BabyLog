@@ -4,17 +4,17 @@ import type { BabyRecord, RecordType } from "@/lib/types";
 type SheetMode = "quick" | "full";
 
 const QUICK_ACTIONS = {
-  margin: "22px 0 28px",
+  margin: "18px 0 28px",
   columns: 4,
-  gap: 14,
+  gap: 18,
 
-  buttonSize: 86,
+  buttonSize: 94,
   buttonBg: "rgba(255, 255, 255, 0.86)",
   buttonActiveBg: "rgba(255, 255, 255, 0.98)",
   buttonRadius: 999,
   buttonShadow: "0 10px 34px rgba(0,0,0,.05)",
 
-  iconSize: 24,
+  iconSize: 30,
   iconMarginBottom: 9,
 
   titleColor: "#111111",
