@@ -41,6 +41,7 @@ import RecordSheet from "./components/sheets/RecordSheet";
 
 const STORAGE_KEY = "baby-log-demo-records";
 const GROWTH_STORAGE_KEY = "baby-log-growth-records";
+const NURSING_TIMER_STORAGE_KEY = "baby-log-nursing-timer-state";
 
 type ViewType = "home" | "timeline";
 type SheetMode = "quick" | "full";
@@ -232,6 +233,35 @@ function formatReceiptRecord(record: BabyRecord) {
   return `${time} ${RECORD_LABEL[record.type]}`;
 }
 
+function hasRecoverableNursingTimer() {
+  try {
+    const raw = window.localStorage.getItem(NURSING_TIMER_STORAGE_KEY);
+    if (!raw) return false;
+
+    const timerState = JSON.parse(raw) as {
+      running?: boolean;
+      leftMs?: number;
+      rightMs?: number;
+      startedAt?: number | null;
+    };
+
+    const hasLeftTime =
+      typeof timerState.leftMs === "number" && timerState.leftMs > 0;
+
+    const hasRightTime =
+      typeof timerState.rightMs === "number" && timerState.rightMs > 0;
+
+    const hasRunningTimer = Boolean(
+      timerState.running && typeof timerState.startedAt === "number"
+    );
+
+    return hasLeftTime || hasRightTime || hasRunningTimer;
+  } catch (error) {
+    console.error("restore nursing timer failed:", error);
+    return false;
+  }
+}
+
 export default function Home() {
   const [records, setRecords] = useState<BabyRecord[]>([]);
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
@@ -386,6 +416,12 @@ export default function Home() {
     }
 
     loadRecords();
+  }, []);
+
+  useEffect(() => {
+    if (hasRecoverableNursingTimer()) {
+      setNursingOpen(true);
+    }
   }, []);
 
   useEffect(() => {

@@ -1,8 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Side = "left" | "right";
+
+type StoredNursingTimerState = {
+  activeSide: Side;
+  running: boolean;
+  leftMs: number;
+  rightMs: number;
+  startedAt: number | null;
+  updatedAt: number;
+};
+
+const STORAGE_KEY = "baby-log-nursing-timer-state";
 
 const NURSING_TIMER_CONFIG = {
   label: "哺乳计时",
@@ -81,6 +92,47 @@ function secondsToMinutes(seconds: number) {
   return Math.max(1, Math.round(seconds / 60));
 }
 
+function msToSeconds(ms: number) {
+  return Math.max(0, Math.floor(ms / 1000));
+}
+
+function readStoredState(): StoredNursingTimerState | null {
+  if (typeof window === "undefined") return null;
+
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as StoredNursingTimerState;
+
+    if (parsed.activeSide !== "left" && parsed.activeSide !== "right") {
+      return null;
+    }
+
+    return {
+      activeSide: parsed.activeSide,
+      running: Boolean(parsed.running),
+      leftMs: Number.isFinite(parsed.leftMs) ? Math.max(0, parsed.leftMs) : 0,
+      rightMs: Number.isFinite(parsed.rightMs) ? Math.max(0, parsed.rightMs) : 0,
+      startedAt:
+        typeof parsed.startedAt === "number" && Number.isFinite(parsed.startedAt)
+          ? parsed.startedAt
+          : null,
+      updatedAt:
+        typeof parsed.updatedAt === "number" && Number.isFinite(parsed.updatedAt)
+          ? parsed.updatedAt
+          : Date.now(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function clearStoredState() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(STORAGE_KEY);
+}
+
 export default function NursingTimer({
   onCancel,
   onFinish,
@@ -92,12 +144,63 @@ export default function NursingTimer({
     rightMin: number;
   }) => void;
 }) {
-  const [activeSide, setActiveSide] = useState<Side>("left");
-  const [running, setRunning] = useState(false);
-  const [leftSeconds, setLeftSeconds] = useState(0);
-  const [rightSeconds, setRightSeconds] = useState(0);
+  const initialState = useMemo(() => readStoredState(), []);
 
+  const [activeSide, setActiveSide] = useState<Side>(
+    initialState?.activeSide ?? "left"
+  );
+  const [running, setRunning] = useState(initialState?.running ?? false);
+  const [leftMs, setLeftMs] = useState(initialState?.leftMs ?? 0);
+  const [rightMs, setRightMs] = useState(initialState?.rightMs ?? 0);
+  const [startedAt, setStartedAt] = useState<number | null>(
+    initialState?.running ? initialState.startedAt ?? Date.now() : null
+  );
+  const [nowTick, setNowTick] = useState(Date.now());
+
+  const latestStateRef = useRef({
+    activeSide: initialState?.activeSide ?? "left",
+    running: initialState?.running ?? false,
+    leftMs: initialState?.leftMs ?? 0,
+    rightMs: initialState?.rightMs ?? 0,
+    startedAt: initialState?.running ? initialState.startedAt ?? Date.now() : null,
+  });
+
+  const liveLeftMs =
+    running && activeSide === "left" && startedAt
+      ? leftMs + Math.max(0, nowTick - startedAt)
+      : leftMs;
+
+  const liveRightMs =
+    running && activeSide === "right" && startedAt
+      ? rightMs + Math.max(0, nowTick - startedAt)
+      : rightMs;
+
+  const leftSeconds = msToSeconds(liveLeftMs);
+  const rightSeconds = msToSeconds(liveRightMs);
   const currentSeconds = activeSide === "left" ? leftSeconds : rightSeconds;
+
+  useEffect(() => {
+    latestStateRef.current = {
+      activeSide,
+      running,
+      leftMs,
+      rightMs,
+      startedAt,
+    };
+  }, [activeSide, running, leftMs, rightMs, startedAt]);
+
+  useEffect(() => {
+    const payload: StoredNursingTimerState = {
+      activeSide,
+      running,
+      leftMs,
+      rightMs,
+      startedAt,
+      updatedAt: Date.now(),
+    };
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+  }, [activeSide, running, leftMs, rightMs, startedAt]);
 
   useEffect(() => {
     const scrollY = window.scrollY;
@@ -140,28 +243,100 @@ export default function NursingTimer({
   }, []);
 
   useEffect(() => {
-    if (!running) return;
-
     const timer = window.setInterval(() => {
-      if (activeSide === "left") {
-        setLeftSeconds((prev) => prev + 1);
-      } else {
-        setRightSeconds((prev) => prev + 1);
-      }
-    }, 1000);
+      setNowTick(Date.now());
+    }, 500);
 
-    return () => window.clearInterval(timer);
-  }, [running, activeSide]);
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        setNowTick(Date.now());
+      }
+    }
+
+    function handleFocus() {
+      setNowTick(Date.now());
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, []);
+
+  function commitRunningTime() {
+    const state = latestStateRef.current;
+
+    if (!state.running || !state.startedAt) {
+      return {
+        leftMs: state.leftMs,
+        rightMs: state.rightMs,
+      };
+    }
+
+    const extraMs = Math.max(0, Date.now() - state.startedAt);
+
+    const nextLeftMs =
+      state.activeSide === "left" ? state.leftMs + extraMs : state.leftMs;
+
+    const nextRightMs =
+      state.activeSide === "right" ? state.rightMs + extraMs : state.rightMs;
+
+    setLeftMs(nextLeftMs);
+    setRightMs(nextRightMs);
+    setStartedAt(null);
+    setNowTick(Date.now());
+
+    return {
+      leftMs: nextLeftMs,
+      rightMs: nextRightMs,
+    };
+  }
 
   function chooseSide(side: Side) {
+    const committed = commitRunningTime();
+
     setActiveSide(side);
+    setLeftMs(committed.leftMs);
+    setRightMs(committed.rightMs);
     setRunning(true);
+    setStartedAt(Date.now());
+    setNowTick(Date.now());
+  }
+
+  function toggleRunning() {
+    if (running) {
+      commitRunningTime();
+      setRunning(false);
+      setStartedAt(null);
+      setNowTick(Date.now());
+      return;
+    }
+
+    setRunning(true);
+    setStartedAt(Date.now());
+    setNowTick(Date.now());
+  }
+
+  function cancel() {
+    clearStoredState();
+    onCancel();
   }
 
   function finish() {
-    const leftMin = secondsToMinutes(leftSeconds);
-    const rightMin = secondsToMinutes(rightSeconds);
+    const committed = commitRunningTime();
+
+    const finalLeftSeconds = msToSeconds(committed.leftMs);
+    const finalRightSeconds = msToSeconds(committed.rightMs);
+
+    const leftMin = secondsToMinutes(finalLeftSeconds);
+    const rightMin = secondsToMinutes(finalRightSeconds);
     const durationMin = leftMin + rightMin;
+
+    clearStoredState();
 
     onFinish({
       leftMin,
@@ -281,7 +456,7 @@ export default function NursingTimer({
 
           <button
             className="nursing-close"
-            onClick={onCancel}
+            onClick={cancel}
             style={{
               width: NURSING_TIMER_CONFIG.closeSize,
               height: NURSING_TIMER_CONFIG.closeSize,
@@ -324,7 +499,7 @@ export default function NursingTimer({
 
         <button
           type="button"
-          onClick={() => setRunning((prev) => !prev)}
+          onClick={toggleRunning}
           style={{
             width: "100%",
             border: 0,
@@ -388,7 +563,7 @@ export default function NursingTimer({
 
           <button
             className="nursing-cancel"
-            onClick={onCancel}
+            onClick={cancel}
             style={{
               background: NURSING_TIMER_CONFIG.cancelBg,
               color: NURSING_TIMER_CONFIG.cancelColor,
