@@ -35,50 +35,53 @@ const CHARTS = {
   titleWeight: 400,
 
   /* =========================
-     当前最新数值
+     右上角展开箭头
      ========================= */
 
-  valueColor: "#111111",
-  valueSize: 22,
-  valueWeight: 820,
-
-  unitColor: "#8e8e93",
-  unitSize: 12,
-  unitWeight: 650,
-  unitMarginLeft: 3,
-
-  /* =========================
-     右上角最新日期 / 展开箭头
-     ========================= */
-
-  dateColor: "rgba(142,142,147,.72)",
-  dateSize: 10,
-  arrowSize: 12,
+  arrowSize: 16,
+  arrowStrokeWidth: 3.2,
   arrowColor: "rgba(142,142,147,.72)",
-  arrowGap: 6,
   arrowTransition: "transform .18s ease",
 
   /* =========================
      曲线区域
      ========================= */
 
-  chartMarginTop: 10,
-  chartHeight: 96,
-  svgHeight: 82,
+  chartMarginTop: 8,
+  chartHeight: 108,
 
   pointGap: 54,
   chartPaddingX: 18,
 
   lineWidth: 3,
-  pointRadius: 3.2,
+  pointRadius: 4.2,
+  pointHitRadius: 17,
 
-  axisY: 66,
-  labelY: 82,
+  // 横轴 / 日期整体下移
+  axisY: 86,
+  labelY: 102,
 
   axisColor: "rgba(0,0,0,.08)",
   labelColor: "rgba(142,142,147,.72)",
   labelSize: 10,
   labelWeight: 400,
+
+  // 当前查看点的定位虚线
+  // 默认跟最新点；点击历史点后，切换到历史点。
+  guideLineColor: "rgba(142,142,147,.42)",
+  guideLineWidth: 1.1,
+  guideLineDash: "3 4",
+  guideLineGapFromPoint: 7,
+
+  // 圆点数值
+  // 默认最新点显示；点击历史点后，切到历史点。
+  tooltipSize: 10,
+  tooltipWeight: 760,
+  tooltipOffsetY: 7,
+
+  // 数值左右避让参数
+  tooltipSideOffsetX: 18,
+  tooltipEdgePadding: 18,
 
   /* =========================
      展开明细
@@ -137,6 +140,12 @@ type GrowthPoint = {
   createdAt: string;
 };
 
+type NormalizedGrowthPoint = GrowthPoint & {
+  x: number;
+  y: number;
+  dateIndex: number;
+};
+
 const METRICS: GrowthMetric[] = [
   {
     key: "heightCm",
@@ -178,6 +187,12 @@ function formatValue(value?: number) {
   return String(Number(value.toFixed(1)));
 }
 
+function getGlobalDates(records: GrowthRecord[]) {
+  return Array.from(new Set(records.map((record) => record.date))).sort(
+    (a, b) => new Date(a).getTime() - new Date(b).getTime()
+  );
+}
+
 function getMetricPoints(records: GrowthRecord[], key: GrowthMetric["key"]) {
   return records
     .filter((record) => typeof record[key] === "number")
@@ -194,6 +209,24 @@ function getMetricPoints(records: GrowthRecord[], key: GrowthMetric["key"]) {
       value: record[key] as number,
       createdAt: record.createdAt,
     }));
+}
+
+function getLatestPointByDate(points: GrowthPoint[]) {
+  const map = new Map<string, GrowthPoint>();
+
+  for (const point of points) {
+    const existing = map.get(point.date);
+
+    if (
+      !existing ||
+      new Date(point.createdAt).getTime() >
+        new Date(existing.createdAt).getTime()
+    ) {
+      map.set(point.date, point);
+    }
+  }
+
+  return map;
 }
 
 function makePath(points: { x: number; y: number }[]) {
@@ -219,29 +252,54 @@ function getChartWidth(count: number, containerWidth: number) {
   return Math.max(safeContainerWidth, dataWidth);
 }
 
-function normalizePoints(values: number[], chartWidth: number) {
-  if (!values.length) return [];
+function getXForDateIndex(index: number, dateCount: number, chartWidth: number) {
+  if (dateCount <= 1) return chartWidth / 2;
 
+  const usableWidth = chartWidth - CHARTS.chartPaddingX * 2;
+
+  return (
+    CHARTS.chartPaddingX +
+    (index / Math.max(dateCount - 1, 1)) * usableWidth
+  );
+}
+
+function normalizeMetricPoints({
+  points,
+  globalDates,
+  chartWidth,
+}: {
+  points: GrowthPoint[];
+  globalDates: string[];
+  chartWidth: number;
+}) {
+  if (!points.length || !globalDates.length) return [];
+
+  const values = points.map((point) => point.value);
   const min = Math.min(...values);
   const max = Math.max(...values);
   const range = max - min;
 
-  const usableWidth = chartWidth - CHARTS.chartPaddingX * 2;
+  const pointByDate = getLatestPointByDate(points);
 
-  return values.map((value, index) => {
-    const x =
-      values.length === 1
-        ? chartWidth / 2
-        : CHARTS.chartPaddingX +
-          (index / Math.max(values.length - 1, 1)) * usableWidth;
+  return globalDates
+    .map((date, index) => {
+      const point = pointByDate.get(date);
+      if (!point) return null;
 
-    const ratio = range === 0 ? 0.5 : (value - min) / range;
+      const x = getXForDateIndex(index, globalDates.length, chartWidth);
+      const ratio = range === 0 ? 0.5 : (point.value - min) / range;
 
-    // 曲线区域控制在横轴上方，底部留给日期
-    const y = CHARTS.axisY - ratio * 42 - 8;
+      // 横轴下移后，曲线高度同步拉开一点
+      const y = CHARTS.axisY - ratio * 56 - 10;
 
-    return { x, y };
-  });
+      return {
+        ...point,
+        x,
+        y,
+        dateIndex: index,
+      };
+    })
+    .filter((point): point is NormalizedGrowthPoint => Boolean(point));
 }
 
 function GrowthDetailList({
@@ -326,7 +384,7 @@ function GrowthDetailList({
 
             <span
               style={{
-                marginLeft: CHARTS.unitMarginLeft,
+                marginLeft: 3,
                 color: CHARTS.detailUnitColor,
                 fontSize: CHARTS.detailUnitSize,
                 fontWeight: CHARTS.detailUnitWeight,
@@ -344,21 +402,22 @@ function GrowthDetailList({
 function GrowthMiniChartCard({
   metric,
   records,
+  globalDates,
 }: {
   metric: GrowthMetric;
   records: GrowthRecord[];
+  globalDates: string[];
 }) {
   const cardRef = useRef<HTMLElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [chartViewportWidth, setChartViewportWidth] = useState(1);
   const [expanded, setExpanded] = useState(false);
+  const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
 
   const points = useMemo(
     () => getMetricPoints(records, metric.key),
     [records, metric.key]
   );
-
-  const latest = points[points.length - 1];
 
   useEffect(() => {
     function updateWidth() {
@@ -386,14 +445,22 @@ function GrowthMiniChartCard({
     };
   }, []);
 
-  const chartWidth = getChartWidth(points.length, chartViewportWidth);
+  const chartWidth = getChartWidth(globalDates.length, chartViewportWidth);
 
-  const normalizedPoints = normalizePoints(
-    points.map((point) => point.value),
-    chartWidth
-  );
+  const normalizedPoints = normalizeMetricPoints({
+    points,
+    globalDates,
+    chartWidth,
+  });
 
   const path = makePath(normalizedPoints);
+
+  const latestPoint = normalizedPoints[normalizedPoints.length - 1] ?? null;
+
+  const selectedPoint =
+    normalizedPoints.find((point) => point.id === selectedPointId) || null;
+
+  const activePoint = selectedPoint ?? latestPoint;
 
   useEffect(() => {
     const scrollEl = scrollRef.current;
@@ -401,7 +468,141 @@ function GrowthMiniChartCard({
 
     // 默认展示最新数据：滚到最右侧
     scrollEl.scrollLeft = scrollEl.scrollWidth;
-  }, [points.length, chartWidth]);
+  }, [globalDates.length, chartWidth]);
+
+  useEffect(() => {
+    setSelectedPointId(null);
+  }, [metric.key, records]);
+
+  function toggleSelectedPoint(point: NormalizedGrowthPoint) {
+    setSelectedPointId((current) => (current === point.id ? null : point.id));
+  }
+
+  function getTooltipX(point: NormalizedGrowthPoint) {
+    const pointIndex = normalizedPoints.findIndex(
+      (item) => item.id === point.id
+    );
+
+    const prevPoint = pointIndex > 0 ? normalizedPoints[pointIndex - 1] : null;
+    const nextPoint =
+      pointIndex >= 0 && pointIndex < normalizedPoints.length - 1
+        ? normalizedPoints[pointIndex + 1]
+        : null;
+
+    let direction = 0;
+
+    const nearLeftEdge =
+      point.x < CHARTS.chartPaddingX + CHARTS.tooltipEdgePadding;
+
+    const nearRightEdge =
+      point.x > chartWidth - CHARTS.chartPaddingX - CHARTS.tooltipEdgePadding;
+
+    if (nearLeftEdge) {
+      direction = 1;
+    } else if (nearRightEdge) {
+      direction = -1;
+    } else {
+      const leftClear = prevPoint ? prevPoint.y - point.y : 999;
+      const rightClear = nextPoint ? nextPoint.y - point.y : 999;
+
+      if (leftClear > rightClear + 2) {
+        direction = -1;
+      } else if (rightClear > leftClear + 2) {
+        direction = 1;
+      } else {
+        direction = 0;
+      }
+    }
+
+    const rawTextX = point.x + direction * CHARTS.tooltipSideOffsetX;
+
+    return Math.max(
+      CHARTS.chartPaddingX,
+      Math.min(chartWidth - CHARTS.chartPaddingX, rawTextX)
+    );
+  }
+
+  function renderPointValue(point: NormalizedGrowthPoint) {
+    return (
+      <g pointerEvents="none">
+        <text
+          x={getTooltipX(point)}
+          y={point.y - CHARTS.tooltipOffsetY}
+          textAnchor="middle"
+          fill={metric.color}
+          fontSize={CHARTS.tooltipSize}
+          fontWeight={CHARTS.tooltipWeight}
+        >
+          {formatValue(point.value)}
+          <tspan
+            fill={metric.color}
+            fontSize={CHARTS.tooltipSize}
+            fontWeight={CHARTS.tooltipWeight}
+          >
+            {metric.unit}
+          </tspan>
+        </text>
+      </g>
+    );
+  }
+
+  function renderGuideLine(point: NormalizedGrowthPoint) {
+    const y1 = point.y + CHARTS.pointRadius + CHARTS.guideLineGapFromPoint;
+    const y2 = CHARTS.axisY;
+
+    if (y1 >= y2) return null;
+
+    return (
+      <line
+        x1={point.x}
+        y1={y1}
+        x2={point.x}
+        y2={y2}
+        stroke={CHARTS.guideLineColor}
+        strokeWidth={CHARTS.guideLineWidth}
+        strokeDasharray={CHARTS.guideLineDash}
+        strokeLinecap="round"
+        pointerEvents="none"
+      />
+    );
+  }
+
+  function ArrowIcon() {
+    return (
+      <span
+        aria-hidden
+        style={{
+          width: CHARTS.arrowSize,
+          height: CHARTS.arrowSize,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
+          transition: CHARTS.arrowTransition,
+          flexShrink: 0,
+        }}
+      >
+        <svg
+          width={CHARTS.arrowSize}
+          height={CHARTS.arrowSize}
+          viewBox="0 0 24 24"
+          fill="none"
+          style={{
+            display: "block",
+            overflow: "visible",
+          }}
+        >
+          <path
+            d="M6 9.5L12 15.5L18 9.5"
+            stroke={CHARTS.arrowColor}
+            strokeWidth={CHARTS.arrowStrokeWidth}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+    );
+  }
 
   return (
     <article
@@ -424,78 +625,24 @@ function GrowthMiniChartCard({
       <div
         style={{
           display: "flex",
-          alignItems: "flex-start",
+          alignItems: "center",
           justifyContent: "space-between",
           gap: 10,
+          height: 14,
         }}
       >
-        <div>
-          <div
-            style={{
-              color: CHARTS.titleColor,
-              fontSize: CHARTS.titleSize,
-              fontWeight: CHARTS.titleWeight,
-              lineHeight: 1,
-            }}
-          >
-            {metric.title}
-          </div>
-
-          <div style={{ marginTop: 7, whiteSpace: "nowrap" }}>
-            <span
-              style={{
-                color: CHARTS.valueColor,
-                fontSize: CHARTS.valueSize,
-                fontWeight: CHARTS.valueWeight,
-                lineHeight: 1,
-              }}
-            >
-              {formatValue(latest?.value)}
-            </span>
-
-            {latest && (
-              <span
-                style={{
-                  marginLeft: CHARTS.unitMarginLeft,
-                  color: CHARTS.unitColor,
-                  fontSize: CHARTS.unitSize,
-                  fontWeight: CHARTS.unitWeight,
-                }}
-              >
-                {metric.unit}
-              </span>
-            )}
-          </div>
-        </div>
-
         <div
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: CHARTS.arrowGap,
-            color: CHARTS.dateColor,
-            fontSize: CHARTS.dateSize,
+            color: CHARTS.titleColor,
+            fontSize: CHARTS.titleSize,
+            fontWeight: CHARTS.titleWeight,
             lineHeight: 1,
-            whiteSpace: "nowrap",
-            marginTop: 1,
           }}
         >
-          <span>{latest ? formatDate(latest.date) : "暂无"}</span>
-
-          <span
-            aria-hidden
-            style={{
-              display: "inline-block",
-              color: CHARTS.arrowColor,
-              fontSize: CHARTS.arrowSize,
-              transform: expanded ? "rotate(180deg)" : "rotate(0deg)",
-              transition: CHARTS.arrowTransition,
-              lineHeight: 1,
-            }}
-          >
-            ⌄
-          </span>
+          {metric.title}
         </div>
+
+        <ArrowIcon />
       </div>
 
       <div
@@ -552,7 +699,7 @@ function GrowthMiniChartCard({
               strokeWidth="1"
             />
 
-            {points.length > 1 && (
+            {normalizedPoints.length > 1 && (
               <path
                 d={path}
                 fill="none"
@@ -563,13 +710,28 @@ function GrowthMiniChartCard({
               />
             )}
 
+            {activePoint && renderGuideLine(activePoint)}
+            {activePoint && renderPointValue(activePoint)}
+
             {normalizedPoints.map((point, index) => (
-              <g key={`${points[index].id}-${index}`}>
+              <g key={`${point.id}-${point.date}-${index}`}>
                 <circle
                   cx={point.x}
                   cy={point.y}
                   r={CHARTS.pointRadius}
                   fill={metric.color}
+                />
+
+                <circle
+                  cx={point.x}
+                  cy={point.y}
+                  r={CHARTS.pointHitRadius}
+                  fill="transparent"
+                  style={{ cursor: "pointer" }}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    toggleSelectedPoint(point);
+                  }}
                 />
 
                 <text
@@ -579,8 +741,9 @@ function GrowthMiniChartCard({
                   fill={CHARTS.labelColor}
                   fontSize={CHARTS.labelSize}
                   fontWeight={CHARTS.labelWeight}
+                  pointerEvents="none"
                 >
-                  {formatDate(points[index].date)}
+                  {formatDate(point.date)}
                 </text>
               </g>
             ))}
@@ -606,6 +769,8 @@ function GrowthMiniChartCard({
 }
 
 export default function GrowthCharts({ records }: { records: GrowthRecord[] }) {
+  const globalDates = useMemo(() => getGlobalDates(records), [records]);
+
   return (
     <section
       style={{
@@ -620,6 +785,7 @@ export default function GrowthCharts({ records }: { records: GrowthRecord[] }) {
           key={metric.key}
           metric={metric}
           records={records}
+          globalDates={globalDates}
         />
       ))}
     </section>

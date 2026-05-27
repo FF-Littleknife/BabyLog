@@ -14,119 +14,121 @@ const GROWTH_SHEET = {
      整体遮罩 / 背景毛玻璃
      ========================= */
 
-  overlayBg: "rgba(244,241,246,.36)", // 整个页面遮罩颜色。越大越白，越小越透
-  overlayBlur: "blur(18px) saturate(120%)", // 背景模糊强度和饱和度
-  overlayPadding: "10px", // 弹窗距离屏幕边缘的安全距离，小手机别太大
+  overlayBg: "rgba(244,241,246,.36)",
+  overlayBlur: "blur(18px) saturate(120%)",
+  overlayPadding: "10px",
 
   /* =========================
      内容容器
-     注意：这里现在是透明的，不显示大外框
-     只作为内容排版和滚动区域
      ========================= */
 
-  panelWidth: "min(calc(100% - 20px), 410px)", // 整个成长记录内容宽度
-  panelMaxHeight: "calc(100svh - 20px)", // 最大高度，超过后内部滚动
-  panelRadius: 0, // 大容器圆角。当前透明，所以一般不用调
-  panelBg: "transparent", // 大容器背景。保持 transparent 就是不要大外框
-  panelPadding: "12px", // 内容整体内边距
-  panelShadow: "none", // 大容器阴影。当前不要大框，所以为 none
+  panelWidth: "min(calc(100% - 20px), 410px)",
+  panelMaxHeight: "calc(100svh - 20px)",
+  panelRadius: 0,
+  panelBg: "transparent",
+  panelPadding: "12px",
+  panelShadow: "none",
 
   /* =========================
      主标题
      ========================= */
 
-  titleText: "叶票票成长记录", // 主标题文字
-  titleColor: "#111111", // 主标题颜色
-  titleSize: 20, // 主标题字号
-  titleWeight: 820, // 主标题字重
-  titleMarginBottom: 12, // 标题区和下方数据卡之间的距离
+  titleText: "叶票票成长记录",
+  titleColor: "#111111",
+  titleSize: 20,
+  titleWeight: 820,
+  titleMarginBottom: 12,
 
   /* =========================
      出生天数 / 月龄文字
      ========================= */
 
-  ageTextColor: "#8e8e93", // 出生天数文字颜色
-  ageTextSize: 12, // 出生天数文字字号
-  ageTextWeight: 400, // 出生天数文字字重
-  ageTextMarginTop: 0, // 主标题和出生天数之间的距离
+  ageTextColor: "#8e8e93",
+  ageTextSize: 12,
+  ageTextWeight: 400,
+  ageTextMarginTop: 0,
 
   /* =========================
      顶部三项最新数据卡片
      ========================= */
 
-  cardBg: "rgba(255,255,255,.82)", // 白色卡片背景
-  cardRadius: 28, // 白色卡片圆角
-  cardPadding: "20px 16px 18px", // 白色卡片内边距
-  cardShadow: "0 10px 34px rgba(0,0,0,.05)", // 白色卡片阴影
+  cardBg: "rgba(255,255,255,.82)",
+  cardRadius: 28,
+  cardPadding: "20px 16px 18px",
+  cardShadow: "0 10px 34px rgba(0,0,0,.05)",
 
-  statGap: 10, // 身高 / 体重 / 头围三列之间的距离
+  statGap: 10,
 
-  valueColor: "#111111", // 数值颜色
-  valueSize: 28, // 数值字号
-  valueWeight: 820, // 数值字重
+  valueColor: "#111111",
+  valueSize: 28,
+  valueWeight: 820,
 
-  unitColor: "#8e8e93", // 单位颜色
-  unitSize: 13, // 单位字号
-  unitWeight: 600, // 单位字重
-  unitMarginLeft: 3, // 数值和单位之间的距离
+  unitColor: "#8e8e93",
+  unitSize: 13,
+  unitWeight: 600,
+  unitMarginLeft: 3,
 
-  statDateColor: "rgba(142,142,147,.72)", // 日期颜色
-  statDateSize: 10, // 日期字号
-  statDateMarginTop: 7, // 数值和日期之间的距离
+  statDateColor: "rgba(142,142,147,.72)",
+  statDateSize: 10,
+  statDateMarginTop: 2,
+
+  // 数值整体保持居中；日期在数值组内部左对齐。
+  statValueRowHeight: 32,
+  statDateRowHeight: 12,
 
   /* =========================
      底部圆形操作按钮
      ========================= */
 
-  actionRowMarginTop: 22, // 曲线卡片和按钮区之间的距离
-  actionRowGap: 18, // 加号按钮和关闭按钮之间的距离
+  actionRowMarginTop: 22,
+  actionRowGap: 18,
 
-  iconButtonSize: 58, // 圆形按钮尺寸
-  iconButtonBg: "rgba(255,255,255,.82)", // 圆形按钮背景
-  iconButtonShadow: "0 10px 34px rgba(0,0,0,.05)", // 圆形按钮阴影
+  iconButtonSize: 58,
+  iconButtonBg: "rgba(255,255,255,.82)",
+  iconButtonShadow: "0 10px 34px rgba(0,0,0,.05)",
 
-  addIcon: "/add.svg", // 新增按钮图标
-  addIconSize: 30, // 新增按钮图标尺寸
-  addIconOpacity: 1, // 新增按钮图标透明度，1 = 100%
+  addIcon: "/add.svg",
+  addIconSize: 30,
+  addIconOpacity: 1,
 
-  closeIcon: "/delete.svg", // 关闭按钮图标
-  closeIconSize: 26, // 关闭按钮图标尺寸
-  closeIconOpacity: 1, // 关闭按钮图标透明度，1 = 100%
+  closeIcon: "/delete.svg",
+  closeIconSize: 26,
+  closeIconOpacity: 1,
 
   /* =========================
      新增数据表单卡片
      ========================= */
 
-  fieldGap: 12, // 表单字段之间的距离
+  fieldGap: 12,
 
-  labelColor: "#8e8e93", // 表单 label 颜色
-  labelSize: 12, // 表单 label 字号
-  labelWeight: 700, // 表单 label 字重
-  labelMarginBottom: 6, // label 和输入框之间的距离
+  labelColor: "#8e8e93",
+  labelSize: 12,
+  labelWeight: 700,
+  labelMarginBottom: 6,
 
-  inputBg: "rgba(255,255,255,.76)", // 输入框背景
-  inputColor: "#111111", // 输入文字颜色
-  inputRadius: 18, // 输入框圆角
-  inputPadding: "14px 14px", // 输入框内边距
-  inputBorder: "1px solid rgba(0,0,0,.06)", // 输入框边框
+  inputBg: "rgba(255,255,255,.76)",
+  inputColor: "#111111",
+  inputRadius: 18,
+  inputPadding: "14px 14px",
+  inputBorder: "1px solid rgba(0,0,0,.06)",
 
-  formGridGap: 10, // 身高/体重/头围三个输入框之间的距离
+  formGridGap: 10,
 
   /* =========================
      新增数据表单按钮
      ========================= */
 
-  formButtonGap: 10, // 保存 / 返回按钮之间的距离
-  formButtonMarginTop: 18, // 表单和按钮之间的距离
+  formButtonGap: 10,
+  formButtonMarginTop: 18,
 
-  saveBg: "#0a84ff", // 保存按钮背景
-  saveColor: "#ffffff", // 保存按钮文字颜色
+  saveBg: "#0a84ff",
+  saveColor: "#ffffff",
 
-  cancelBg: "rgba(255,255,255,.72)", // 返回按钮背景
-  cancelColor: "#8e8e93", // 返回按钮文字颜色
+  cancelBg: "rgba(255,255,255,.72)",
+  cancelColor: "#8e8e93",
 
-  buttonRadius: 22, // 保存/返回按钮圆角
-  buttonPadding: 16, // 保存/返回按钮内边距
+  buttonRadius: 22,
+  buttonPadding: 16,
   buttonWeight: 760,
 };
 
@@ -263,57 +265,73 @@ function StatItem({
         width: "100%",
         minWidth: 0,
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
+        justifyContent: "center",
+        textAlign: "left",
       }}
     >
       <div
         style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "baseline",
-          justifyContent: "center",
-          whiteSpace: "nowrap",
+          display: "grid",
+          gridTemplateRows: `${GROWTH_SHEET.statValueRowHeight}px ${GROWTH_SHEET.statDateRowHeight}px`,
+          rowGap: GROWTH_SHEET.statDateMarginTop,
+          alignItems: "center",
+          justifyItems: "start",
+          width: "fit-content",
+          maxWidth: "100%",
         }}
       >
-        <span
+        <div
           style={{
-            color: GROWTH_SHEET.valueColor,
-            fontSize: GROWTH_SHEET.valueSize,
-            fontWeight: GROWTH_SHEET.valueWeight,
+            height: GROWTH_SHEET.statValueRowHeight,
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "flex-start",
+            whiteSpace: "nowrap",
             lineHeight: 1,
           }}
         >
-          {typeof value === "number" ? value : "—"}
-        </span>
-
-        {typeof value === "number" && (
           <span
             style={{
-              marginLeft: GROWTH_SHEET.unitMarginLeft,
-              color: GROWTH_SHEET.unitColor,
-              fontSize: GROWTH_SHEET.unitSize,
-              fontWeight: GROWTH_SHEET.unitWeight,
+              color: GROWTH_SHEET.valueColor,
+              fontSize: GROWTH_SHEET.valueSize,
+              fontWeight: GROWTH_SHEET.valueWeight,
+              lineHeight: 1,
+              fontVariantNumeric: "tabular-nums",
             }}
           >
-            {unit}
+            {typeof value === "number" ? value : "—"}
           </span>
-        )}
-      </div>
 
-      <div
-        style={{
-          width: "100%",
-          marginTop: GROWTH_SHEET.statDateMarginTop,
-          color: GROWTH_SHEET.statDateColor,
-          fontSize: GROWTH_SHEET.statDateSize,
-          lineHeight: 1,
-          whiteSpace: "nowrap",
-          textAlign: "center",
-        }}
-      >
-        {date ? formatDate(date) : "暂无日期"}
+          {typeof value === "number" && (
+            <span
+              style={{
+                marginLeft: GROWTH_SHEET.unitMarginLeft,
+                color: GROWTH_SHEET.unitColor,
+                fontSize: GROWTH_SHEET.unitSize,
+                fontWeight: GROWTH_SHEET.unitWeight,
+                lineHeight: 1,
+              }}
+            >
+              {unit}
+            </span>
+          )}
+        </div>
+
+        <div
+          style={{
+            height: GROWTH_SHEET.statDateRowHeight,
+            color: GROWTH_SHEET.statDateColor,
+            fontSize: GROWTH_SHEET.statDateSize,
+            lineHeight: `${GROWTH_SHEET.statDateRowHeight}px`,
+            whiteSpace: "nowrap",
+            textAlign: "left",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {date ? formatDate(date) : "暂无日期"}
+        </div>
       </div>
     </div>
   );
