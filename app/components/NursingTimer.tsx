@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 type Side = "left" | "right";
@@ -22,9 +23,12 @@ const NURSING_TIMER_CONFIG = {
   backdropBg: "rgba(244, 241, 246, 0.56)",
   backdropBlur: "blur(26px)",
 
+  panelMaxWidth: 430,
+  panelOuterGap: 18,
   panelRadius: 34,
   panelBg: "rgba(255, 255, 255, 0.9)",
   panelPadding: 22,
+  panelShadow: "0 -24px 80px rgba(0,0,0,.16)",
 
   labelColor: "#ff3b30",
   labelSize: 15,
@@ -35,10 +39,11 @@ const NURSING_TIMER_CONFIG = {
   subSize: 13,
   subMarginTop: 6,
 
-  closeSize: 42,
-  closeBg: "rgba(0, 0, 0, 0.08)",
+  closeSize: 44,
+  closeBg: "rgba(0,0,0,.08)",
   closeColor: "#0a84ff",
-  closeFontSize: 24,
+  closeLineWidth: 22,
+  closeLineHeight: 3,
 
   timeMargin: "34px 0 28px",
   timeColor: "#111111",
@@ -78,6 +83,20 @@ const NURSING_TIMER_CONFIG = {
   buttonRadius: 22,
   buttonPadding: 17,
   buttonWeight: 760,
+
+  sheetEnterMs: 420,
+  sheetExitMs: 280,
+  sheetEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
+  sheetExitEasing: "cubic-bezier(0.32, 0, 0.67, 0)",
+
+  buttonTransition:
+    "background .2s ease, color .2s ease, box-shadow .2s ease, transform .12s ease, opacity .2s ease",
+  switchTransition:
+    "background .22s ease, color .22s ease, transform .12s ease",
+  cardTransition:
+    "background .22s ease, box-shadow .22s ease, transform .12s ease",
+  tapScale: 0.97,
+  tapFastScale: 0.94,
 };
 
 function formatDuration(seconds: number) {
@@ -156,13 +175,18 @@ export default function NursingTimer({
     initialState?.running ? initialState.startedAt ?? Date.now() : null
   );
   const [nowTick, setNowTick] = useState(Date.now());
+  const [closing, setClosing] = useState(false);
+
+  const closeTimerRef = useRef<number | null>(null);
 
   const latestStateRef = useRef({
     activeSide: initialState?.activeSide ?? "left",
     running: initialState?.running ?? false,
     leftMs: initialState?.leftMs ?? 0,
     rightMs: initialState?.rightMs ?? 0,
-    startedAt: initialState?.running ? initialState.startedAt ?? Date.now() : null,
+    startedAt: initialState?.running
+      ? initialState.startedAt ?? Date.now()
+      : null,
   });
 
   const liveLeftMs =
@@ -214,7 +238,6 @@ export default function NursingTimer({
     });
 
     document.documentElement.style.overflow = "hidden";
-    document.documentElement.style.height = "100%";
 
     document.body.style.overflow = "hidden";
     document.body.style.position = "fixed";
@@ -222,13 +245,11 @@ export default function NursingTimer({
     document.body.style.left = "0";
     document.body.style.right = "0";
     document.body.style.width = "100%";
-    document.body.style.height = "100%";
 
     return () => {
       document.removeEventListener("touchmove", preventTouchMove);
 
       document.documentElement.style.overflow = "";
-      document.documentElement.style.height = "";
 
       document.body.style.overflow = "";
       document.body.style.position = "";
@@ -236,7 +257,10 @@ export default function NursingTimer({
       document.body.style.left = "";
       document.body.style.right = "";
       document.body.style.width = "";
-      document.body.style.height = "";
+
+      if (closeTimerRef.current) {
+        window.clearTimeout(closeTimerRef.current);
+      }
 
       window.scrollTo(0, scrollY);
     };
@@ -296,6 +320,17 @@ export default function NursingTimer({
     };
   }
 
+  function requestClose() {
+    if (closing) return;
+
+    setClosing(true);
+
+    closeTimerRef.current = window.setTimeout(() => {
+      clearStoredState();
+      onCancel();
+    }, NURSING_TIMER_CONFIG.sheetExitMs);
+  }
+
   function chooseSide(side: Side) {
     const committed = commitRunningTime();
 
@@ -319,11 +354,6 @@ export default function NursingTimer({
     setRunning(true);
     setStartedAt(Date.now());
     setNowTick(Date.now());
-  }
-
-  function cancel() {
-    clearStoredState();
-    onCancel();
   }
 
   function finish() {
@@ -351,6 +381,7 @@ export default function NursingTimer({
     return (
       <button
         type="button"
+        className="nursing-tap-button"
         onClick={() => chooseSide(side)}
         style={{
           border: 0,
@@ -363,6 +394,8 @@ export default function NursingTimer({
             ? NURSING_TIMER_CONFIG.sideActiveColor
             : NURSING_TIMER_CONFIG.sideInactiveColor,
           fontWeight: 760,
+          transition: NURSING_TIMER_CONFIG.switchTransition,
+          WebkitTapHighlightColor: "transparent",
         }}
       >
         {label}
@@ -372,30 +405,34 @@ export default function NursingTimer({
 
   function sideStat(side: Side, label: string, seconds: number) {
     const active = activeSide === side;
+    const activeAndRunning = active && running;
 
     return (
       <button
         type="button"
+        className="nursing-tap-button"
         onClick={() => chooseSide(side)}
         style={{
           textAlign: "left",
           border: 0,
-          background:
-            active && running
-              ? NURSING_TIMER_CONFIG.sideStatActiveBg
-              : NURSING_TIMER_CONFIG.sideStatBg,
+          background: activeAndRunning
+            ? NURSING_TIMER_CONFIG.sideStatActiveBg
+            : NURSING_TIMER_CONFIG.sideStatBg,
           borderRadius: NURSING_TIMER_CONFIG.sideStatRadius,
           padding: NURSING_TIMER_CONFIG.sideStatPadding,
+          transition: NURSING_TIMER_CONFIG.cardTransition,
+          WebkitTapHighlightColor: "transparent",
         }}
       >
         <div
           style={{
             color: NURSING_TIMER_CONFIG.sideStatTitleColor,
             fontSize: 12,
+            transition: "color .18s ease",
           }}
         >
           {label}
-          {active && running ? " · 计时中" : ""}
+          {activeAndRunning ? " · 计时中" : ""}
         </div>
 
         <div
@@ -404,6 +441,7 @@ export default function NursingTimer({
             fontSize: 22,
             fontWeight: 780,
             marginTop: 4,
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           {formatDuration(seconds)}
@@ -412,22 +450,83 @@ export default function NursingTimer({
     );
   }
 
+  const closeButtonStyle: CSSProperties = {
+    width: NURSING_TIMER_CONFIG.closeSize,
+    height: NURSING_TIMER_CONFIG.closeSize,
+    minWidth: NURSING_TIMER_CONFIG.closeSize,
+    border: 0,
+    borderRadius: 999,
+    background: NURSING_TIMER_CONFIG.closeBg,
+    color: NURSING_TIMER_CONFIG.closeColor,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 0,
+    cursor: "pointer",
+    transition: NURSING_TIMER_CONFIG.buttonTransition,
+    WebkitTapHighlightColor: "transparent",
+  };
+
   return (
     <div
       className="nursing-backdrop"
+      onClick={requestClose}
       style={{
+        alignItems: "flex-end",
+        justifyContent: "center",
         background: NURSING_TIMER_CONFIG.backdropBg,
         backdropFilter: NURSING_TIMER_CONFIG.backdropBlur,
         WebkitBackdropFilter: NURSING_TIMER_CONFIG.backdropBlur,
       }}
     >
+      <style jsx>{`
+        @keyframes nursingSheetSlideUp {
+          from {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+
+          to {
+            transform: translate3d(0, 0, 0);
+          }
+        }
+
+        @keyframes nursingSheetSlideDown {
+          from {
+            transform: translate3d(0, 0, 0);
+          }
+
+          to {
+            transform: translate3d(0, calc(100% + 40px), 0);
+          }
+        }
+
+        .nursing-tap-button:active {
+          transform: scale(${NURSING_TIMER_CONFIG.tapScale});
+        }
+
+        .nursing-fast-tap-button:active {
+          transform: scale(${NURSING_TIMER_CONFIG.tapFastScale});
+        }
+      `}</style>
+
       <div
         className="nursing-panel"
+        onClick={(event) => event.stopPropagation()}
         style={{
+          width: `min(calc(100% - ${
+            NURSING_TIMER_CONFIG.panelOuterGap * 2
+          }px), ${NURSING_TIMER_CONFIG.panelMaxWidth}px)`,
+
           borderRadius: NURSING_TIMER_CONFIG.panelRadius,
           background: NURSING_TIMER_CONFIG.panelBg,
           padding: NURSING_TIMER_CONFIG.panelPadding,
-          boxShadow: "0 -24px 80px rgba(0,0,0,.16)",
+          marginBottom: `calc(${NURSING_TIMER_CONFIG.panelOuterGap}px + env(safe-area-inset-bottom))`,
+          boxShadow: NURSING_TIMER_CONFIG.panelShadow,
+
+          animation: closing
+            ? `nursingSheetSlideDown ${NURSING_TIMER_CONFIG.sheetExitMs}ms ${NURSING_TIMER_CONFIG.sheetExitEasing} both`
+            : `nursingSheetSlideUp ${NURSING_TIMER_CONFIG.sheetEnterMs}ms ${NURSING_TIMER_CONFIG.sheetEasing} both`,
+          willChange: "transform",
         }}
       >
         <div className="nursing-top">
@@ -455,17 +554,49 @@ export default function NursingTimer({
           </div>
 
           <button
-            className="nursing-close"
-            onClick={cancel}
-            style={{
-              width: NURSING_TIMER_CONFIG.closeSize,
-              height: NURSING_TIMER_CONFIG.closeSize,
-              background: NURSING_TIMER_CONFIG.closeBg,
-              color: NURSING_TIMER_CONFIG.closeColor,
-              fontSize: NURSING_TIMER_CONFIG.closeFontSize,
-            }}
+            type="button"
+            className="nursing-close nursing-fast-tap-button"
+            onClick={requestClose}
+            aria-label="关闭"
+            style={closeButtonStyle}
           >
-            ×
+            <span
+              aria-hidden
+              style={{
+                position: "relative",
+                width: 20,
+                height: 20,
+                display: "block",
+              }}
+            >
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: NURSING_TIMER_CONFIG.closeLineWidth,
+                  height: NURSING_TIMER_CONFIG.closeLineHeight,
+                  borderRadius: 999,
+                  background: NURSING_TIMER_CONFIG.closeColor,
+                  transform: "translate(-50%, -50%) rotate(45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+
+              <span
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  top: "50%",
+                  width: NURSING_TIMER_CONFIG.closeLineWidth,
+                  height: NURSING_TIMER_CONFIG.closeLineHeight,
+                  borderRadius: 999,
+                  background: NURSING_TIMER_CONFIG.closeColor,
+                  transform: "translate(-50%, -50%) rotate(-45deg)",
+                  transformOrigin: "center",
+                }}
+              />
+            </span>
           </button>
         </div>
 
@@ -477,6 +608,7 @@ export default function NursingTimer({
             fontSize: NURSING_TIMER_CONFIG.timeSize,
             fontWeight: NURSING_TIMER_CONFIG.timeWeight,
             letterSpacing: NURSING_TIMER_CONFIG.timeLetterSpacing,
+            fontVariantNumeric: "tabular-nums",
           }}
         >
           {formatDuration(currentSeconds)}
@@ -499,6 +631,7 @@ export default function NursingTimer({
 
         <button
           type="button"
+          className="nursing-tap-button"
           onClick={toggleRunning}
           style={{
             width: "100%",
@@ -511,6 +644,8 @@ export default function NursingTimer({
               : NURSING_TIMER_CONFIG.finishBg,
             color: running ? "#111111" : "#ffffff",
             fontWeight: 760,
+            transition: NURSING_TIMER_CONFIG.buttonTransition,
+            WebkitTapHighlightColor: "transparent",
           }}
         >
           {running
@@ -548,7 +683,7 @@ export default function NursingTimer({
           style={{ gap: NURSING_TIMER_CONFIG.actionGap }}
         >
           <button
-            className="nursing-finish"
+            className="nursing-finish nursing-tap-button"
             onClick={finish}
             style={{
               background: NURSING_TIMER_CONFIG.finishBg,
@@ -556,20 +691,24 @@ export default function NursingTimer({
               borderRadius: NURSING_TIMER_CONFIG.buttonRadius,
               padding: NURSING_TIMER_CONFIG.buttonPadding,
               fontWeight: NURSING_TIMER_CONFIG.buttonWeight,
+              transition: NURSING_TIMER_CONFIG.buttonTransition,
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             {NURSING_TIMER_CONFIG.finishText}
           </button>
 
           <button
-            className="nursing-cancel"
-            onClick={cancel}
+            className="nursing-cancel nursing-tap-button"
+            onClick={requestClose}
             style={{
               background: NURSING_TIMER_CONFIG.cancelBg,
               color: NURSING_TIMER_CONFIG.cancelColor,
               borderRadius: NURSING_TIMER_CONFIG.buttonRadius,
               padding: NURSING_TIMER_CONFIG.buttonPadding,
               fontWeight: NURSING_TIMER_CONFIG.buttonWeight,
+              transition: NURSING_TIMER_CONFIG.buttonTransition,
+              WebkitTapHighlightColor: "transparent",
             }}
           >
             {NURSING_TIMER_CONFIG.cancelText}

@@ -4,26 +4,26 @@ import type { BabyRecord, RecordType } from "@/lib/types";
 type SheetMode = "quick" | "full";
 
 const QUICK_ACTIONS = {
-  margin: "18px 0 28px",
-  columns: 4,
-  gap: 18,
+  margin: "18px 0 28px", // 快捷操作区整体外边距；上 18px，左右 0，下 28px
+  columns: 4, // 快捷按钮列数；现在是一行 4 个
+  gap: 18, // 按钮之间的横向/纵向间距 px
 
-  buttonSize: 94,
-  buttonBg: "rgba(255, 255, 255, 0.86)",
-  buttonActiveBg: "rgba(255, 255, 255, 0.98)",
-  buttonRadius: 999,
-  buttonShadow: "0 10px 34px rgba(0,0,0,.05)",
+  buttonSize: 88, // 单个圆形按钮尺寸 px
+  buttonBg: "rgba(255, 255, 255, 0.86)", // 按钮默认背景色；最后一位是透明度
+  buttonActiveBg: "rgba(255, 255, 255, 0.98)", // 按钮按下/激活时背景色
+  buttonRadius: 999, // 按钮圆角；999 表示完全圆形
+  buttonShadow: "0 10px 34px rgba(0,0,0,.05)", // 按钮阴影
 
-  iconSize: 30,
-  iconMarginBottom: 9,
+  iconSize: 30, // 按钮图标尺寸 px
+  iconMarginBottom: 9, // 图标和文字之间的距离 px
 
-  titleColor: "#111111",
-  titleSize: 14,
-  titleWeight: 760,
-  titleLetterSpacing: "-0.03em",
+  titleColor: "#111111", // 按钮文字颜色
+  titleSize: 14, // 按钮文字字号 px
+  titleWeight: 760, // 按钮文字字重；越大越粗
+  titleLetterSpacing: "-0.03em", // 按钮文字字距；负值会让字更紧凑
 
-  disabledOpacity: 0.48,
-  doubleClickDelay: 240,
+  disabledOpacity: 0.48, // 禁用状态透明度；越小越淡
+  doubleClickDelay: 240, // 双击/连点识别间隔，单位毫秒
 };
 
 const QUICK_ITEMS: {

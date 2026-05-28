@@ -17,31 +17,31 @@ type AddRecordOptions = {
 };
 
 const HOME_TITLE = {
-  text: "叶票票喂养记录",
-  margin: "74px 0 30px",
-  fontSize: 24,
-  lineHeight: 1.05,
-  fontWeight: 950,
-  letterSpacing: "-0.02em",
-  color: "#111111",
+  text: "叶票票喂养记录", // 首页顶部标题文字
+  margin: "74px 0 30px", // 标题外边距；上 74px，左右 0，下 30px
+  fontSize: 24, // 标题字号 px
+  lineHeight: 1.05, // 标题行高；越小越紧凑
+  fontWeight: 950, // 标题字重；越大越粗
+  letterSpacing: "-0.02em", // 标题字距；负值会让字更紧
+  color: "#111111", // 标题颜色
 };
 
 const GROWTH_BUTTON = {
-  top: 68,
-  right: 4,
-  zIndex: 30,
-  size: 42,
-  icon: "/growth.svg",
-  iconSize: 42,
-  opacity: 1,
+  top: 68, // 成长按钮距离页面顶部的距离 px
+  right: 4, // 成长按钮距离右侧内容边缘的距离 px
+  zIndex: 30, // 成长按钮层级；越大越盖在上方
+  size: 42, // 成长按钮点击区域尺寸 px
+  icon: "/growth.svg", // 成长按钮图标路径
+  iconSize: 48, // growth.svg 图标显示尺寸 px；想让头像更大主要改这里
+  opacity: 1, // 图标透明度；1 是完全不透明
 };
 
 const SECTION_LABEL = {
-  margin: "0 0 8px 4px",
-  color: "rgba(142,142,147,.72)",
-  fontSize: 10.5,
-  fontWeight: 650,
-  letterSpacing: "0.03em",
+  margin: "0 0 8px 4px", // 小标题外边距；上 0，右 0，下 8px，左 4px
+  color: "rgba(142,142,147,.72)", // 小标题颜色；最后一位 .72 是透明度
+  fontSize: 10.5, // 小标题字号 px
+  fontWeight: 650, // 小标题字重；越大越粗
+  letterSpacing: "0.03em", // 小标题字距；正值会让字更松
 };
 
 /**
@@ -58,26 +58,26 @@ const HOME_LAYOUT = {
      手机端设计稿
      ========================= */
 
-  designWidth: 430, // 首页单列设计宽度
-  mobileSideGap: 16, // 小屏左右安全边距。16 = 左右各 16
-  bottomPadding: 118, // 给底部导航预留空间
+  designWidth: 430, // 首页单列设计宽度 px；移动端按这个宽度做缩放基准
+  mobileSideGap: 16, // 小屏左右安全边距 px；16 = 左右各 16
+  bottomPadding: 118, // 页面底部内边距 px；给底部导航预留空间
 
   /* =========================
      宽屏两列
      ========================= */
 
-  wideBreakpoint: 860,
-  wideMaxWidth: 780,
-  wideLeftWidth: 430,
-  wideSummaryWidth: 320,
-  wideGap: 30,
+  wideBreakpoint: 860, // 进入宽屏双列布局的断点 px
+  wideMaxWidth: 780, // 宽屏内容区最大宽度 px
+  wideLeftWidth: 430, // 宽屏左侧主内容宽度 px
+  wideSummaryWidth: 320, // 宽屏右侧摘要区域宽度 px
+  wideGap: 30, // 宽屏左右两列之间的距离 px
 
   /* =========================
      间距
      ========================= */
 
-  mobileStatusBottomGap: 18,
-  summaryStickyTop: 18,
+  mobileStatusBottomGap: 18, // 移动端状态卡片下方间距 px
+  summaryStickyTop: 18, // 宽屏右侧摘要吸顶时距离顶部的距离 px
 };
 
 function SectionLabel({ children }: { children: string }) {

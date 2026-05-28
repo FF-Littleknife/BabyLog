@@ -18,6 +18,10 @@ const GROWTH_SHEET = {
   overlayBlur: "blur(18px) saturate(120%)",
   overlayPadding: "10px",
 
+  // 打开弹窗时：背景快速虚化淡入
+  overlayEnterMs: 130,
+  overlayEnterEasing: "ease-out",
+
   /* =========================
      内容容器
      ========================= */
@@ -28,6 +32,16 @@ const GROWTH_SHEET = {
   panelBg: "transparent",
   panelPadding: "12px",
   panelShadow: "none",
+
+  // 打开弹窗时：内容整体快速渐显 + 轻微上浮
+  panelEnterMs: 170,
+  panelEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
+  panelEnterMoveY: 8,
+
+  // 切换新增表单时：内容轻微渐显
+  contentEnterMs: 150,
+  contentEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
+  contentEnterMoveY: 6,
 
   /* =========================
      主标题
@@ -86,6 +100,9 @@ const GROWTH_SHEET = {
   iconButtonSize: 58,
   iconButtonBg: "rgba(255,255,255,.82)",
   iconButtonShadow: "0 10px 34px rgba(0,0,0,.05)",
+  iconButtonActiveScale: 0.94,
+  iconButtonTransition:
+    "transform .12s ease, background .18s ease, box-shadow .18s ease",
 
   addIcon: "/add.svg",
   addIconSize: 30,
@@ -130,6 +147,9 @@ const GROWTH_SHEET = {
   buttonRadius: 22,
   buttonPadding: 16,
   buttonWeight: 760,
+  buttonActiveScale: 0.97,
+  buttonTransition:
+    "transform .12s ease, background .18s ease, color .18s ease, box-shadow .18s ease",
 };
 
 const BABY_BIRTH_DATE = "2026-04-19";
@@ -372,6 +392,7 @@ function CircleIconButton({
   return (
     <button
       type="button"
+      className="growth-icon-button growth-sheet-safe"
       aria-label={label}
       onClick={onClick}
       style={{
@@ -386,6 +407,7 @@ function CircleIconButton({
         justifyContent: "center",
         padding: 0,
         WebkitTapHighlightColor: "transparent",
+        transition: GROWTH_SHEET.iconButtonTransition,
       }}
     >
       <img
@@ -460,15 +482,26 @@ export default function GrowthSheet({
     });
   }
 
+  function handleBackdropPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+    const target = event.target as HTMLElement | null;
+
+    if (target?.closest(".growth-sheet-safe")) return;
+    if (target?.closest(".date-field-overlay")) return;
+    if (target?.closest(".ios-wheel")) return;
+
+    onClose();
+  }
+
   return (
     <div
       className="growth-sheet-backdrop"
+      onPointerDown={handleBackdropPointerDown}
       onTouchMove={(event) => {
         const target = event.target as HTMLElement | null;
 
         if (target?.closest(".ios-wheel")) return;
         if (target?.closest(".date-field-overlay")) return;
-        if (target?.closest(".growth-sheet-panel")) return;
+        if (target?.closest(".growth-sheet-safe")) return;
 
         event.preventDefault();
       }}
@@ -485,9 +518,50 @@ export default function GrowthSheet({
         padding: GROWTH_SHEET.overlayPadding,
         overscrollBehavior: "contain",
         boxSizing: "border-box",
+        animation: `growthOverlayIn ${GROWTH_SHEET.overlayEnterMs}ms ${GROWTH_SHEET.overlayEnterEasing} both`,
       }}
     >
       <style jsx>{`
+        @keyframes growthOverlayIn {
+          from {
+            opacity: 0;
+            backdrop-filter: blur(0px) saturate(100%);
+            -webkit-backdrop-filter: blur(0px) saturate(100%);
+          }
+
+          to {
+            opacity: 1;
+            backdrop-filter: ${GROWTH_SHEET.overlayBlur};
+            -webkit-backdrop-filter: ${GROWTH_SHEET.overlayBlur};
+          }
+        }
+
+        @keyframes growthPanelIn {
+          from {
+            opacity: 0;
+            transform: translate3d(0, ${GROWTH_SHEET.panelEnterMoveY}px, 0)
+              scale(0.985);
+          }
+
+          to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+          }
+        }
+
+        @keyframes growthContentIn {
+          from {
+            opacity: 0;
+            transform: translate3d(0, ${GROWTH_SHEET.contentEnterMoveY}px, 0)
+              scale(0.99);
+          }
+
+          to {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1);
+          }
+        }
+
         .growth-sheet-panel {
           scrollbar-width: none;
           -ms-overflow-style: none;
@@ -497,6 +571,14 @@ export default function GrowthSheet({
           display: none;
           width: 0;
           height: 0;
+        }
+
+        .growth-icon-button:active {
+          transform: scale(${GROWTH_SHEET.iconButtonActiveScale});
+        }
+
+        .growth-form-button:active {
+          transform: scale(${GROWTH_SHEET.buttonActiveScale});
         }
       `}</style>
 
@@ -511,9 +593,12 @@ export default function GrowthSheet({
           padding: GROWTH_SHEET.panelPadding,
           boxShadow: GROWTH_SHEET.panelShadow,
           boxSizing: "border-box",
+          animation: `growthPanelIn ${GROWTH_SHEET.panelEnterMs}ms ${GROWTH_SHEET.panelEnterEasing} both`,
+          willChange: "transform, opacity",
         }}
       >
         <div
+          className="growth-sheet-safe"
           style={{
             textAlign: "center",
             marginBottom: GROWTH_SHEET.titleMarginBottom,
@@ -542,8 +627,15 @@ export default function GrowthSheet({
         </div>
 
         {!adding ? (
-          <>
+          <div
+            key="growth-view"
+            style={{
+              animation: `growthContentIn ${GROWTH_SHEET.contentEnterMs}ms ${GROWTH_SHEET.contentEnterEasing} both`,
+              willChange: "transform, opacity",
+            }}
+          >
             <section
+              className="growth-sheet-safe"
               style={{
                 width: "100%",
                 background: GROWTH_SHEET.cardBg,
@@ -582,7 +674,9 @@ export default function GrowthSheet({
               </div>
             </section>
 
-            <GrowthCharts records={records} />
+            <div className="growth-sheet-safe">
+              <GrowthCharts records={records} />
+            </div>
 
             <div
               style={{
@@ -591,28 +685,40 @@ export default function GrowthSheet({
                 justifyContent: "center",
                 alignItems: "center",
                 gap: GROWTH_SHEET.actionRowGap,
+                pointerEvents: "none",
               }}
             >
-              <CircleIconButton
-                label="新增数据"
-                icon={GROWTH_SHEET.addIcon}
-                iconSize={GROWTH_SHEET.addIconSize}
-                iconOpacity={GROWTH_SHEET.addIconOpacity}
-                onClick={() => setAdding(true)}
-              />
+              <div style={{ pointerEvents: "auto" }}>
+                <CircleIconButton
+                  label="新增数据"
+                  icon={GROWTH_SHEET.addIcon}
+                  iconSize={GROWTH_SHEET.addIconSize}
+                  iconOpacity={GROWTH_SHEET.addIconOpacity}
+                  onClick={() => setAdding(true)}
+                />
+              </div>
 
-              <CircleIconButton
-                label="关闭"
-                icon={GROWTH_SHEET.closeIcon}
-                iconSize={GROWTH_SHEET.closeIconSize}
-                iconOpacity={GROWTH_SHEET.closeIconOpacity}
-                onClick={onClose}
-              />
+              <div style={{ pointerEvents: "auto" }}>
+                <CircleIconButton
+                  label="关闭"
+                  icon={GROWTH_SHEET.closeIcon}
+                  iconSize={GROWTH_SHEET.closeIconSize}
+                  iconOpacity={GROWTH_SHEET.closeIconOpacity}
+                  onClick={onClose}
+                />
+              </div>
             </div>
-          </>
+          </div>
         ) : (
-          <>
+          <div
+            key="growth-form"
+            style={{
+              animation: `growthContentIn ${GROWTH_SHEET.contentEnterMs}ms ${GROWTH_SHEET.contentEnterEasing} both`,
+              willChange: "transform, opacity",
+            }}
+          >
             <div
+              className="growth-sheet-safe"
               style={{
                 display: "grid",
                 gap: GROWTH_SHEET.fieldGap,
@@ -685,6 +791,7 @@ export default function GrowthSheet({
             >
               <button
                 type="button"
+                className="growth-form-button growth-sheet-safe"
                 onClick={save}
                 style={{
                   border: 0,
@@ -694,6 +801,8 @@ export default function GrowthSheet({
                   color: GROWTH_SHEET.saveColor,
                   fontWeight: GROWTH_SHEET.buttonWeight,
                   boxShadow: GROWTH_SHEET.cardShadow,
+                  transition: GROWTH_SHEET.buttonTransition,
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
                 保存记录
@@ -701,6 +810,7 @@ export default function GrowthSheet({
 
               <button
                 type="button"
+                className="growth-form-button growth-sheet-safe"
                 onClick={() => setAdding(false)}
                 style={{
                   border: 0,
@@ -710,12 +820,14 @@ export default function GrowthSheet({
                   color: GROWTH_SHEET.cancelColor,
                   fontWeight: GROWTH_SHEET.buttonWeight,
                   boxShadow: GROWTH_SHEET.cardShadow,
+                  transition: GROWTH_SHEET.buttonTransition,
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
                 返回
               </button>
             </div>
-          </>
+          </div>
         )}
       </section>
     </div>
