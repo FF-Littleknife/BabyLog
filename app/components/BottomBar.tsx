@@ -73,6 +73,21 @@ const TABS: { view: ViewType; label: string }[] = [
   { view: "timeline", label: "时间线" },
 ];
 
+const LOCAL_FALLBACK_SOUNDS: SoundItem[] = [
+  {
+    id: "1-吹风机.m4a",
+    title: "吹风机",
+    src: "/white-noise/1-%E5%90%B9%E9%A3%8E%E6%9C%BA.m4a",
+    fallbackSrc: "/white-noise/1-%E5%90%B9%E9%A3%8E%E6%9C%BA.m4a",
+  },
+  {
+    id: "2-嘘声.m4a",
+    title: "嘘声",
+    src: "/white-noise/2-%E5%98%98%E5%A3%B0.m4a",
+    fallbackSrc: "/white-noise/2-%E5%98%98%E5%A3%B0.m4a",
+  },
+];
+
 // 放在组件外面，避免 BottomBar 因为其他弹窗重载/卸载时把音频一起弄停。
 // 只有用户明确点“当前正在播放的音频胶囊”时，才会暂停。
 let sharedAudio: HTMLAudioElement | null = null;
@@ -96,6 +111,68 @@ function formatNursingButtonTime(seconds: number) {
     2,
     "0"
   )}`;
+}
+
+function playAudioSource(audio: HTMLAudioElement, src: string) {
+  return new Promise<void>((resolve, reject) => {
+    let settled = false;
+
+    function cleanup() {
+      audio.removeEventListener("playing", handlePlaying);
+      audio.removeEventListener("error", handleError);
+      audio.removeEventListener("stalled", handleStalled);
+      window.clearTimeout(timeoutId);
+    }
+
+    function resolveOnce() {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      resolve();
+    }
+
+    function rejectOnce() {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error("Audio playback failed"));
+    }
+
+    function handlePlaying() {
+      resolveOnce();
+    }
+
+    function handleError() {
+      rejectOnce();
+    }
+
+    function handleStalled() {
+      rejectOnce();
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      rejectOnce();
+    }, 5200);
+
+    audio.addEventListener("playing", handlePlaying);
+    audio.addEventListener("error", handleError);
+    audio.addEventListener("stalled", handleStalled);
+
+    if (audio.src !== new URL(src, window.location.href).href) {
+      audio.pause();
+      audio.src = src;
+      audio.currentTime = 0;
+    }
+
+    audio.loop = true;
+    audio.preload = "auto";
+
+    const playResult = audio.play();
+
+    if (playResult) {
+      playResult.then(resolveOnce).catch(rejectOnce);
+    }
+  });
 }
 
 export default function BottomBar({
@@ -132,7 +209,7 @@ export default function BottomBar({
       setLoadingSounds(true);
 
       try {
-        const response = await fetch("/api/sounds", {
+        const response = await fetch("/white-noise.json", {
           signal: controller.signal,
           cache: "no-store",
         });
@@ -140,11 +217,13 @@ export default function BottomBar({
         const data = (await response.json()) as { sounds?: SoundItem[] };
 
         if (!controller.signal.aborted) {
-          setSounds(Array.isArray(data.sounds) ? data.sounds : []);
+          const nextSounds = Array.isArray(data.sounds) ? data.sounds : [];
+
+          setSounds(nextSounds.length ? nextSounds : LOCAL_FALLBACK_SOUNDS);
         }
       } catch (error) {
         if (!isAbortError(error)) {
-          setSounds([]);
+          setSounds(LOCAL_FALLBACK_SOUNDS);
         }
       } finally {
         if (!controller.signal.aborted) {
@@ -179,16 +258,19 @@ export default function BottomBar({
       audioRef.current = audio;
     }
 
-    if (audio.src !== new URL(sound.src, window.location.href).href) {
-      audio.pause();
-      audio.src = sound.src;
-      audio.currentTime = 0;
+    try {
+      await playAudioSource(audio, sound.src);
+      syncAudioState(true, sound.id);
+      return;
+    } catch {
+      if (!sound.fallbackSrc) {
+        syncAudioState(false, sound.id);
+        return;
+      }
     }
 
-    audio.loop = true;
-
     try {
-      await audio.play();
+      await playAudioSource(audio, sound.fallbackSrc);
       syncAudioState(true, sound.id);
     } catch {
       syncAudioState(false, sound.id);

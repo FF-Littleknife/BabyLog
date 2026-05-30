@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 export type SoundItem = {
   id: string;
   title: string;
   src: string;
+  fallbackSrc?: string;
 };
 
 const WHITE_NOISE_SHEET = {
@@ -14,18 +13,6 @@ const WHITE_NOISE_SHEET = {
   overlayBg: "rgba(244,241,246,.18)",
   overlayBlur: "blur(18px) saturate(120%)",
   overlayPadding: 24,
-
-  // 弹层进入动画
-  overlayEnterMs: 130,
-  overlayEnterEasing: "ease-out",
-
-  // 胶囊进入动画
-  pillEnterMs: 170,
-  pillEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
-  pillEnterMoveY: 8,
-
-  // 空状态延迟显示，避免刚打开时闪一下“无音频”
-  emptyDelayMs: 3000,
 
   listWidth: "min(calc(100% - 72px), 340px)",
   listGap: 12,
@@ -71,20 +58,6 @@ export default function WhiteNoiseSheet({
   onToggleSound: (sound: SoundItem) => void;
   onClose: () => void;
 }) {
-  const [allowEmptyText, setAllowEmptyText] = useState(false);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setAllowEmptyText(true);
-    }, WHITE_NOISE_SHEET.emptyDelayMs);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, []);
-
-  const shouldShowEmptyText = !loading && sounds.length === 0 && allowEmptyText;
-
   return (
     <div
       className="white-noise-sheet"
@@ -101,37 +74,9 @@ export default function WhiteNoiseSheet({
         justifyContent: "center",
         padding: WHITE_NOISE_SHEET.overlayPadding,
         boxSizing: "border-box",
-        animation: `whiteNoiseOverlayIn ${WHITE_NOISE_SHEET.overlayEnterMs}ms ${WHITE_NOISE_SHEET.overlayEnterEasing} both`,
       }}
     >
       <style jsx>{`
-        @keyframes whiteNoiseOverlayIn {
-          from {
-            opacity: 0;
-            backdrop-filter: blur(0px) saturate(100%);
-            -webkit-backdrop-filter: blur(0px) saturate(100%);
-          }
-
-          to {
-            opacity: 1;
-            backdrop-filter: ${WHITE_NOISE_SHEET.overlayBlur};
-            -webkit-backdrop-filter: ${WHITE_NOISE_SHEET.overlayBlur};
-          }
-        }
-
-        @keyframes whiteNoisePillIn {
-          from {
-            opacity: 0;
-            transform: translate3d(0, ${WHITE_NOISE_SHEET.pillEnterMoveY}px, 0)
-              scale(0.985);
-          }
-
-          to {
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
-          }
-        }
-
         @keyframes soundPillPulse {
           0% {
             transform: scale(1, 1);
@@ -164,7 +109,9 @@ export default function WhiteNoiseSheet({
           gap: WHITE_NOISE_SHEET.listGap,
         }}
       >
-        {sounds.length ? (
+        {loading ? (
+          <EmptyPill text="正在读取声音…" />
+        ) : sounds.length ? (
           sounds.map((sound) => {
             const active = activeSoundId === sound.id && playing;
 
@@ -198,9 +145,6 @@ export default function WhiteNoiseSheet({
                   WebkitTapHighlightColor: "transparent",
                   transition:
                     "background .18s ease, color .18s ease, box-shadow .18s ease, transform .12s ease",
-                  animation: `whiteNoisePillIn ${WHITE_NOISE_SHEET.pillEnterMs}ms ${WHITE_NOISE_SHEET.pillEnterEasing} both`,
-                  animationDelay: "0ms",
-                  willChange: "transform, opacity",
                 }}
               >
                 {active && <SoundPillPulse />}
@@ -223,9 +167,9 @@ export default function WhiteNoiseSheet({
               </button>
             );
           })
-        ) : shouldShowEmptyText ? (
-          <EmptyPill text="public/sounds 里还没有音频" />
-        ) : null}
+        ) : (
+          <EmptyPill text="暂无可用声音" />
+        )}
       </div>
     </div>
   );
@@ -277,9 +221,6 @@ function EmptyPill({ text }: { text: string }) {
         justifyContent: "center",
         color: WHITE_NOISE_SHEET.emptyColor,
         fontSize: WHITE_NOISE_SHEET.emptySize,
-        animation: `whiteNoisePillIn ${WHITE_NOISE_SHEET.pillEnterMs}ms ${WHITE_NOISE_SHEET.pillEnterEasing} both`,
-        animationDelay: "0ms",
-        willChange: "transform, opacity",
       }}
     >
       {text}

@@ -1,0 +1,36 @@
+{
+  "sounds": [
+    {
+      "id": "1-吹风机.m4a",
+      "title": "吹风机",
+      "src": "https://ffdesign.oss-cn-beijing.aliyuncs.com/baby-log/white-noise/1-%E5%90%B9%E9%A3%8E%E6%9C%BA.m4a",
+      "fallbackSrc": "/white-noise/1-%E5%90%B9%E9%A3%8E%E6%9C%BA.m4a"
+    },
+    {
+      "id": "2-嘘声.m4a",
+      "title": "嘘声",
+      "src": "https://ffdesign.oss-cn-beijing.aliyuncs.com/baby-log/white-noise/2-%E5%98%98%E5%A3%B0.m4a",
+      "fallbackSrc": "/white-noise/2-%E5%98%98%E5%A3%B0.m4a"
+    },
+    {
+      "id": "3-雨声.m4a",
+      "title": "雨声",
+      "src": "https://ffdesign.oss-cn-beijing.aliyuncs.com/baby-log/white-noise/3-%E9%9B%A8%E5%A3%B0.m4a"
+    },
+    {
+      "id": "4-海浪.m4a",
+      "title": "海浪",
+      "src": "https://ffdesign.oss-cn-beijing.aliyuncs.com/baby-log/white-noise/4-%E6%B5%B7%E6%B5%AA.m4a"
+    },
+    {
+      "id": "5-溪流.m4a",
+      "title": "溪流",
+      "src": "https://ffdesign.oss-cn-beijing.aliyuncs.com/baby-log/white-noise/5-%E6%BA%AA%E6%B5%81.m4a"
+    },
+    {
+      "id": "6-柴火.m4a",
+      "title": "柴火",
+      "src": "https://ffdesign.oss-cn-beijing.aliyuncs.com/baby-log/white-noise/6-%E6%9F%B4%E7%81%AB.m4a"
+    }
+  ]
+}
