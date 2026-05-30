@@ -187,12 +187,6 @@ function formatValue(value?: number) {
   return String(Number(value.toFixed(1)));
 }
 
-function getGlobalDates(records: GrowthRecord[]) {
-  return Array.from(new Set(records.map((record) => record.date))).sort(
-    (a, b) => new Date(a).getTime() - new Date(b).getTime()
-  );
-}
-
 function getMetricPoints(records: GrowthRecord[], key: GrowthMetric["key"]) {
   return records
     .filter((record) => typeof record[key] === "number")
@@ -227,6 +221,12 @@ function getLatestPointByDate(points: GrowthPoint[]) {
   }
 
   return map;
+}
+
+function getMetricDates(points: GrowthPoint[]) {
+  return Array.from(new Set(points.map((point) => point.date))).sort(
+    (a, b) => new Date(a).getTime() - new Date(b).getTime()
+  );
 }
 
 function makePath(points: { x: number; y: number }[]) {
@@ -265,14 +265,14 @@ function getXForDateIndex(index: number, dateCount: number, chartWidth: number) 
 
 function normalizeMetricPoints({
   points,
-  globalDates,
+  metricDates,
   chartWidth,
 }: {
   points: GrowthPoint[];
-  globalDates: string[];
+  metricDates: string[];
   chartWidth: number;
 }) {
-  if (!points.length || !globalDates.length) return [];
+  if (!points.length || !metricDates.length) return [];
 
   const values = points.map((point) => point.value);
   const min = Math.min(...values);
@@ -281,12 +281,12 @@ function normalizeMetricPoints({
 
   const pointByDate = getLatestPointByDate(points);
 
-  return globalDates
+  return metricDates
     .map((date, index) => {
       const point = pointByDate.get(date);
       if (!point) return null;
 
-      const x = getXForDateIndex(index, globalDates.length, chartWidth);
+      const x = getXForDateIndex(index, metricDates.length, chartWidth);
       const ratio = range === 0 ? 0.5 : (point.value - min) / range;
 
       // 横轴下移后，曲线高度同步拉开一点
@@ -402,11 +402,9 @@ function GrowthDetailList({
 function GrowthMiniChartCard({
   metric,
   records,
-  globalDates,
 }: {
   metric: GrowthMetric;
   records: GrowthRecord[];
-  globalDates: string[];
 }) {
   const cardRef = useRef<HTMLElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -418,6 +416,8 @@ function GrowthMiniChartCard({
     () => getMetricPoints(records, metric.key),
     [records, metric.key]
   );
+
+  const metricDates = useMemo(() => getMetricDates(points), [points]);
 
   useEffect(() => {
     function updateWidth() {
@@ -445,11 +445,11 @@ function GrowthMiniChartCard({
     };
   }, []);
 
-  const chartWidth = getChartWidth(globalDates.length, chartViewportWidth);
+  const chartWidth = getChartWidth(metricDates.length, chartViewportWidth);
 
   const normalizedPoints = normalizeMetricPoints({
     points,
-    globalDates,
+    metricDates,
     chartWidth,
   });
 
@@ -466,9 +466,9 @@ function GrowthMiniChartCard({
     const scrollEl = scrollRef.current;
     if (!scrollEl) return;
 
-    // 默认展示最新数据：滚到最右侧
+    // 默认展示该指标自己的最新数据：滚到最右侧
     scrollEl.scrollLeft = scrollEl.scrollWidth;
-  }, [globalDates.length, chartWidth]);
+  }, [metricDates.length, chartWidth]);
 
   useEffect(() => {
     setSelectedPointId(null);
@@ -769,8 +769,6 @@ function GrowthMiniChartCard({
 }
 
 export default function GrowthCharts({ records }: { records: GrowthRecord[] }) {
-  const globalDates = useMemo(() => getGlobalDates(records), [records]);
-
   return (
     <section
       style={{
@@ -785,7 +783,6 @@ export default function GrowthCharts({ records }: { records: GrowthRecord[] }) {
           key={metric.key}
           metric={metric}
           records={records}
-          globalDates={globalDates}
         />
       ))}
     </section>

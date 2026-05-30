@@ -114,13 +114,13 @@ export default function FormulaLikeSheet({
 }) {
   const now = useMemo(() => new Date(), []);
   const lastAmount = getLastAmount(records, type);
+  const defaultAmountMl = lastAmount ? String(lastAmount) : "";
 
   const [date, setDate] = useState(dateValue(now));
   const [hour, setHour] = useState(now.getHours());
   const [minute, setMinute] = useState(now.getMinutes());
-  const [amountMl, setAmountMl] = useState(
-    lastAmount ? String(lastAmount) : ""
-  );
+  const [amountMl, setAmountMl] = useState(defaultAmountMl);
+  const [amountTouched, setAmountTouched] = useState(false);
   const [note, setNote] = useState("");
   const [closing, setClosing] = useState(false);
 
@@ -211,6 +211,14 @@ export default function FormulaLikeSheet({
     closeTimerRef.current = window.setTimeout(() => {
       onClose();
     }, SHEET.sheetExitMs);
+  }
+
+  function clearDefaultAmount() {
+    if (!amountTouched && defaultAmountMl && amountMl === defaultAmountMl) {
+      setAmountMl("");
+    }
+
+    setAmountTouched(true);
   }
 
   function save() {
@@ -405,7 +413,11 @@ export default function FormulaLikeSheet({
           <input
             inputMode="numeric"
             value={amountMl}
-            onChange={(e) => setAmountMl(e.target.value)}
+            onFocus={clearDefaultAmount}
+            onChange={(e) => {
+              setAmountTouched(true);
+              setAmountMl(e.target.value);
+            }}
             style={inputStyle}
           />
         </div>

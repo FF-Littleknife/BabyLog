@@ -106,6 +106,8 @@ export default function BreastRecordSheet({
 
   const [leftMin, setLeftMin] = useState("10");
   const [rightMin, setRightMin] = useState("10");
+  const [leftMinTouched, setLeftMinTouched] = useState(false);
+  const [rightMinTouched, setRightMinTouched] = useState(false);
 
   const [note, setNote] = useState("");
   const [closing, setClosing] = useState(false);
@@ -197,6 +199,22 @@ export default function BreastRecordSheet({
     closeTimerRef.current = window.setTimeout(() => {
       onClose();
     }, SHEET.sheetExitMs);
+  }
+
+  function clearDefaultLeftMin() {
+    if (!leftMinTouched && leftMin === "10") {
+      setLeftMin("");
+    }
+
+    setLeftMinTouched(true);
+  }
+
+  function clearDefaultRightMin() {
+    if (!rightMinTouched && rightMin === "10") {
+      setRightMin("");
+    }
+
+    setRightMinTouched(true);
   }
 
   function save() {
@@ -408,7 +426,11 @@ export default function BreastRecordSheet({
             <input
               inputMode="numeric"
               value={leftMin}
-              onChange={(e) => setLeftMin(e.target.value)}
+              onFocus={clearDefaultLeftMin}
+              onChange={(e) => {
+                setLeftMinTouched(true);
+                setLeftMin(e.target.value);
+              }}
               style={inputStyle}
             />
           </div>
@@ -419,7 +441,11 @@ export default function BreastRecordSheet({
             <input
               inputMode="numeric"
               value={rightMin}
-              onChange={(e) => setRightMin(e.target.value)}
+              onFocus={clearDefaultRightMin}
+              onChange={(e) => {
+                setRightMinTouched(true);
+                setRightMin(e.target.value);
+              }}
               style={inputStyle}
             />
           </div>

@@ -69,6 +69,11 @@ const SMART_INPUT_CONFIG = {
   receiptPrefix: "已记录",
 };
 
+type ParseResult = {
+  records: BabyRecord[];
+  failed: string[];
+};
+
 function isToday(date: Date) {
   const now = new Date();
 
@@ -212,9 +217,118 @@ function formatReceipt(records: BabyRecord[], failed: string[]) {
   return "";
 }
 
+function normalizeMinute(value: string) {
+  const num = Number(value);
+
+  if (!Number.isFinite(num)) return 0;
+
+  return Math.max(0, Math.round(num));
+}
+
+function getRecordPlainText(record: BabyRecord) {
+  return `${record.content || ""} ${record.note || ""}`.replace(/\s+/g, "");
+}
+
+function isTotalMinuteOtherRecord(record: BabyRecord, totalMin: number) {
+  if (record.type !== "other") return false;
+
+  const plainText = getRecordPlainText(record);
+
+  if (!plainText) return false;
+
+  const totalPatterns = [
+    `共${totalMin}分钟`,
+    `共${totalMin}分`,
+    `总共${totalMin}分钟`,
+    `总共${totalMin}分`,
+    `合计${totalMin}分钟`,
+    `合计${totalMin}分`,
+    `一共${totalMin}分钟`,
+    `一共${totalMin}分`,
+  ];
+
+  return totalPatterns.some((pattern) => plainText.includes(pattern));
+}
+
+/**
+ * 修复这类输入：
+ *
+ * 20:44 母乳 双侧各15分钟，共30分钟
+ * 20:44 母乳 左右各15分钟
+ * 20:44 亲喂 两侧各15分钟
+ *
+ * 正确结果应该是一条：
+ * leftMin: 15
+ * rightMin: 15
+ * durationMin: 30
+ *
+ * 如果 parser 把“共30分钟”额外识别成 other，也在这里删掉。
+ */
+function normalizeBothSideBreastInput(input: string, result: ParseResult) {
+  const normalizedInput = input.replace(/\s+/g, "");
+
+  const bothSideMatch = normalizedInput.match(
+    /(?:母乳|亲喂).*(?:双侧|两侧|左右|两边|双边|双乳).*各(\d+(?:\.\d+)?)(?:分钟|分|min|mins?)?/i
+  );
+
+  if (!bothSideMatch) return result;
+
+  const eachMin = normalizeMinute(bothSideMatch[1]);
+  if (!eachMin) return result;
+
+  const totalMatch = normalizedInput.match(
+    /(?:共|总共|合计|一共)(\d+(?:\.\d+)?)(?:分钟|分|min|mins?)?/i
+  );
+
+  const totalMin = totalMatch
+    ? normalizeMinute(totalMatch[1])
+    : eachMin * 2;
+
+  const firstBreastRecord = result.records.find(
+    (record) => record.type === "breast"
+  );
+
+  if (!firstBreastRecord) return result;
+
+  const mergedBreastRecord: BabyRecord = {
+    ...firstBreastRecord,
+    type: "breast",
+    leftMin: eachMin,
+    rightMin: eachMin,
+    durationMin: totalMin || eachMin * 2,
+  };
+
+  let hasInsertedBreast = false;
+
+  const records = result.records.reduce<BabyRecord[]>((list, record) => {
+    if (record.type === "breast") {
+      if (!hasInsertedBreast) {
+        list.push(mergedBreastRecord);
+        hasInsertedBreast = true;
+      }
+
+      return list;
+    }
+
+    if (totalMin && isTotalMinuteOtherRecord(record, totalMin)) {
+      return list;
+    }
+
+    list.push(record);
+    return list;
+  }, []);
+
+  return {
+    ...result,
+    records,
+  };
+}
+
 function safeParseSmartInputs(input: string) {
   try {
-    return parseSmartInputs(input);
+    const result = parseSmartInputs(input);
+
+    return normalizeBothSideBreastInput(input, result);
   } catch (error) {
     console.error("parseSmartInputs error:", error);
 

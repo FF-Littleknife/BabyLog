@@ -12,6 +12,8 @@ type BottomBarProps = {
   onChange: (v: ViewType) => void;
   onNurse: () => void;
   nursing: boolean;
+  nursingRunning?: boolean;
+  nursingSeconds?: number;
   showNurse?: boolean;
 };
 
@@ -42,20 +44,28 @@ const BOTTOM_BAR_CONFIG = {
   nurseSize: 68, // 右侧圆形功能按钮尺寸 px；白噪音和哺乳共用
   nurseBg: "rgba(255,255,255,.46)", // 圆形功能按钮背景色
   nurseBlur: "blur(34px) saturate(180%)", // 圆形功能按钮毛玻璃效果
-  nurseColor: "#111111", // 圆形功能按钮内部文字/图形颜色
+  nurseColor: "#111111", // 圆形功能按钮内部默认颜色
   nurseShadow: "0 18px 60px rgba(0,0,0,.16)", // 圆形功能按钮阴影
   nurseActiveScale: 0.93, // 按钮按下时缩放比例；越小按压感越明显
 
   nurseIconSize: 48, // 哺乳按钮月亮图标尺寸 px
-  nurseStopSize: 24, // 哺乳计时中停止方块尺寸 px
-  nurseStopColor: "#111111", // 哺乳计时中停止方块颜色
+  nurseStopSize: 24, // 旧版停止方块尺寸 px；保留备用
+  nurseStopColor: "#111111", // 旧版停止方块颜色；保留备用
+
+  // 哺乳计时中底部按钮数字
+  nurseTimerColor: "#ff2d87", // 运行中计时数字颜色；粉色
+  nurseTimerPausedColor: "#111111", // 暂停但未结束时计时数字颜色
+  nurseTimerSize: 15, // 哺乳计时数字字号 px
+  nurseTimerWeight: 820, // 哺乳计时数字字重
 
   whiteNoiseIconSize: 38, // 白噪音图标尺寸 px
 
   // 播放中白噪音按钮的扩散动画
-  noisePulseColor: "rgba(255,255,255,.86)", // 扩散动画颜色；最后一位 .86 是透明度
-  noisePulseDuration: 1.55, // 每一圈扩散动画持续时间，单位秒；越大越慢
-  noisePulseScale: 1.82, // 扩散动画最大放大比例；越大扩散范围越大
+  noisePulseColor: "rgba(255,255,255,.72)", // 白噪音扩散动画颜色；降低透明度会更柔
+  noisePulseDuration: 2.05, // 每一圈扩散动画持续时间，单位秒；越大越慢
+  noisePulseScale: 1.72, // 扩散动画最大放大比例；越大扩散范围越大
+  noisePulseInset: -2, // 扩散圈距离按钮边缘 px；负数会让动画从按钮外侧开始
+  noisePulseDelayRatio: 0.5, // 第二层动画延迟比例；0.5 = 两层均匀错开
 };
 
 const TABS: { view: ViewType; label: string }[] = [
@@ -73,11 +83,28 @@ function isAbortError(error: unknown) {
   return error instanceof DOMException && error.name === "AbortError";
 }
 
+function formatNursingButtonTime(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainSeconds = safeSeconds % 60;
+
+  if (minutes >= 100) {
+    return `${minutes}m`;
+  }
+
+  return `${String(minutes).padStart(2, "0")}:${String(remainSeconds).padStart(
+    2,
+    "0"
+  )}`;
+}
+
 export default function BottomBar({
   view,
   onChange,
   onNurse,
   nursing,
+  nursingRunning = false,
+  nursingSeconds = 0,
   showNurse = true,
 }: BottomBarProps) {
   const audioRef = useRef<HTMLAudioElement | null>(sharedAudio);
@@ -204,7 +231,7 @@ export default function BottomBar({
           aria-hidden
           style={{
             position: "absolute",
-            inset: -2,
+            inset: BOTTOM_BAR_CONFIG.noisePulseInset,
             borderRadius: 999,
             background: BOTTOM_BAR_CONFIG.noisePulseColor,
             animation: `whiteNoisePulse ${BOTTOM_BAR_CONFIG.noisePulseDuration}s ease-out infinite`,
@@ -217,11 +244,14 @@ export default function BottomBar({
           aria-hidden
           style={{
             position: "absolute",
-            inset: -2,
+            inset: BOTTOM_BAR_CONFIG.noisePulseInset,
             borderRadius: 999,
             background: BOTTOM_BAR_CONFIG.noisePulseColor,
             animation: `whiteNoisePulse ${BOTTOM_BAR_CONFIG.noisePulseDuration}s ease-out infinite`,
-            animationDelay: `${BOTTOM_BAR_CONFIG.noisePulseDuration / 2}s`,
+            animationDelay: `${
+              BOTTOM_BAR_CONFIG.noisePulseDuration *
+              BOTTOM_BAR_CONFIG.noisePulseDelayRatio
+            }s`,
             pointerEvents: "none",
             zIndex: 0,
           }}
@@ -283,11 +313,16 @@ export default function BottomBar({
       <style jsx>{`
         @keyframes whiteNoisePulse {
           0% {
-            transform: scale(0.86);
-            opacity: 0.76;
+            transform: scale(1);
+            opacity: 0;
           }
 
-          62% {
+          12% {
+            transform: scale(1.04);
+            opacity: 0.62;
+          }
+
+          72% {
             transform: scale(${BOTTOM_BAR_CONFIG.noisePulseScale});
             opacity: 0;
           }
@@ -387,20 +422,25 @@ export default function BottomBar({
             })}
 
             {renderFabButton({
-              ariaLabel: nursing ? "停止哺乳计时" : "哺乳",
-              className: `nurse-fab ${nursing ? "running" : ""}`,
+              ariaLabel: nursing ? "打开哺乳计时" : "哺乳",
+              className: `nurse-fab nursing-fab ${nursing ? "running" : ""}`,
               onClick: onNurse,
               children: nursing ? (
                 <span
                   style={{
-                    fontSize: BOTTOM_BAR_CONFIG.nurseStopSize,
-                    color: BOTTOM_BAR_CONFIG.nurseStopColor,
+                    color: nursingRunning
+                      ? BOTTOM_BAR_CONFIG.nurseTimerColor
+                      : BOTTOM_BAR_CONFIG.nurseTimerPausedColor,
+                    fontSize: BOTTOM_BAR_CONFIG.nurseTimerSize,
+                    fontWeight: BOTTOM_BAR_CONFIG.nurseTimerWeight,
                     lineHeight: 1,
+                    fontVariantNumeric: "tabular-nums",
+                    letterSpacing: "-0.04em",
                     position: "relative",
                     zIndex: 2,
                   }}
                 >
-                  ■
+                  {formatNursingButtonTime(nursingSeconds)}
                 </span>
               ) : (
                 <img

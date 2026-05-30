@@ -233,32 +233,70 @@ function formatReceiptRecord(record: BabyRecord) {
   return `${time} ${RECORD_LABEL[record.type]}`;
 }
 
-function hasRecoverableNursingTimer() {
+type NursingTimerStatus = {
+  hasTimer: boolean;
+  running: boolean;
+  totalSeconds: number;
+};
+
+function readNursingTimerStatus(now = Date.now()): NursingTimerStatus {
   try {
     const raw = window.localStorage.getItem(NURSING_TIMER_STORAGE_KEY);
-    if (!raw) return false;
+    if (!raw) {
+      return {
+        hasTimer: false,
+        running: false,
+        totalSeconds: 0,
+      };
+    }
 
     const timerState = JSON.parse(raw) as {
+      activeSide?: "left" | "right";
       running?: boolean;
       leftMs?: number;
       rightMs?: number;
       startedAt?: number | null;
     };
 
-    const hasLeftTime =
-      typeof timerState.leftMs === "number" && timerState.leftMs > 0;
+    let leftMs =
+      typeof timerState.leftMs === "number" && Number.isFinite(timerState.leftMs)
+        ? Math.max(0, timerState.leftMs)
+        : 0;
 
-    const hasRightTime =
-      typeof timerState.rightMs === "number" && timerState.rightMs > 0;
+    let rightMs =
+      typeof timerState.rightMs === "number" && Number.isFinite(timerState.rightMs)
+        ? Math.max(0, timerState.rightMs)
+        : 0;
 
-    const hasRunningTimer = Boolean(
+    const running = Boolean(
       timerState.running && typeof timerState.startedAt === "number"
     );
 
-    return hasLeftTime || hasRightTime || hasRunningTimer;
+    if (running && typeof timerState.startedAt === "number") {
+      const extraMs = Math.max(0, now - timerState.startedAt);
+
+      if (timerState.activeSide === "right") {
+        rightMs += extraMs;
+      } else {
+        leftMs += extraMs;
+      }
+    }
+
+    const totalSeconds = Math.max(0, Math.floor((leftMs + rightMs) / 1000));
+
+    return {
+      hasTimer: totalSeconds > 0 || running,
+      running,
+      totalSeconds,
+    };
   } catch (error) {
-    console.error("restore nursing timer failed:", error);
-    return false;
+    console.error("read nursing timer status failed:", error);
+
+    return {
+      hasTimer: false,
+      running: false,
+      totalSeconds: 0,
+    };
   }
 }
 
@@ -281,6 +319,7 @@ export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [nowTick, setNowTick] = useState(Date.now());
+  const [nursingTick, setNursingTick] = useState(Date.now());
 
   const touchStartYRef = useRef<number | null>(null);
   const pullingRef = useRef(false);
@@ -419,15 +458,18 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (hasRecoverableNursingTimer()) {
-      setNursingOpen(true);
-    }
+    setNursingTick(Date.now());
   }, []);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
       setNowTick(Date.now());
+      setNursingTick(Date.now());
     }, AUTO_REFRESH.tickMs);
+
+    const nursingTimer = window.setInterval(() => {
+      setNursingTick(Date.now());
+    }, 1000);
 
     async function handleVisibilityChange() {
       if (document.visibilityState !== "visible") return;
@@ -456,6 +498,7 @@ export default function Home() {
 
     return () => {
       window.clearInterval(timer);
+      window.clearInterval(nursingTimer);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("online", handleOnline);
 
@@ -483,6 +526,11 @@ export default function Home() {
   );
 
   const latestGrowth = growthRecords[0];
+
+  const nursingStatus = useMemo(
+    () => readNursingTimerStatus(nursingTick),
+    [nursingTick, nursingOpen]
+  );
 
   function buzz() {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
@@ -649,17 +697,25 @@ export default function Home() {
     leftMin: number;
     rightMin: number;
   }) {
+    if (result.durationMin <= 0) {
+      setNursingOpen(false);
+      setNursingTick(Date.now());
+      showToast("少于10秒，未记录");
+      return;
+    }
+
     addRecord({
       id: crypto.randomUUID(),
       type: "breast",
       time: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       durationMin: result.durationMin,
-      leftMin: result.leftMin,
-      rightMin: result.rightMin,
+      leftMin: result.leftMin || undefined,
+      rightMin: result.rightMin || undefined,
     });
 
     setNursingOpen(false);
+    setNursingTick(Date.now());
   }
 
   function jumpToTimelineWithFilter(key: TimelineFilterKey) {
@@ -840,7 +896,14 @@ export default function Home() {
 
       {nursingOpen && (
         <NursingTimer
-          onCancel={() => setNursingOpen(false)}
+          onCancel={() => {
+            setNursingOpen(false);
+            setNursingTick(Date.now());
+          }}
+          onMinimize={() => {
+            setNursingOpen(false);
+            setNursingTick(Date.now());
+          }}
           onFinish={finishNursing}
         />
       )}
@@ -850,7 +913,9 @@ export default function Home() {
           view={view}
           onChange={setView}
           onNurse={() => setNursingOpen(true)}
-          nursing={nursingOpen}
+          nursing={nursingStatus.hasTimer}
+          nursingRunning={nursingStatus.running}
+          nursingSeconds={nursingStatus.totalSeconds}
           showNurse={view === "home"}
         />
       )}

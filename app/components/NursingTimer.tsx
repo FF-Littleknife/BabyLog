@@ -74,7 +74,7 @@ const NURSING_TIMER_CONFIG = {
   finishBg: "#0a84ff",
   finishColor: "#ffffff",
 
-  cancelText: "取消",
+  cancelText: "取消记录",
   cancelBg: "rgba(0, 0, 0, 0.045)",
   cancelColor: "#8e8e93",
 
@@ -83,6 +83,8 @@ const NURSING_TIMER_CONFIG = {
   buttonRadius: 22,
   buttonPadding: 17,
   buttonWeight: 760,
+
+  minRecordSeconds: 10,
 
   sheetEnterMs: 420,
   sheetExitMs: 280,
@@ -154,9 +156,11 @@ function clearStoredState() {
 
 export default function NursingTimer({
   onCancel,
+  onMinimize,
   onFinish,
 }: {
   onCancel: () => void;
+  onMinimize: () => void;
   onFinish: (result: {
     durationMin: number;
     leftMin: number;
@@ -326,7 +330,17 @@ export default function NursingTimer({
     setClosing(true);
 
     closeTimerRef.current = window.setTimeout(() => {
-      clearStoredState();
+      onMinimize();
+    }, NURSING_TIMER_CONFIG.sheetExitMs);
+  }
+
+  function cancel() {
+    if (closing) return;
+
+    clearStoredState();
+    setClosing(true);
+
+    closeTimerRef.current = window.setTimeout(() => {
       onCancel();
     }, NURSING_TIMER_CONFIG.sheetExitMs);
   }
@@ -337,8 +351,8 @@ export default function NursingTimer({
     setActiveSide(side);
     setLeftMs(committed.leftMs);
     setRightMs(committed.rightMs);
-    setRunning(true);
-    setStartedAt(Date.now());
+    setRunning(false);
+    setStartedAt(null);
     setNowTick(Date.now());
   }
 
@@ -359,8 +373,18 @@ export default function NursingTimer({
   function finish() {
     const committed = commitRunningTime();
 
-    const finalLeftSeconds = msToSeconds(committed.leftMs);
-    const finalRightSeconds = msToSeconds(committed.rightMs);
+    const rawLeftSeconds = msToSeconds(committed.leftMs);
+    const rawRightSeconds = msToSeconds(committed.rightMs);
+
+    const finalLeftSeconds =
+      rawLeftSeconds >= NURSING_TIMER_CONFIG.minRecordSeconds
+        ? rawLeftSeconds
+        : 0;
+
+    const finalRightSeconds =
+      rawRightSeconds >= NURSING_TIMER_CONFIG.minRecordSeconds
+        ? rawRightSeconds
+        : 0;
 
     const leftMin = secondsToMinutes(finalLeftSeconds);
     const rightMin = secondsToMinutes(finalRightSeconds);
@@ -371,7 +395,7 @@ export default function NursingTimer({
     onFinish({
       leftMin,
       rightMin,
-      durationMin: Math.max(1, durationMin),
+      durationMin,
     });
   }
 
@@ -700,7 +724,7 @@ export default function NursingTimer({
 
           <button
             className="nursing-cancel nursing-tap-button"
-            onClick={requestClose}
+            onClick={cancel}
             style={{
               background: NURSING_TIMER_CONFIG.cancelBg,
               color: NURSING_TIMER_CONFIG.cancelColor,
