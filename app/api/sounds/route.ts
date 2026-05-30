@@ -8,7 +8,9 @@ export const revalidate = 0;
 const AUDIO_EXTENSIONS = new Set([".mp3", ".m4a", ".wav", ".ogg", ".aac"]);
 
 function titleFromFilename(filename: string) {
-  return filename.replace(/\.[^/.]+$/, "");
+  return filename
+    .replace(/\.[^/.]+$/, "")
+    .replace(/^\d+\s*[-_—–]\s*/, "");
 }
 
 export async function GET() {
