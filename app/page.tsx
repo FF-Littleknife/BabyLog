@@ -69,7 +69,7 @@ const TOP_FADE = {
   height: 64,
   zIndex: 35,
   background:
-    "linear-gradient(to bottom, rgba(244,241,246,1) 0%, rgba(244,241,246,.86) 36%, rgba(244,241,246,0) 100%)",
+    "linear-gradient(to bottom, rgba(var(--app-bg-rgb),1) 0%, rgba(var(--app-bg-rgb),.86) 36%, rgba(var(--app-bg-rgb),0) 100%)",
 };
 
 const SMART_RECEIPT = {
@@ -79,15 +79,15 @@ const SMART_RECEIPT = {
   zIndex: 120,
   padding: "10px 14px",
   radius: 18,
-  bg: "rgba(255,255,255,.86)",
-  color: "#111111",
-  warnColor: "#ff9500",
+  bg: "var(--glass-bg)",
+  color: "var(--text)",
+  warnColor: "var(--orange)",
   fontSize: 12,
   lineHeight: 1.35,
-  shadow: "0 14px 34px rgba(0,0,0,.12)",
+  shadow: "0 14px 34px var(--surface-muted-strong)",
 
   undoMarginLeft: 10,
-  undoColor: "#007aff",
+  undoColor: "var(--blue)",
   undoFontWeight: 800,
 };
 
@@ -101,13 +101,13 @@ const TOAST_CONFIG = {
   padding: "9px 14px",
   radius: 999,
 
-  bg: "rgba(255,255,255,.86)",
-  color: "#111111",
+  bg: "var(--glass-bg)",
+  color: "var(--text)",
   fontSize: 12,
   fontWeight: 680,
   lineHeight: 1.25,
 
-  shadow: "0 12px 30px rgba(0,0,0,.12)",
+  shadow: "0 12px 30px var(--surface-muted-strong)",
   blur: "blur(18px)",
 };
 
@@ -770,14 +770,14 @@ export default function Home() {
             height: PULL_REFRESH.indicatorSize,
             transform: "translateX(-50%)",
             borderRadius: 999,
-            background: "rgba(255,255,255,.72)",
+            background: "var(--surface-soft)",
             backdropFilter: "blur(18px)",
             WebkitBackdropFilter: "blur(18px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 100,
-            color: "#8e8e93",
+            color: "var(--muted)",
             fontSize: 18,
             fontWeight: 760,
           }}

@@ -10,7 +10,7 @@ export type SoundItem = {
 const WHITE_NOISE_SHEET = {
   zIndex: 90,
 
-  overlayBg: "rgba(244,241,246,.18)",
+  overlayBg: "var(--surface-overlay)",
   overlayBlur: "blur(18px) saturate(120%)",
   overlayPadding: 24,
 
@@ -20,26 +20,26 @@ const WHITE_NOISE_SHEET = {
   rowHeight: 54,
   rowRadius: 999,
 
-  rowBg: "rgba(255,255,255,.82)",
-  rowActiveBg: "#0a84ff",
+  rowBg: "var(--surface)",
+  rowActiveBg: "var(--blue)",
 
-  rowShadow: "0 10px 34px rgba(0,0,0,.055)",
+  rowShadow: "var(--shadow-soft)",
   rowActiveShadow: "0 14px 46px rgba(10,132,255,.24)",
 
-  rowColor: "#111111",
-  rowActiveColor: "#ffffff",
+  rowColor: "var(--text)",
+  rowActiveColor: "var(--white)",
 
   rowSize: 17,
   rowWeight: 800,
   rowPadding: "0 22px",
 
   // 播放中的胶囊蓝色扩散动画
-  pulseColor: "rgba(10,132,255,.64)",
+  pulseColor: "rgba(10, 132, 255, 0.72)",
   pulseDuration: 2.05,
-  pulseScaleX: 1.075,
-  pulseScaleY: 1.42,
+  pulseScaleX: 1.12,
+  pulseScaleY: 1.5,
 
-  emptyColor: "#8e8e93",
+  emptyColor: "var(--muted)",
   emptySize: 13,
 };
 
@@ -80,7 +80,7 @@ export default function WhiteNoiseSheet({
         @keyframes soundPillPulse {
           0% {
             transform: scale(1, 1);
-            opacity: 0.62;
+            opacity: 0.82;
           }
 
           68% {
@@ -185,6 +185,8 @@ function SoundPillPulse() {
           inset: 0,
           borderRadius: WHITE_NOISE_SHEET.rowRadius,
           background: WHITE_NOISE_SHEET.pulseColor,
+          boxShadow: "0 0 30px rgba(10, 132, 255, 0.34)",
+          filter: "blur(0.5px)",
           animation: `soundPillPulse ${WHITE_NOISE_SHEET.pulseDuration}s ease-out infinite`,
           pointerEvents: "none",
           zIndex: 0,
@@ -198,6 +200,8 @@ function SoundPillPulse() {
           inset: 0,
           borderRadius: WHITE_NOISE_SHEET.rowRadius,
           background: WHITE_NOISE_SHEET.pulseColor,
+          boxShadow: "0 0 30px rgba(10, 132, 255, 0.34)",
+          filter: "blur(0.5px)",
           animation: `soundPillPulse ${WHITE_NOISE_SHEET.pulseDuration}s ease-out infinite`,
           animationDelay: `${WHITE_NOISE_SHEET.pulseDuration / 2}s`,
           pointerEvents: "none",

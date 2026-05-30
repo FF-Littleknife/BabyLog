@@ -37,7 +37,7 @@ function TopGradient() {
         pointerEvents: "none",
         zIndex: TIMELINE_PANEL.bottomCoverZIndex,
         background:
-          "linear-gradient(180deg, rgba(244,241,246,0.98) 0%, rgba(244,241,246,0.72) 48%, rgba(244,241,246,0) 100%)",
+          "linear-gradient(180deg, rgba(var(--app-bg-rgb),.98) 0%, rgba(var(--app-bg-rgb),.72) 48%, rgba(var(--app-bg-rgb),0) 100%)",
         maskImage:
           "linear-gradient(90deg, transparent 0%, black 18%, black 82%, transparent 100%)",
         WebkitMaskImage:
@@ -60,7 +60,7 @@ function BottomCover() {
         pointerEvents: "none",
         zIndex: TIMELINE_PANEL.bottomCoverZIndex,
         background:
-          "linear-gradient(0deg, rgba(244,241,246,1) 0%, rgba(244,241,246,1) 58%, rgba(244,241,246,0.86) 76%, rgba(244,241,246,0) 100%)",
+          "linear-gradient(0deg, rgba(var(--app-bg-rgb),1) 0%, rgba(var(--app-bg-rgb),1) 58%, rgba(var(--app-bg-rgb),.86) 76%, rgba(var(--app-bg-rgb),0) 100%)",
       }}
     />
   );

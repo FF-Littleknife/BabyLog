@@ -22,7 +22,7 @@ const TIMELINE_CONFIG = {
      例如：今天 / 昨天 / 5月18日 周一
      ========================= */
 
-  dayTitleColor: "#8e8e93", // 日期分组标题颜色
+  dayTitleColor: "var(--muted)", // 日期分组标题颜色
   dayTitleSize: 12, // 日期分组标题字号
   dayTitleWeight: 400, // 日期分组标题字重
 
@@ -31,7 +31,7 @@ const TIMELINE_CONFIG = {
      例如：08:05
      ========================= */
 
-  timeColor: "#111111", // 左侧时间颜色
+  timeColor: "var(--text)", // 左侧时间颜色
   timeSize: 13, // 左侧时间字号
 
   /* =========================
@@ -47,7 +47,7 @@ const TIMELINE_CONFIG = {
      时间轴竖线
      ========================= */
 
-  lineColor: "rgba(0,0,0,.14)", // 中间竖线颜色
+  lineColor: "var(--border-strong)", // 中间竖线颜色
   lineWidth: 1.5, // 中间竖线宽度
 
   /* =========================
@@ -55,7 +55,7 @@ const TIMELINE_CONFIG = {
      ========================= */
 
   dotSize: 8, // 圆点大小
-  dotRingColor: "#f4f1f6", // 圆点外圈颜色，通常和背景接近
+  dotRingColor: "var(--app-bg)", // 圆点外圈颜色，通常和背景接近
   dotRingSize: 5, // 圆点外圈厚度
 
   /* =========================
@@ -88,7 +88,7 @@ const TIMELINE_CONFIG = {
      例如：母乳 / 小便 / 乳糖酶
      ========================= */
 
-  mainColor: "#111111", // 主标题颜色
+  mainColor: "var(--text)", // 主标题颜色
   mainSize: 13, // 主标题字号
   mainWeight: 500, // 主标题字重
   mainLetterSpacing: "-0.04em", // 主标题字距。负值更紧凑
@@ -98,7 +98,7 @@ const TIMELINE_CONFIG = {
      例如：左侧15分钟 · 右侧15分钟 · 共30分钟
      ========================= */
 
-  subColor: "#8e8e93", // 副标题颜色
+  subColor: "var(--muted)", // 副标题颜色
   subSize: 11, // 副标题字号
   subMarginTop: 0, // 主标题和副标题之间的距离
 
@@ -106,11 +106,11 @@ const TIMELINE_CONFIG = {
      不同记录类型的圆点颜色
      ========================= */
 
-  feedColor: "#ff3b30", // 喂养类颜色：母乳 / 奶粉 / 瓶喂母乳
-  peeColor: "#00b8c8", // 小便颜色
-  poopColor: "#7ac70c", // 大便颜色
-  pumpColor: "#af52de", // 泵奶颜色
-  otherColor: "#8e8e93", // 其他类颜色，例如乳糖酶、维生素D
+  feedColor: "var(--feed-label-color)", // 喂养类颜色：母乳 / 奶粉 / 瓶喂母乳
+  peeColor: "var(--pee-label-color)", // 小便颜色
+  poopColor: "var(--poop-label-color)", // 大便颜色
+  pumpColor: "var(--pump-label-color)", // 泵奶颜色
+  otherColor: "var(--muted)", // 其他类颜色，例如乳糖酶、维生素D
 
   /* =========================
      交互
@@ -201,7 +201,7 @@ function getDotColor(type: BabyRecord["type"]) {
   if (type === "poop") return TIMELINE_CONFIG.poopColor;
   if (type === "other") return TIMELINE_CONFIG.otherColor;
 
-  return "#8e8e93";
+  return "var(--muted)";
 }
 
 function TimelineInterval({ text }: { text: string }) {

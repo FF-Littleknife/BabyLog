@@ -25,46 +25,45 @@ const BOTTOM_BAR_CONFIG = {
 
   pillGap: 4, // “记录 / 时间线”两个 tab 之间的间距 px
   pillPadding: 5, // 分段胶囊外壳内部留白 px
-  pillBg: "rgba(255, 255, 255, 0.42)", // 分段胶囊外壳背景色；最后一位是透明度
+  pillBg: "var(--surface-soft)", // 分段胶囊外壳背景色；最后一位是透明度
   pillBlur: "blur(34px) saturate(180%)", // 分段胶囊毛玻璃效果
   pillRadius: 999, // 分段胶囊圆角；999 表示完全圆角
-  pillBorder: "1px solid rgba(255,255,255,.82)", // 分段胶囊描边
-  pillShadow: "0 18px 60px rgba(0,0,0,.14)", // 分段胶囊阴影
+  pillBorder: "1px solid var(--surface)", // 分段胶囊描边
+  pillShadow: "var(--shadow-float)", // 分段胶囊阴影
 
   tabPadding: "12px 18px", // 单个 tab 内边距；上下 12px，左右 18px
   tabRadius: 999, // 单个 tab 圆角
-  tabColor: "rgba(0,0,0,.58)", // 未选中 tab 文字颜色
-  tabActiveColor: "#0a84ff", // 选中 tab 文字颜色
-  tabActiveBg: "rgba(255,255,255,.92)", // 选中 tab 背景色
-  tabSize: 16, // tab 文字字号 px
+  tabColor: "var(--muted)", // 未选中 tab 文字颜色
+  tabActiveColor: "var(--blue)", // 选中 tab 文字颜色
+  tabActiveBg: "var(--surface-strong)", // 选中 tab 背景色
+  tabSize: 17, // tab 文字字号 px
   tabWeight: 720, // tab 文字字重；越大越粗
 
   fabGap: 10, // 白噪音按钮和哺乳按钮之间的距离 px
 
   nurseSize: 68, // 右侧圆形功能按钮尺寸 px；白噪音和哺乳共用
-  nurseBg: "rgba(255,255,255,.46)", // 圆形功能按钮背景色
+  nurseBg: "var(--surface-soft)", // 圆形功能按钮背景色
   nurseBlur: "blur(34px) saturate(180%)", // 圆形功能按钮毛玻璃效果
-  nurseColor: "#111111", // 圆形功能按钮内部默认颜色
-  nurseShadow: "0 18px 60px rgba(0,0,0,.16)", // 圆形功能按钮阴影
+  nurseColor: "var(--text)", // 圆形功能按钮内部默认颜色
+  nurseShadow: "var(--shadow-float)", // 圆形功能按钮阴影
   nurseActiveScale: 0.93, // 按钮按下时缩放比例；越小按压感越明显
 
   nurseIconSize: 48, // 哺乳按钮月亮图标尺寸 px
   nurseStopSize: 24, // 旧版停止方块尺寸 px；保留备用
-  nurseStopColor: "#111111", // 旧版停止方块颜色；保留备用
+  nurseStopColor: "var(--text)", // 旧版停止方块颜色；保留备用
 
   // 哺乳计时中底部按钮数字
   nurseTimerColor: "#ff2d87", // 运行中计时数字颜色；粉色
-  nurseTimerPausedColor: "#111111", // 暂停但未结束时计时数字颜色
-  nurseTimerSize: 15, // 哺乳计时数字字号 px
-  nurseTimerWeight: 820, // 哺乳计时数字字重
+  nurseTimerPausedColor: "var(--text)", // 暂停但未结束时计时数字颜色
+  nurseTimerSize: 20, // 哺乳计时数字字号 px
+  nurseTimerWeight: 520, // 哺乳计时数字字重
 
   whiteNoiseIconSize: 38, // 白噪音图标尺寸 px
 
   // 播放中白噪音按钮的扩散动画
-  noisePulseColor: "rgba(255,255,255,.72)", // 白噪音扩散动画颜色；降低透明度会更柔
   noisePulseDuration: 2.05, // 每一圈扩散动画持续时间，单位秒；越大越慢
-  noisePulseScale: 1.72, // 扩散动画最大放大比例；越大扩散范围越大
-  noisePulseInset: -2, // 扩散圈距离按钮边缘 px；负数会让动画从按钮外侧开始
+  noisePulseScale: 1.9, // 扩散动画最大放大比例；越大扩散范围越大
+  noisePulseInset: -6, // 扩散圈距离按钮边缘 px；负数会让动画从按钮外侧开始
   noisePulseDelayRatio: 0.5, // 第二层动画延迟比例；0.5 = 两层均匀错开
 };
 
@@ -311,11 +310,11 @@ export default function BottomBar({
       <>
         <span
           aria-hidden
+          className="white-noise-pulse-ring"
           style={{
             position: "absolute",
             inset: BOTTOM_BAR_CONFIG.noisePulseInset,
             borderRadius: 999,
-            background: BOTTOM_BAR_CONFIG.noisePulseColor,
             animation: `whiteNoisePulse ${BOTTOM_BAR_CONFIG.noisePulseDuration}s ease-out infinite`,
             pointerEvents: "none",
             zIndex: 0,
@@ -324,11 +323,11 @@ export default function BottomBar({
 
         <span
           aria-hidden
+          className="white-noise-pulse-ring"
           style={{
             position: "absolute",
             inset: BOTTOM_BAR_CONFIG.noisePulseInset,
             borderRadius: 999,
-            background: BOTTOM_BAR_CONFIG.noisePulseColor,
             animation: `whiteNoisePulse ${BOTTOM_BAR_CONFIG.noisePulseDuration}s ease-out infinite`,
             animationDelay: `${
               BOTTOM_BAR_CONFIG.noisePulseDuration *
@@ -380,7 +379,8 @@ export default function BottomBar({
             borderRadius: 999,
             position: "relative",
             overflow: "visible",
-            zIndex: isWhiteNoiseButton && playing ? 4 : 1,
+            zIndex: isWhiteNoiseButton ? 2 : 1,
+            isolation: "isolate",
             WebkitTapHighlightColor: "transparent",
           } as CSSProperties
         }
@@ -392,16 +392,27 @@ export default function BottomBar({
 
   return (
     <>
-      <style jsx>{`
+      <style jsx global>{`
+        .white-noise-pulse-ring {
+          background: rgb(255, 255, 255);
+          transform-origin: center;
+        }
+
+        @media (prefers-color-scheme: dark) {
+          .white-noise-pulse-ring {
+            background: rgba(10, 132, 255, 0.52);
+          }
+        }
+
         @keyframes whiteNoisePulse {
           0% {
             transform: scale(1);
             opacity: 0;
           }
 
-          12% {
-            transform: scale(1.04);
-            opacity: 0.62;
+          10% {
+            transform: scale(1.06);
+            opacity: 0.84;
           }
 
           72% {
@@ -477,16 +488,23 @@ export default function BottomBar({
               position: "relative",
             }}
           >
-            {renderFabButton({
-              ariaLabel: "打开白噪音",
-              className: `nurse-fab white-noise-fab ${
-                playing ? "playing" : ""
-              }`,
-              onClick: handleWhiteNoiseButtonClick,
-              children: (
-                <>
-                  <WhiteNoisePulse />
+            <div
+              style={{
+                width: BOTTOM_BAR_CONFIG.nurseSize,
+                height: BOTTOM_BAR_CONFIG.nurseSize,
+                position: "relative",
+                flexShrink: 0,
+              }}
+            >
+              <WhiteNoisePulse />
 
+              {renderFabButton({
+                ariaLabel: "打开白噪音",
+                className: `nurse-fab white-noise-fab ${
+                  playing ? "playing" : ""
+                }`,
+                onClick: handleWhiteNoiseButtonClick,
+                children: (
                   <img
                     src="/whitenoise.svg"
                     alt=""
@@ -499,9 +517,9 @@ export default function BottomBar({
                       zIndex: 2,
                     }}
                   />
-                </>
-              ),
-            })}
+                ),
+              })}
+            </div>
 
             {renderFabButton({
               ariaLabel: nursing ? "打开哺乳计时" : "哺乳",

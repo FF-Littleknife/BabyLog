@@ -1,10 +1,10 @@
 :root {
   /* 页面基础颜色 */
-  --export-bg: #f2f2f6; /* 页面背景色，也是导出 PDF 的页边距颜色 */
-  --export-text: #111111; /* 主文字颜色 */
-  --export-muted: #8e8e93; /* 灰色辅助文字 */
-  --export-blue: #0a84ff; /* 主按钮蓝色 */
-  --export-white: #ffffff; /* 白色 */
+  --export-bg: var(--app-bg); /* 页面背景色，也是导出 PDF 的页边距颜色 */
+  --export-text: var(--text); /* 主文字颜色 */
+  --export-muted: var(--muted); /* 灰色辅助文字 */
+  --export-blue: var(--blue); /* 主按钮蓝色 */
+  --export-white: var(--white); /* 白色 */
 
   /* 页面整体 */
   --export-page-padding: 28px; /* 页面四周留白，同时控制 PDF 里的底色页边距 */
@@ -25,7 +25,7 @@
   --control-height: 52px; /* 筛选框/按钮高度 */
   --control-radius: 999px; /* 筛选框/按钮圆角 */
   --control-padding-x: 16px; /* 筛选框/按钮左右内边距 */
-  --control-bg: rgba(255, 255, 255, 0.86); /* 筛选框/普通按钮背景 */
+  --control-bg: var(--glass-bg); /* 筛选框/普通按钮背景 */
 
   /* 筛选区域 */
   --filters-type-width: 160px; /* 类型筛选宽度 */
@@ -49,9 +49,9 @@
 
   /* 表格整体 */
   --table-radius: 18px; /* 表格圆角 */
-  --table-bg: #ffffff; /* 表格背景色 */
-  --table-head-bg: rgba(0, 0, 0, 0.04); /* 表头背景色 */
-  --table-border: 1px solid rgba(0, 0, 0, 0.08); /* 表格横线 */
+  --table-bg: var(--surface-solid); /* 表格背景色 */
+  --table-head-bg: var(--surface-muted); /* 表头背景色 */
+  --table-border: 1px solid var(--surface-muted-strong); /* 表格横线 */
 
   /* 表格文字和间距 */
   --table-cell-padding-y: 12px; /* 表格单元格上下内边距 */

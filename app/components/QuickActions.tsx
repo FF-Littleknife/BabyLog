@@ -9,15 +9,15 @@ const QUICK_ACTIONS = {
   gap: 18, // 按钮之间的横向/纵向间距 px
 
   buttonSize: 88, // 单个圆形按钮尺寸 px
-  buttonBg: "rgba(255, 255, 255, 0.86)", // 按钮默认背景色；最后一位是透明度
-  buttonActiveBg: "rgba(255, 255, 255, 0.98)", // 按钮按下/激活时背景色
+  buttonBg: "var(--glass-bg)", // 按钮默认背景色；最后一位是透明度
+  buttonActiveBg: "var(--surface-strong)", // 按钮按下/激活时背景色
   buttonRadius: 999, // 按钮圆角；999 表示完全圆形
-  buttonShadow: "0 10px 34px rgba(0,0,0,.05)", // 按钮阴影
+  buttonShadow: "var(--shadow-soft)", // 按钮阴影
 
   iconSize: 30, // 按钮图标尺寸 px
   iconMarginBottom: 9, // 图标和文字之间的距离 px
 
-  titleColor: "#111111", // 按钮文字颜色
+  titleColor: "var(--text)", // 按钮文字颜色
   titleSize: 14, // 按钮文字字号 px
   titleWeight: 760, // 按钮文字字重；越大越粗
   titleLetterSpacing: "-0.03em", // 按钮文字字距；负值会让字更紧凑

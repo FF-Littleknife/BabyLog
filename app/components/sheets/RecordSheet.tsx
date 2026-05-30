@@ -7,42 +7,42 @@ import LoopWheelColumn from "@/app/components/LoopWheelColumn";
 
 const SHEET = {
   maxWidth: 430,
-  bg: "rgba(255, 255, 255, 0.9)",
+  bg: "var(--surface)",
   radius: 28,
   padding: 18,
   outerGap: 18,
 
-  titleColor: "#111111",
+  titleColor: "var(--text)",
   titleSize: 24,
   titleWeight: 760,
 
-  labelColor: "#8e8e93",
+  labelColor: "var(--muted)",
   labelSize: 13,
 
-  inputBg: "rgba(0, 0, 0, 0.045)",
-  inputColor: "#111111",
+  inputBg: "var(--input-bg)",
+  inputColor: "var(--text)",
   inputRadius: 18,
   inputPadding: 14,
-  inputBorder: "1px solid rgba(0,0,0,.06)",
+  inputBorder: "1px solid var(--surface-muted)",
 
-  timePickerBg: "rgba(0, 0, 0, 0.045)",
+  timePickerBg: "var(--input-bg)",
   timePickerRadius: 22,
   timePickerPadding: 8,
-  timePickerBorder: "1px solid rgba(0,0,0,.06)",
+  timePickerBorder: "1px solid var(--surface-muted)",
   timePickerGap: 6,
 
-  colonColor: "#8e8e93",
+  colonColor: "var(--muted)",
   colonSize: 24,
   colonWeight: 760,
 
   wheelHeight: 138,
   wheelItemHeight: 46,
   wheelRadius: 18,
-  wheelBg: "rgba(255,255,255,.72)",
-  wheelMaskBg: "rgba(0,0,0,.06)",
-  wheelMaskBorder: "1px solid rgba(0,0,0,.08)",
-  wheelTextColor: "rgba(0,0,0,.38)",
-  wheelActiveColor: "#111111",
+  wheelBg: "var(--surface-soft)",
+  wheelMaskBg: "var(--surface-muted)",
+  wheelMaskBorder: "1px solid var(--surface-muted-strong)",
+  wheelTextColor: "var(--wheel-text)",
+  wheelActiveColor: "var(--text)",
   wheelTextSize: 20,
   wheelActiveSize: 24,
   wheelTextWeight: 680,
@@ -51,13 +51,13 @@ const SHEET = {
   wheelLoopCycles: 21,
   wheelRecenterDelay: 760,
 
-  closeBg: "rgba(0,0,0,.08)",
-  closeColor: "#0a84ff",
+  closeBg: "var(--surface-muted-strong)",
+  closeColor: "var(--blue)",
   closeSize: 44,
   closeLineWidth: 22,
   closeLineHeight: 3,
 
-  submitBg: "#0a84ff",
+  submitBg: "var(--blue)",
 
   sheetEnterMs: 420,
   sheetExitMs: 280,
@@ -257,7 +257,7 @@ export default function RecordSheet({
 
           marginBottom: `calc(${SHEET.outerGap}px + env(safe-area-inset-bottom))`,
 
-          boxShadow: "0 -24px 80px rgba(0,0,0,.16)",
+          boxShadow: "var(--shadow-sheet)",
 
           animation: closing
             ? `sheetSlideDown ${SHEET.sheetExitMs}ms ${SHEET.sheetExitEasing} both`

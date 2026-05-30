@@ -14,7 +14,7 @@ const GROWTH_SHEET = {
      整体遮罩 / 背景毛玻璃
      ========================= */
 
-  overlayBg: "rgba(244,241,246,.36)",
+  overlayBg: "var(--surface-overlay)",
   overlayBlur: "blur(18px) saturate(120%)",
   overlayPadding: "10px",
 
@@ -48,7 +48,7 @@ const GROWTH_SHEET = {
      ========================= */
 
   titleText: "叶票票成长记录",
-  titleColor: "#111111",
+  titleColor: "var(--text)",
   titleSize: 20,
   titleWeight: 820,
   titleMarginBottom: 12,
@@ -57,7 +57,7 @@ const GROWTH_SHEET = {
      出生天数 / 月龄文字
      ========================= */
 
-  ageTextColor: "#8e8e93",
+  ageTextColor: "var(--muted)",
   ageTextSize: 12,
   ageTextWeight: 400,
   ageTextMarginTop: 0,
@@ -66,23 +66,23 @@ const GROWTH_SHEET = {
      顶部三项最新数据卡片
      ========================= */
 
-  cardBg: "rgba(255,255,255,.82)",
+  cardBg: "var(--surface)",
   cardRadius: 28,
   cardPadding: "20px 16px 18px",
-  cardShadow: "0 10px 34px rgba(0,0,0,.05)",
+  cardShadow: "var(--shadow-soft)",
 
   statGap: 10,
 
-  valueColor: "#111111",
+  valueColor: "var(--text)",
   valueSize: 28,
   valueWeight: 820,
 
-  unitColor: "#8e8e93",
+  unitColor: "var(--muted)",
   unitSize: 13,
   unitWeight: 600,
   unitMarginLeft: 3,
 
-  statDateColor: "rgba(142,142,147,.72)",
+  statDateColor: "var(--muted)",
   statDateSize: 10,
   statDateMarginTop: 2,
 
@@ -98,8 +98,8 @@ const GROWTH_SHEET = {
   actionRowGap: 18,
 
   iconButtonSize: 58,
-  iconButtonBg: "rgba(255,255,255,.82)",
-  iconButtonShadow: "0 10px 34px rgba(0,0,0,.05)",
+  iconButtonBg: "var(--surface)",
+  iconButtonShadow: "var(--shadow-soft)",
   iconButtonActiveScale: 0.94,
   iconButtonTransition:
     "transform .12s ease, background .18s ease, box-shadow .18s ease",
@@ -118,16 +118,16 @@ const GROWTH_SHEET = {
 
   fieldGap: 12,
 
-  labelColor: "#8e8e93",
+  labelColor: "var(--muted)",
   labelSize: 12,
   labelWeight: 700,
   labelMarginBottom: 6,
 
-  inputBg: "rgba(255,255,255,.76)",
-  inputColor: "#111111",
+  inputBg: "var(--surface)",
+  inputColor: "var(--text)",
   inputRadius: 18,
   inputPadding: "14px 14px",
-  inputBorder: "1px solid rgba(0,0,0,.06)",
+  inputBorder: "1px solid var(--surface-muted)",
 
   formGridGap: 10,
 
@@ -138,11 +138,11 @@ const GROWTH_SHEET = {
   formButtonGap: 10,
   formButtonMarginTop: 18,
 
-  saveBg: "#0a84ff",
-  saveColor: "#ffffff",
+  saveBg: "var(--blue)",
+  saveColor: "var(--white)",
 
-  cancelBg: "rgba(255,255,255,.72)",
-  cancelColor: "#8e8e93",
+  cancelBg: "var(--surface-soft)",
+  cancelColor: "var(--muted)",
 
   buttonRadius: 22,
   buttonPadding: 16,

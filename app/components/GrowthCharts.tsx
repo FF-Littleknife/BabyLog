@@ -20,17 +20,17 @@ const CHARTS = {
      ========================= */
 
   cardMinHeight: 160,
-  cardBg: "rgba(255,255,255,.82)",
+  cardBg: "var(--surface)",
   cardRadius: 26,
   cardPadding: 14,
-  cardShadow: "0 10px 34px rgba(0,0,0,.05)",
+  cardShadow: "var(--shadow-soft)",
   cardTransition: "height .22s ease, box-shadow .22s ease",
 
   /* =========================
      卡片标题
      ========================= */
 
-  titleColor: "#8e8e93",
+  titleColor: "var(--muted)",
   titleSize: 12,
   titleWeight: 400,
 
@@ -40,7 +40,7 @@ const CHARTS = {
 
   arrowSize: 16,
   arrowStrokeWidth: 3.2,
-  arrowColor: "rgba(142,142,147,.72)",
+  arrowColor: "var(--muted)",
   arrowTransition: "transform .18s ease",
 
   /* =========================
@@ -61,14 +61,14 @@ const CHARTS = {
   axisY: 86,
   labelY: 102,
 
-  axisColor: "rgba(0,0,0,.08)",
-  labelColor: "rgba(142,142,147,.72)",
+  axisColor: "var(--surface-muted-strong)",
+  labelColor: "var(--muted)",
   labelSize: 10,
   labelWeight: 400,
 
   // 当前查看点的定位虚线
   // 默认跟最新点；点击历史点后，切换到历史点。
-  guideLineColor: "rgba(142,142,147,.42)",
+  guideLineColor: "var(--border-strong)",
   guideLineWidth: 1.1,
   guideLineDash: "3 4",
   guideLineGapFromPoint: 7,
@@ -89,41 +89,41 @@ const CHARTS = {
 
   detailMarginTop: 10,
   detailPaddingTop: 10,
-  detailBorderTop: "1px solid rgba(0,0,0,.06)",
+  detailBorderTop: "1px solid var(--surface-muted)",
   detailMaxHeight: 156,
   detailRowPadding: "8px 0",
-  detailRowBorder: "1px solid rgba(0,0,0,.045)",
+  detailRowBorder: "1px solid var(--input-bg)",
 
-  detailDateColor: "rgba(142,142,147,.82)",
+  detailDateColor: "var(--muted)",
   detailDateSize: 11,
   detailDateWeight: 500,
 
-  detailValueColor: "#111111",
+  detailValueColor: "var(--text)",
   detailValueSize: 13,
   detailValueWeight: 760,
 
-  detailUnitColor: "#8e8e93",
+  detailUnitColor: "var(--muted)",
   detailUnitSize: 11,
   detailUnitWeight: 650,
 
   detailEmptyText: "暂无记录",
-  detailEmptyColor: "rgba(142,142,147,.68)",
+  detailEmptyColor: "var(--muted)",
   detailEmptySize: 12,
 
   /* =========================
      空状态
      ========================= */
 
-  emptyColor: "rgba(142,142,147,.68)",
+  emptyColor: "var(--muted)",
   emptySize: 12,
 
   /* =========================
      三项曲线颜色
      ========================= */
 
-  heightColor: "#0a84ff",
-  weightColor: "#ff3b30",
-  headColor: "#af52de",
+  heightColor: "var(--blue)",
+  weightColor: "var(--feed-label-color)",
+  headColor: "var(--pump-label-color)",
 };
 
 type GrowthMetric = {

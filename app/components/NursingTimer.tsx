@@ -20,50 +20,50 @@ const NURSING_TIMER_CONFIG = {
   label: "哺乳计时",
   sub: "点击左侧或右侧开始独立计时",
 
-  backdropBg: "rgba(244, 241, 246, 0.56)",
+  backdropBg: "var(--surface-overlay)",
   backdropBlur: "blur(26px)",
 
   panelMaxWidth: 430,
   panelOuterGap: 18,
   panelRadius: 34,
-  panelBg: "rgba(255, 255, 255, 0.9)",
+  panelBg: "var(--surface)",
   panelPadding: 22,
-  panelShadow: "0 -24px 80px rgba(0,0,0,.16)",
+  panelShadow: "var(--shadow-sheet)",
 
-  labelColor: "#ff3b30",
+  labelColor: "var(--feed-label-color)",
   labelSize: 15,
   labelWeight: 760,
   labelLetterSpacing: "0.04em",
 
-  subColor: "#8e8e93",
+  subColor: "var(--muted)",
   subSize: 13,
   subMarginTop: 6,
 
   closeSize: 44,
-  closeBg: "rgba(0,0,0,.08)",
-  closeColor: "#0a84ff",
+  closeBg: "var(--surface-muted-strong)",
+  closeColor: "var(--blue)",
   closeLineWidth: 22,
   closeLineHeight: 3,
 
   timeMargin: "34px 0 28px",
-  timeColor: "#111111",
+  timeColor: "var(--text)",
   timeSize: 76,
   timeWeight: 800,
   timeLetterSpacing: "-0.055em",
 
-  sideSwitchBg: "rgba(0, 0, 0, 0.045)",
+  sideSwitchBg: "var(--input-bg)",
   sideSwitchRadius: 999,
   sideSwitchPadding: 5,
-  sideActiveBg: "#0a84ff",
-  sideInactiveColor: "#8e8e93",
-  sideActiveColor: "#ffffff",
+  sideActiveBg: "var(--blue)",
+  sideInactiveColor: "var(--muted)",
+  sideActiveColor: "var(--white)",
 
-  sideStatBg: "rgba(0, 0, 0, 0.045)",
+  sideStatBg: "var(--input-bg)",
   sideStatActiveBg: "rgba(10, 132, 255, 0.14)",
   sideStatRadius: 18,
   sideStatPadding: 14,
-  sideStatTitleColor: "#8e8e93",
-  sideStatValueColor: "#111111",
+  sideStatTitleColor: "var(--muted)",
+  sideStatValueColor: "var(--text)",
 
   startText: "开始",
   pauseText: "暂停",
@@ -71,14 +71,14 @@ const NURSING_TIMER_CONFIG = {
   actionGap: 10,
 
   finishText: "结束并记录",
-  finishBg: "#0a84ff",
-  finishColor: "#ffffff",
+  finishBg: "var(--blue)",
+  finishColor: "var(--white)",
 
   cancelText: "取消记录",
-  cancelBg: "rgba(0, 0, 0, 0.045)",
-  cancelColor: "#8e8e93",
+  cancelBg: "var(--input-bg)",
+  cancelColor: "var(--muted)",
 
-  summaryColor: "#8e8e93",
+  summaryColor: "var(--muted)",
 
   buttonRadius: 22,
   buttonPadding: 17,
@@ -664,9 +664,9 @@ export default function NursingTimer({
             padding: 14,
             marginBottom: 12,
             background: running
-              ? "rgba(0, 0, 0, 0.045)"
+              ? "var(--input-bg)"
               : NURSING_TIMER_CONFIG.finishBg,
-            color: running ? "#111111" : "#ffffff",
+            color: running ? "var(--text)" : "var(--white)",
             fontWeight: 760,
             transition: NURSING_TIMER_CONFIG.buttonTransition,
             WebkitTapHighlightColor: "transparent",
