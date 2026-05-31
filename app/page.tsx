@@ -76,24 +76,25 @@ const NOTICE_STYLE = {
   top: 16,
   left: "50%",
   width: "fit-content",
-  maxWidth: "min(calc(100% - 32px), 390px)",
+  maxWidth: "min(calc(100% - 28px), 420px)",
   zIndex: 130,
 
-  padding: "10px 14px",
+  height: 50,
+  padding: "0 20px",
   radius: 999,
 
   bg: "rgba(255,255,255,.86)",
   color: "#111111",
   warnColor: "#ff9500",
-  fontSize: 12,
+  fontSize: 14,
   fontWeight: 470,
-  lineHeight: 1.25,
+  lineHeight: "1",
 
-  shadow: "0 12px 30px rgba(0,0,0,.12)",
+  shadow: "0 14px 34px rgba(0,0,0,.14)",
   blur: "blur(18px)",
 
-  gap: 10,
-  undoColor: "#007aff",
+  gap: 12,
+  undoColor: "#0a84ff",
   fontFamily:
     '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif',
   letterSpacing: "-0.01em",
@@ -927,6 +928,7 @@ export default function Home() {
             width: NOTICE_STYLE.width,
             maxWidth: NOTICE_STYLE.maxWidth,
             zIndex: NOTICE_STYLE.zIndex,
+            height: NOTICE_STYLE.height,
             padding: NOTICE_STYLE.padding,
             borderRadius: NOTICE_STYLE.radius,
             background: NOTICE_STYLE.bg,
@@ -951,7 +953,17 @@ export default function Home() {
             gap: NOTICE_STYLE.gap,
           }}
         >
-          <span>{smartReceipt}</span>
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              lineHeight: NOTICE_STYLE.lineHeight,
+            }}
+          >
+            {smartReceipt}
+          </span>
 
           {smartReceiptUndoIds.length > 0 && (
             <button
@@ -972,6 +984,12 @@ export default function Home() {
                 letterSpacing: NOTICE_STYLE.letterSpacing,
                 WebkitFontSmoothing: NOTICE_STYLE.WebkitFontSmoothing,
                 cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                height: "100%",
+                textDecoration: "none",
+                opacity: 1,
               }}
             >
               撤销
@@ -982,7 +1000,6 @@ export default function Home() {
 
       {toast && (
         <div
-          className="toast"
           style={{
             position: "fixed",
             left: NOTICE_STYLE.left,
@@ -991,6 +1008,7 @@ export default function Home() {
             width: NOTICE_STYLE.width,
             maxWidth: NOTICE_STYLE.maxWidth,
             zIndex: NOTICE_STYLE.zIndex,
+            height: NOTICE_STYLE.height,
 
             padding: NOTICE_STYLE.padding,
             borderRadius: NOTICE_STYLE.radius,
@@ -1011,9 +1029,22 @@ export default function Home() {
             textAlign: "center",
             pointerEvents: "none",
             whiteSpace: "nowrap",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
         >
-          {toast}
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              lineHeight: NOTICE_STYLE.lineHeight,
+            }}
+          >
+            {toast}
+          </span>
         </div>
       )}
     </main>
