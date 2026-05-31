@@ -3,34 +3,34 @@ import type { GrowthRecord } from "@/lib/growthApi";
 const GROWTH_CARD = {
   margin: "0 0 18px",
 
-  bg: "var(--surface)",
+  bg: "rgba(255, 255, 255, 0.88)",
   radius: 30,
   padding: "18px 22px",
-  shadow: "var(--shadow-soft)",
+  shadow: "0 10px 34px rgba(0,0,0,.05)",
 
-  titleColor: "var(--blue)",
+  titleColor: "#0a84ff",
   titleSize: 12,
   titleWeight: 760,
 
-  dateColor: "var(--muted)",
+  dateColor: "#8e8e93",
   dateSize: 12,
   dateWeight: 500,
 
   statGap: 18,
 
-  labelColor: "var(--muted)",
+  labelColor: "#8e8e93",
   labelSize: 11,
   labelWeight: 700,
 
-  valueColor: "var(--text)",
+  valueColor: "#111111",
   valueSize: 24,
   valueWeight: 780,
 
-  unitColor: "var(--muted)",
+  unitColor: "#8e8e93",
   unitSize: 12,
   unitWeight: 600,
 
-  emptyColor: "var(--muted)",
+  emptyColor: "#8e8e93",
   emptySize: 13,
 };
 

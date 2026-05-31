@@ -69,47 +69,36 @@ const TOP_FADE = {
   height: 64,
   zIndex: 35,
   background:
-    "linear-gradient(to bottom, rgba(var(--app-bg-rgb),1) 0%, rgba(var(--app-bg-rgb),.86) 36%, rgba(var(--app-bg-rgb),0) 100%)",
+    "linear-gradient(to bottom, rgba(244,241,246,1) 0%, rgba(244,241,246,.86) 36%, rgba(244,241,246,0) 100%)",
 };
 
-const SMART_RECEIPT = {
-  bottom: 126,
-  left: "50%",
-  width: "min(calc(100% - 32px), 390px)",
-  zIndex: 120,
-  padding: "10px 14px",
-  radius: 18,
-  bg: "var(--glass-bg)",
-  color: "var(--text)",
-  warnColor: "var(--orange)",
-  fontSize: 12,
-  lineHeight: 1.35,
-  shadow: "0 14px 34px var(--surface-muted-strong)",
-
-  undoMarginLeft: 10,
-  undoColor: "var(--blue)",
-  undoFontWeight: 800,
-};
-
-const TOAST_CONFIG = {
-  bottom: 72,
+const NOTICE_STYLE = {
+  top: 16,
   left: "50%",
   width: "fit-content",
-  maxWidth: "min(calc(100% - 40px), 360px)",
+  maxWidth: "min(calc(100% - 32px), 390px)",
   zIndex: 130,
 
-  padding: "9px 14px",
+  padding: "10px 14px",
   radius: 999,
 
-  bg: "var(--glass-bg)",
-  color: "var(--text)",
+  bg: "rgba(255,255,255,.86)",
+  color: "#111111",
+  warnColor: "#ff9500",
   fontSize: 12,
-  fontWeight: 680,
+  fontWeight: 470,
   lineHeight: 1.25,
 
-  shadow: "0 12px 30px var(--surface-muted-strong)",
+  shadow: "0 12px 30px rgba(0,0,0,.12)",
   blur: "blur(18px)",
-};
+
+  gap: 10,
+  undoColor: "#007aff",
+  fontFamily:
+    '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif',
+  letterSpacing: "-0.01em",
+  WebkitFontSmoothing: "antialiased",
+} as const;
 
 const seedRecords: BabyRecord[] = [
   {
@@ -328,6 +317,7 @@ export default function Home() {
   const syncingPendingRef = useRef(false);
 
   function showToast(text: string) {
+    clearSmartReceipt();
     setToast(text);
 
     if (toastTimerRef.current) {
@@ -349,6 +339,13 @@ export default function Home() {
   }
 
   function showSmartReceipt(text: string, warn = false, undoIds: string[] = []) {
+    setToast("");
+
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+
     setSmartReceipt(text);
     setSmartReceiptWarn(warn);
     setSmartReceiptUndoIds(undoIds);
@@ -770,14 +767,14 @@ export default function Home() {
             height: PULL_REFRESH.indicatorSize,
             transform: "translateX(-50%)",
             borderRadius: 999,
-            background: "var(--surface-soft)",
+            background: "rgba(255,255,255,.72)",
             backdropFilter: "blur(18px)",
             WebkitBackdropFilter: "blur(18px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 100,
-            color: "var(--muted)",
+            color: "#8e8e93",
             fontSize: 18,
             fontWeight: 760,
           }}
@@ -924,24 +921,34 @@ export default function Home() {
         <div
           style={{
             position: "fixed",
-            left: SMART_RECEIPT.left,
-            bottom: `calc(${SMART_RECEIPT.bottom}px + env(safe-area-inset-bottom))`,
+            left: NOTICE_STYLE.left,
+            top: `calc(${NOTICE_STYLE.top}px + env(safe-area-inset-top))`,
             transform: "translateX(-50%)",
-            width: SMART_RECEIPT.width,
-            zIndex: SMART_RECEIPT.zIndex,
-            padding: SMART_RECEIPT.padding,
-            borderRadius: SMART_RECEIPT.radius,
-            background: SMART_RECEIPT.bg,
+            width: NOTICE_STYLE.width,
+            maxWidth: NOTICE_STYLE.maxWidth,
+            zIndex: NOTICE_STYLE.zIndex,
+            padding: NOTICE_STYLE.padding,
+            borderRadius: NOTICE_STYLE.radius,
+            background: NOTICE_STYLE.bg,
             color: smartReceiptWarn
-              ? SMART_RECEIPT.warnColor
-              : SMART_RECEIPT.color,
-            fontSize: SMART_RECEIPT.fontSize,
-            lineHeight: SMART_RECEIPT.lineHeight,
-            boxShadow: SMART_RECEIPT.shadow,
-            backdropFilter: "blur(18px)",
-            WebkitBackdropFilter: "blur(18px)",
+              ? NOTICE_STYLE.warnColor
+              : NOTICE_STYLE.color,
+            fontFamily: NOTICE_STYLE.fontFamily,
+            fontSize: NOTICE_STYLE.fontSize,
+            fontWeight: NOTICE_STYLE.fontWeight,
+            lineHeight: NOTICE_STYLE.lineHeight,
+            letterSpacing: NOTICE_STYLE.letterSpacing,
+            WebkitFontSmoothing: NOTICE_STYLE.WebkitFontSmoothing,
+            boxShadow: NOTICE_STYLE.shadow,
+            backdropFilter: NOTICE_STYLE.blur,
+            WebkitBackdropFilter: NOTICE_STYLE.blur,
             pointerEvents: "auto",
             textAlign: "center",
+            whiteSpace: "nowrap",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: NOTICE_STYLE.gap,
           }}
         >
           <span>{smartReceipt}</span>
@@ -951,14 +958,19 @@ export default function Home() {
               type="button"
               onClick={undoSmartReceipt}
               style={{
-                marginLeft: SMART_RECEIPT.undoMarginLeft,
+                appearance: "none",
+                WebkitAppearance: "none",
                 border: 0,
                 padding: 0,
+                margin: 0,
                 background: "transparent",
-                color: SMART_RECEIPT.undoColor,
-                fontSize: SMART_RECEIPT.fontSize,
-                fontWeight: SMART_RECEIPT.undoFontWeight,
-                lineHeight: 1,
+                color: NOTICE_STYLE.undoColor,
+                fontFamily: NOTICE_STYLE.fontFamily,
+                fontSize: NOTICE_STYLE.fontSize,
+                fontWeight: NOTICE_STYLE.fontWeight,
+                lineHeight: NOTICE_STYLE.lineHeight,
+                letterSpacing: NOTICE_STYLE.letterSpacing,
+                WebkitFontSmoothing: NOTICE_STYLE.WebkitFontSmoothing,
                 cursor: "pointer",
               }}
             >
@@ -973,29 +985,32 @@ export default function Home() {
           className="toast"
           style={{
             position: "fixed",
-            left: TOAST_CONFIG.left,
-            bottom: `calc(${TOAST_CONFIG.bottom}px + env(safe-area-inset-bottom))`,
+            left: NOTICE_STYLE.left,
+            top: `calc(${NOTICE_STYLE.top}px + env(safe-area-inset-top))`,
             transform: "translateX(-50%)",
-            width: TOAST_CONFIG.width,
-            maxWidth: TOAST_CONFIG.maxWidth,
-            zIndex: TOAST_CONFIG.zIndex,
+            width: NOTICE_STYLE.width,
+            maxWidth: NOTICE_STYLE.maxWidth,
+            zIndex: NOTICE_STYLE.zIndex,
 
-            padding: TOAST_CONFIG.padding,
-            borderRadius: TOAST_CONFIG.radius,
+            padding: NOTICE_STYLE.padding,
+            borderRadius: NOTICE_STYLE.radius,
 
-            background: TOAST_CONFIG.bg,
-            color: TOAST_CONFIG.color,
-            fontSize: TOAST_CONFIG.fontSize,
-            fontWeight: TOAST_CONFIG.fontWeight,
-            lineHeight: TOAST_CONFIG.lineHeight,
+            background: NOTICE_STYLE.bg,
+            color: NOTICE_STYLE.color,
+            fontFamily: NOTICE_STYLE.fontFamily,
+            fontSize: NOTICE_STYLE.fontSize,
+            fontWeight: NOTICE_STYLE.fontWeight,
+            lineHeight: NOTICE_STYLE.lineHeight,
+            letterSpacing: NOTICE_STYLE.letterSpacing,
+            WebkitFontSmoothing: NOTICE_STYLE.WebkitFontSmoothing,
 
-            boxShadow: TOAST_CONFIG.shadow,
-            backdropFilter: TOAST_CONFIG.blur,
-            WebkitBackdropFilter: TOAST_CONFIG.blur,
+            boxShadow: NOTICE_STYLE.shadow,
+            backdropFilter: NOTICE_STYLE.blur,
+            WebkitBackdropFilter: NOTICE_STYLE.blur,
 
             textAlign: "center",
             pointerEvents: "none",
-            whiteSpace: "normal",
+            whiteSpace: "nowrap",
           }}
         >
           {toast}

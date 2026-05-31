@@ -23,7 +23,7 @@ const HOME_TITLE = {
   lineHeight: 1.05, // 标题行高；越小越紧凑
   fontWeight: 950, // 标题字重；越大越粗
   letterSpacing: "-0.02em", // 标题字距；负值会让字更紧
-  color: "var(--text)", // 标题颜色
+  color: "#111111", // 标题颜色
 };
 
 const GROWTH_BUTTON = {
@@ -38,7 +38,7 @@ const GROWTH_BUTTON = {
 
 const SECTION_LABEL = {
   margin: "0 0 8px 4px", // 小标题外边距；上 0，右 0，下 8px，左 4px
-  color: "var(--muted)", // 小标题颜色；最后一位 .72 是透明度
+  color: "rgba(142,142,147,.72)", // 小标题颜色；最后一位 .72 是透明度
   fontSize: 10.5, // 小标题字号 px
   fontWeight: 650, // 小标题字重；越大越粗
   letterSpacing: "0.03em", // 小标题字距；正值会让字更松

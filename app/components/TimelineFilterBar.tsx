@@ -6,23 +6,23 @@ const FILTER_BAR = {
   gap: 8,
 
   buttonHeight: 50,
-  buttonBg: "var(--surface-soft)",
-  buttonActiveBg: "var(--surface-strong)",
+  buttonBg: "rgba(255, 255, 255, 0.72)",
+  buttonActiveBg: "rgba(255, 255, 255, 0.96)",
   buttonRadius: 999,
-  buttonShadow: "var(--shadow-soft)",
+  buttonShadow: "0 10px 34px rgba(0,0,0,.05)",
 
   inactiveOpacity: 0.46,
-  inactiveColor: "var(--muted)",
+  inactiveColor: "#8e8e93",
 
   titleSize: 13,
   titleWeight: 760,
   titleLetterSpacing: "-0.03em",
 
-  allColor: "var(--blue)",
-  feedColor: "var(--feed-label-color)",
-  poopColor: "var(--poop-label-color)",
-  peeColor: "var(--pee-label-color)",
-  pumpColor: "var(--pump-label-color)",
+  allColor: "#0a84ff",
+  feedColor: "#ff3b30",
+  poopColor: "#7ac70c",
+  peeColor: "#00b8c8",
+  pumpColor: "#af52de",
 };
 
 const FILTER_ITEMS: {

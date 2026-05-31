@@ -9,47 +9,47 @@ import { RECORD_LABEL } from "@/lib/types";
 
 const EDIT_SHEET = {
   maxWidth: 430,
-  bg: "var(--app-bg)",
+  bg: "rgba(244,241,246,.98)",
   radius: 28,
   padding: 22,
   outerGap: 18,
 
-  titleColor: "var(--text)",
+  titleColor: "#111111",
   titleSize: 20,
   titleWeight: 820,
 
-  subColor: "var(--muted)",
+  subColor: "#8e8e93",
   subSize: 13,
 
   fieldGap: 12,
-  labelColor: "var(--muted)",
+  labelColor: "#8e8e93",
   labelSize: 12,
   labelWeight: 700,
 
-  inputBg: "var(--surface)",
-  inputColor: "var(--text)",
+  inputBg: "rgba(255,255,255,.76)",
+  inputColor: "#111111",
   inputRadius: 18,
   inputPadding: "14px 14px",
-  inputBorder: "1px solid var(--surface-muted)",
+  inputBorder: "1px solid rgba(0,0,0,.06)",
 
-  timePickerBg: "var(--input-bg)",
+  timePickerBg: "rgba(0, 0, 0, 0.045)",
   timePickerRadius: 22,
   timePickerPadding: 8,
-  timePickerBorder: "1px solid var(--surface-muted)",
+  timePickerBorder: "1px solid rgba(0,0,0,.06)",
   timePickerGap: 6,
 
-  colonColor: "var(--muted)",
+  colonColor: "#8e8e93",
   colonSize: 24,
   colonWeight: 760,
 
   wheelHeight: 138,
   wheelItemHeight: 46,
   wheelRadius: 18,
-  wheelBg: "var(--surface-soft)",
-  wheelMaskBg: "var(--surface-muted)",
-  wheelMaskBorder: "1px solid var(--surface-muted-strong)",
-  wheelTextColor: "var(--wheel-text)",
-  wheelActiveColor: "var(--text)",
+  wheelBg: "rgba(255,255,255,.72)",
+  wheelMaskBg: "rgba(0,0,0,.06)",
+  wheelMaskBorder: "1px solid rgba(0,0,0,.08)",
+  wheelTextColor: "rgba(0,0,0,.38)",
+  wheelActiveColor: "#111111",
   wheelTextSize: 20,
   wheelActiveSize: 24,
   wheelTextWeight: 680,
@@ -59,19 +59,19 @@ const EDIT_SHEET = {
   wheelRecenterDelay: 760,
 
   actionGap: 10,
-  saveBg: "var(--blue)",
-  saveColor: "var(--white)",
+  saveBg: "#0a84ff",
+  saveColor: "#ffffff",
   deleteBg: "rgba(255, 59, 48, 0.12)",
-  deleteColor: "var(--feed-label-color)",
-  cancelBg: "var(--surface-muted)",
-  cancelColor: "var(--muted)",
+  deleteColor: "#ff3b30",
+  cancelBg: "rgba(0,0,0,.06)",
+  cancelColor: "#8e8e93",
 
   buttonRadius: 22,
   buttonPadding: 16,
   buttonWeight: 760,
 
-  closeBg: "var(--surface-muted)",
-  closeColor: "var(--muted)",
+  closeBg: "rgba(0,0,0,.06)",
+  closeColor: "#8e8e93",
   closeSize: 44,
   closeLineWidth: 22,
   closeLineHeight: 3,
@@ -341,7 +341,7 @@ export default function EditRecordSheet({
 
           marginBottom: `calc(${EDIT_SHEET.outerGap}px + env(safe-area-inset-bottom))`,
 
-          boxShadow: "var(--shadow-sheet)",
+          boxShadow: "0 -24px 80px rgba(0,0,0,.18)",
 
           animation: closing
             ? `sheetSlideDown ${EDIT_SHEET.sheetExitMs}ms ${EDIT_SHEET.sheetExitEasing} both`

@@ -22,16 +22,16 @@ const SMART_INPUT_CONFIG = {
 
   boxGap: 8,
   boxPadding: 7,
-  boxBg: "var(--glass-bg)",
+  boxBg: "rgba(255, 255, 255, 0.86)",
   boxRadius: 22,
-  boxShadow: "var(--shadow-soft)",
+  boxShadow: "0 10px 34px rgba(0,0,0,.05)",
 
   /* =========================
      输入文字
      ========================= */
 
-  inputColor: "var(--text)",
-  inputPlaceholderColor: "var(--muted)",
+  inputColor: "#111111",
+  inputPlaceholderColor: "#8e8e93",
   inputPadding: "13px 10px",
 
   // iOS Safari 里 input 字号小于 16px 会自动放大页面。
@@ -58,9 +58,9 @@ const SMART_INPUT_CONFIG = {
   previewPrefix: "将记录",
   previewMarginTop: 8,
   previewSize: 12,
-  previewColor: "var(--muted)",
-  previewPastDateColor: "var(--orange)",
-  previewWarnColor: "var(--orange)",
+  previewColor: "#8e8e93",
+  previewPastDateColor: "#c27a19",
+  previewWarnColor: "#ff9500",
 
   /* =========================
      提交反馈小票

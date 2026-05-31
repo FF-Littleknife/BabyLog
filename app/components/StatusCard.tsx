@@ -2,17 +2,17 @@ import type { StatusCardConfig } from "./statusCardConfig";
 
 const STATUS_VALUE_STYLE = {
   unitSize: 13,
-  unitColor: "var(--muted)",
+  unitColor: "#8e8e93",
   unitWeight: 500,
   unitMarginLeft: 3,
   groupGap: 6,
 
-  timeColor: "var(--muted)",
+  timeColor: "#8e8e93",
   timeSize: 12,
   timeWeight: 500,
 
   arrowSize: 7,
-  arrowColor: "var(--muted)",
+  arrowColor: "#8e8e93",
   arrowBorderWidth: 1.5,
   arrowMarginLeft: 7,
 };
