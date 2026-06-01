@@ -14,7 +14,10 @@ type NoticePillProps = {
 
 const NOTICE = {
   top: 16,
-  maxWidth: "min(calc(100% - 32px), 390px)",
+
+  // 允许通知框接近屏幕等宽，但保留左右 16px 安全边距
+  maxWidth: "calc(100vw - 32px)",
+
   zIndex: 160,
   minHeight: 42,
   padding: "10px 15px",
@@ -28,7 +31,7 @@ const NOTICE = {
 
   fontSize: 13,
   fontWeight: 470,
-  lineHeight: 1.2,
+  lineHeight: 1.28,
   letterSpacing: "0.01em",
 
   shadow: "0 12px 30px var(--surface-muted-strong)",
@@ -115,13 +118,15 @@ export default function NoticePill({
           left: "50%",
           top: `calc(${NOTICE.top}px + env(safe-area-inset-top))`,
           transform: "translateX(-50%)",
-          width: "fit-content",
+
+          width: "max-content",
           maxWidth: NOTICE.maxWidth,
           minHeight: NOTICE.minHeight,
           zIndex: NOTICE.zIndex,
 
           padding: NOTICE.padding,
           borderRadius: NOTICE.radius,
+          boxSizing: "border-box",
 
           background: NOTICE.bg,
           color: tone === "warn" ? NOTICE.warnColor : NOTICE.textColor,
@@ -130,13 +135,17 @@ export default function NoticePill({
           backdropFilter: NOTICE.blur,
           WebkitBackdropFilter: NOTICE.blur,
 
-          display: "inline-flex",
+          display: "flex",
           alignItems: "center",
           justifyContent: "center",
           gap: NOTICE.gap,
           textAlign: "center",
           pointerEvents: action && !leaving ? "auto" : "none",
+
+          overflow: "hidden",
           whiteSpace: "normal",
+          overflowWrap: "anywhere",
+          wordBreak: "break-word",
 
           animation: leaving
             ? `noticePillSlideOut ${NOTICE.exitDurationMs}ms ${NOTICE.exitEase} both`
@@ -149,9 +158,16 @@ export default function NoticePill({
       >
         <span
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
+            display: "block",
+            minWidth: 0,
+            maxWidth: "100%",
+            flex: "1 1 auto",
+            textAlign: "center",
+
+            whiteSpace: "normal",
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
+
             ...noticeTextStyle,
           }}
         >
@@ -174,6 +190,7 @@ export default function NoticePill({
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
+              flex: "0 0 auto",
               whiteSpace: "nowrap",
               WebkitTapHighlightColor: "transparent",
               ...noticeTextStyle,

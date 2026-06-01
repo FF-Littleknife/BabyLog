@@ -6,23 +6,23 @@ const FILTER_BAR = {
   gap: 8,
 
   buttonHeight: 50,
-  buttonBg: "rgba(255, 255, 255, 0.72)",
-  buttonActiveBg: "rgba(255, 255, 255, 0.96)",
+  buttonBg: "var(--glass-bg)",
+  buttonActiveBg: "var(--surface-strong)",
   buttonRadius: 999,
-  buttonShadow: "0 10px 34px rgba(0,0,0,.05)",
+  buttonShadow: "var(--shadow-card)",
 
-  inactiveOpacity: 0.46,
-  inactiveColor: "#8e8e93",
+  inactiveOpacity: 0.52,
+  inactiveColor: "var(--muted)",
 
   titleSize: 13,
   titleWeight: 760,
   titleLetterSpacing: "-0.03em",
 
-  allColor: "#0a84ff",
-  feedColor: "#ff3b30",
-  poopColor: "#7ac70c",
-  peeColor: "#00b8c8",
-  pumpColor: "#af52de",
+  allColor: "var(--blue)",
+  feedColor: "var(--feed-label-color)",
+  poopColor: "var(--poop-label-color)",
+  peeColor: "var(--pee-label-color)",
+  pumpColor: "var(--pump-label-color)",
 };
 
 const FILTER_ITEMS: {
@@ -92,6 +92,8 @@ export default function TimelineFilterBar({
               fontWeight: FILTER_BAR.titleWeight,
               letterSpacing: FILTER_BAR.titleLetterSpacing,
               WebkitTapHighlightColor: "transparent",
+              transition:
+                "background .18s ease, color .18s ease, opacity .18s ease, box-shadow .18s ease",
             }}
           >
             {item.title}

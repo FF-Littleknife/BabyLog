@@ -14,12 +14,13 @@ type WhiteNoiseButtonProps = {
 };
 
 const WHITE_NOISE_BUTTON_CONFIG = {
-  bg: "var(--surface-soft)",
+  bg: "var(--white-noise-fab-idle-bg, var(--surface-soft, rgba(255, 255, 255, 0.74)))",
   activeBg: "#0a84ff",
 
   blur: "blur(34px) saturate(180%)",
-  color: "var(--text)",
-  shadow: "var(--shadow-float)",
+  color: "var(--text, #1c1c1e)",
+  shadow:
+    "var(--white-noise-fab-idle-shadow, var(--shadow-float, 0 14px 34px rgba(0, 0, 0, 0.14)))",
   activeShadow: "0 18px 54px rgba(10, 132, 255, 0.34)",
 
   activeScale: 0.93,
@@ -143,6 +144,13 @@ export default function WhiteNoiseButton({ size }: WhiteNoiseButtonProps) {
   return (
     <>
       <style jsx global>{`
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --white-noise-fab-idle-bg: rgba(44, 44, 46, 0.72);
+            --white-noise-fab-idle-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
+          }
+        }
+
         @keyframes whiteNoiseFabPulse {
           0% {
             transform: scale(1);

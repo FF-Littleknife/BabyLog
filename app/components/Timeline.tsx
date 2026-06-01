@@ -13,110 +13,104 @@ const TIMELINE_CONFIG = {
      时间轴横向布局
      ========================= */
 
-  axisLeft: "28%", // 时间轴竖线在屏幕中的横向位置。数值越小越靠左
-  axisWidth: 32, // 中间时间轴区域宽度，会影响时间列和内容列的分隔
-  rowGap: 20, // 每条记录之间的纵向间距。越小越紧凑
+  axisLeft: "28%",
+  axisWidth: 32,
+  rowGap: 20,
 
   /* =========================
      日期分组标题
-     例如：今天 / 昨天 / 5月18日 周一
      ========================= */
 
-  dayTitleColor: "#8e8e93", // 日期分组标题颜色
-  dayTitleSize: 12, // 日期分组标题字号
-  dayTitleWeight: 400, // 日期分组标题字重
+  dayTitleColor: "var(--muted)",
+  dayTitleSize: 12,
+  dayTitleWeight: 400,
 
   /* =========================
      左侧时间
-     例如：08:05
      ========================= */
 
-  timeColor: "#111111", // 左侧时间颜色
-  timeSize: 13, // 左侧时间字号
+  timeColor: "var(--text)",
+  timeSize: 13,
 
   /* =========================
      左侧日期
-     例如：5/22
      ========================= */
 
-  dateColor: "rgba(142,142,147,.58)", // 左侧小日期颜色
-  dateSize: 11, // 左侧小日期字号
-  dateMarginTop: 3, // 时间和日期之间的距离
+  dateColor: "color-mix(in srgb, var(--muted) 68%, transparent)",
+  dateSize: 11,
+  dateMarginTop: 3,
 
   /* =========================
      时间轴竖线
      ========================= */
 
-  lineColor: "rgba(0,0,0,.14)", // 中间竖线颜色
-  lineWidth: 1.5, // 中间竖线宽度
+  lineColor: "var(--timeline-line-color, rgba(60, 60, 67, 0.14))",
+  lineWidth: 1.5,
 
   /* =========================
      时间轴圆点
      ========================= */
 
-  dotSize: 8, // 圆点大小
-  dotRingColor: "#f4f1f6", // 圆点外圈颜色，通常和背景接近
-  dotRingSize: 5, // 圆点外圈厚度
+  dotSize: 8,
+  dotRingColor: "var(--bg)",
+  dotRingSize: 5,
 
   /* =========================
      右侧记录内容区域
      ========================= */
 
-  contentMinHeight: 56, // 每条记录的最小高度。越小一屏显示越多
-  contentPaddingTop: 13, // 右侧内容顶部内边距，会影响标题和圆点的纵向对齐
+  contentMinHeight: 56,
+  contentPaddingTop: 13,
 
   /* =========================
      间隔时间行
-     只在筛选单一类型时显示
-     例如：间隔时间 2小时10分钟
      ========================= */
 
-  intervalHeight: 20, // 间隔时间行高度
-  intervalColor: "rgba(142,142,147,.58)", // 间隔时间文字颜色
-  intervalSize: 11, // 间隔时间字号
-  intervalWeight: 400, // 间隔时间字重
-  intervalPaddingLeft: 10, // 间隔时间文字距离时间轴的左侧距离
+  intervalHeight: 20,
+  intervalColor: "color-mix(in srgb, var(--muted) 68%, transparent)",
+  intervalSize: 11,
+  intervalWeight: 400,
+  intervalPaddingLeft: 10,
 
-  intervalIcon: "/time.svg", // 间隔时间前的小图标，需要放在 public/time.svg
-  intervalIconSize: 10, // 图标大小
-  intervalIconOpacity: 0.42, // 图标透明度。越小越淡
-  intervalIconGap: 4, // 图标和文字之间的距离
-  intervalIconFilter: "grayscale(1) brightness(0) opacity(0.45)", // 把图标压成灰色
+  intervalIcon: "/time.svg",
+  intervalIconSize: 10,
+  intervalIconOpacity: 0.42,
+  intervalIconGap: 4,
+  intervalIconFilter:
+    "var(--timeline-interval-icon-filter, grayscale(1) brightness(0) opacity(0.45))",
 
   /* =========================
      主标题文字
-     例如：母乳 / 小便 / 乳糖酶
      ========================= */
 
-  mainColor: "#111111", // 主标题颜色
-  mainSize: 13, // 主标题字号
-  mainWeight: 500, // 主标题字重
-  mainLetterSpacing: "-0.04em", // 主标题字距。负值更紧凑
+  mainColor: "var(--text)",
+  mainSize: 13,
+  mainWeight: 500,
+  mainLetterSpacing: "-0.04em",
 
   /* =========================
      副标题文字
-     例如：左侧15分钟 · 右侧15分钟 · 共30分钟
      ========================= */
 
-  subColor: "#8e8e93", // 副标题颜色
-  subSize: 11, // 副标题字号
-  subMarginTop: 0, // 主标题和副标题之间的距离
+  subColor: "var(--muted)",
+  subSize: 11,
+  subMarginTop: 0,
 
   /* =========================
      不同记录类型的圆点颜色
      ========================= */
 
-  feedColor: "#ff3b30", // 喂养类颜色：母乳 / 奶粉 / 瓶喂母乳
-  peeColor: "#00b8c8", // 小便颜色
-  poopColor: "#7ac70c", // 大便颜色
-  pumpColor: "#af52de", // 泵奶颜色
-  otherColor: "#8e8e93", // 其他类颜色，例如乳糖酶、维生素D
+  feedColor: "var(--feed-label-color)",
+  peeColor: "var(--pee-label-color)",
+  poopColor: "var(--poop-label-color)",
+  pumpColor: "var(--pump-label-color)",
+  otherColor: "var(--muted)",
 
   /* =========================
      交互
      ========================= */
 
-  longPressMs: 650, // 长按多少毫秒后进入编辑。数值越小越灵敏
+  longPressMs: 650,
 };
 
 function formatSmallDate(dateString: string) {
@@ -201,7 +195,25 @@ function getDotColor(type: BabyRecord["type"]) {
   if (type === "poop") return TIMELINE_CONFIG.poopColor;
   if (type === "other") return TIMELINE_CONFIG.otherColor;
 
-  return "#8e8e93";
+  return "var(--muted)";
+}
+
+function TimelineThemeVars() {
+  return (
+    <style jsx global>{`
+      :root {
+        --timeline-line-color: rgba(60, 60, 67, 0.14);
+        --timeline-interval-icon-filter: grayscale(1) brightness(0) opacity(0.45);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --timeline-line-color: rgba(84, 84, 88, 0.48);
+          --timeline-interval-icon-filter: grayscale(1) brightness(4) opacity(0.36);
+        }
+      }
+    `}</style>
+  );
 }
 
 function TimelineInterval({ text }: { text: string }) {
@@ -371,78 +383,87 @@ export default function Timeline({
   );
 
   if (!records.length) {
-    return <div className="timeline-empty">还没有记录。第一条，马上开始。</div>;
+    return (
+      <>
+        <TimelineThemeVars />
+        <div className="timeline-empty">还没有记录。第一条，马上开始。</div>
+      </>
+    );
   }
 
   return (
-    <div
-      className="timeline"
-      style={
-        {
-          "--timeline-axis-left": TIMELINE_CONFIG.axisLeft,
-          "--timeline-time-width": `calc(${TIMELINE_CONFIG.axisLeft} - ${
-            TIMELINE_CONFIG.axisWidth / 2
-          }px)`,
-          "--timeline-axis-width": `${TIMELINE_CONFIG.axisWidth}px`,
-          "--timeline-row-gap": `${TIMELINE_CONFIG.rowGap}px`,
-        } as CSSProperties
-      }
-    >
-      {days.map((day) => {
-        const dayRecords = grouped[day];
+    <>
+      <TimelineThemeVars />
 
-        return (
-          <section className="timeline-day" key={day}>
-            <div
-              className="timeline-day-title"
-              style={{
-                width: "max-content",
-                marginLeft: TIMELINE_CONFIG.axisLeft,
-                transform: "translateX(-50%)",
-                color: TIMELINE_CONFIG.dayTitleColor,
-                fontSize: TIMELINE_CONFIG.dayTitleSize,
-                fontWeight: TIMELINE_CONFIG.dayTitleWeight,
-                textAlign: "center",
-              }}
-            >
-              {formatDayTitle(day)}
-            </div>
+      <div
+        className="timeline"
+        style={
+          {
+            "--timeline-axis-left": TIMELINE_CONFIG.axisLeft,
+            "--timeline-time-width": `calc(${TIMELINE_CONFIG.axisLeft} - ${
+              TIMELINE_CONFIG.axisWidth / 2
+            }px)`,
+            "--timeline-axis-width": `${TIMELINE_CONFIG.axisWidth}px`,
+            "--timeline-row-gap": `${TIMELINE_CONFIG.rowGap}px`,
+          } as CSSProperties
+        }
+      >
+        {days.map((day) => {
+          const dayRecords = grouped[day];
 
-            <div className="timeline-list" style={{ position: "relative" }}>
-              <span
-                aria-hidden
+          return (
+            <section className="timeline-day" key={day}>
+              <div
+                className="timeline-day-title"
                 style={{
-                  position: "absolute",
-                  top: 0,
-                  bottom: 0,
-                  left: `calc(${TIMELINE_CONFIG.axisLeft} - ${
-                    TIMELINE_CONFIG.lineWidth / 2
-                  }px)`,
-                  width: TIMELINE_CONFIG.lineWidth,
-                  borderRadius: 999,
-                  background: TIMELINE_CONFIG.lineColor,
+                  width: "max-content",
+                  marginLeft: TIMELINE_CONFIG.axisLeft,
+                  transform: "translateX(-50%)",
+                  color: TIMELINE_CONFIG.dayTitleColor,
+                  fontSize: TIMELINE_CONFIG.dayTitleSize,
+                  fontWeight: TIMELINE_CONFIG.dayTitleWeight,
+                  textAlign: "center",
                 }}
-              />
+              >
+                {formatDayTitle(day)}
+              </div>
 
-              {dayRecords.map((record, index) => {
-                const nextRecord = dayRecords[index + 1];
+              <div className="timeline-list" style={{ position: "relative" }}>
+                <span
+                  aria-hidden
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    bottom: 0,
+                    left: `calc(${TIMELINE_CONFIG.axisLeft} - ${
+                      TIMELINE_CONFIG.lineWidth / 2
+                    }px)`,
+                    width: TIMELINE_CONFIG.lineWidth,
+                    borderRadius: 999,
+                    background: TIMELINE_CONFIG.lineColor,
+                  }}
+                />
 
-                return (
-                  <Fragment key={record.id}>
-                    <TimelineItem record={record} onEdit={onEdit} />
+                {dayRecords.map((record, index) => {
+                  const nextRecord = dayRecords[index + 1];
 
-                    {showIntervals && nextRecord && (
-                      <TimelineInterval
-                        text={formatInterval(record.time, nextRecord.time)}
-                      />
-                    )}
-                  </Fragment>
-                );
-              })}
-            </div>
-          </section>
-        );
-      })}
-    </div>
+                  return (
+                    <Fragment key={record.id}>
+                      <TimelineItem record={record} onEdit={onEdit} />
+
+                      {showIntervals && nextRecord && (
+                        <TimelineInterval
+                          text={formatInterval(record.time, nextRecord.time)}
+                        />
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </>
   );
 }

@@ -6,21 +6,21 @@ import type { BabyRecord } from "@/lib/types";
 const SUMMARY_CONFIG = {
   stackGap: 10,
 
-  cardBg: "rgba(255, 255, 255, 0.9)",
+  cardBg: "var(--glass-bg)",
   cardRadius: 30,
   cardPadding: "22px 20px 20px",
-  cardShadow: "0 12px 38px rgba(0,0,0,.05)",
+  cardShadow: "var(--shadow-card)",
 
   icon: "/time.svg",
   iconSize: 15,
   iconMarginRight: 7,
 
-  titleColor: "#007ef6",
+  titleColor: "var(--blue)",
   titleSize: 12,
   titleWeight: 760,
 
   chevronSize: 7,
-  chevronBorder: "1.5px solid #8e8e93",
+  chevronBorder: "1.5px solid var(--muted)",
   chevronOffsetRight: 2,
   chevronTransition: "transform 0.18s ease",
 
@@ -29,15 +29,15 @@ const SUMMARY_CONFIG = {
   labelSize: 13,
   labelWeight: 760,
 
-  numberColor: "#111111",
+  numberColor: "var(--text)",
   numberSize: 24,
   numberWeight: 780,
 
-  unitColor: "#8e8e93",
+  unitColor: "var(--muted)",
   unitSize: 13,
   unitWeight: 600,
 
-  detailColor: "#8e8e93",
+  detailColor: "var(--muted)",
   detailSize: 11,
   detailWeight: 500,
   detailMarginTop: 4,
@@ -45,9 +45,9 @@ const SUMMARY_CONFIG = {
 
   detailPanelMarginTop: 10,
 
-  feedColor: "#ff3b30",
-  poopColor: "#7ac70c",
-  peeColor: "#00b8c8",
+  feedColor: "var(--feed-label-color)",
+  poopColor: "var(--poop-label-color)",
+  peeColor: "var(--pee-label-color)",
 };
 
 function getStartOfToday() {

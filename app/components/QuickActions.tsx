@@ -1,29 +1,31 @@
+"use client";
+
 import { useRef } from "react";
 import type { BabyRecord, RecordType } from "@/lib/types";
 
 type SheetMode = "quick" | "full";
 
 const QUICK_ACTIONS = {
-  margin: "18px 0 28px", // 快捷操作区整体外边距；上 18px，左右 0，下 28px
-  columns: 4, // 快捷按钮列数；现在是一行 4 个
-  gap: 18, // 按钮之间的横向/纵向间距 px
+  margin: "18px 0 28px",
+  columns: 4,
+  gap: 18,
 
-  buttonSize: 88, // 单个圆形按钮尺寸 px
-  buttonBg: "rgba(255, 255, 255, 0.86)", // 按钮默认背景色；最后一位是透明度
-  buttonActiveBg: "rgba(255, 255, 255, 0.98)", // 按钮按下/激活时背景色
-  buttonRadius: 999, // 按钮圆角；999 表示完全圆形
-  buttonShadow: "0 10px 34px rgba(0,0,0,.05)", // 按钮阴影
+  buttonSize: 88,
+  buttonBg: "var(--glass-bg)",
+  buttonActiveBg: "var(--surface-strong)",
+  buttonRadius: 999,
+  buttonShadow: "var(--shadow-card)",
 
-  iconSize: 30, // 按钮图标尺寸 px
-  iconMarginBottom: 9, // 图标和文字之间的距离 px
+  iconSize: 30,
+  iconMarginBottom: 9,
 
-  titleColor: "#111111", // 按钮文字颜色
-  titleSize: 14, // 按钮文字字号 px
-  titleWeight: 760, // 按钮文字字重；越大越粗
-  titleLetterSpacing: "-0.03em", // 按钮文字字距；负值会让字更紧凑
+  titleColor: "var(--text)",
+  titleSize: 14,
+  titleWeight: 760,
+  titleLetterSpacing: "-0.03em",
 
-  disabledOpacity: 0.48, // 禁用状态透明度；越小越淡
-  doubleClickDelay: 240, // 双击/连点识别间隔，单位毫秒
+  disabledOpacity: 0.48,
+  doubleClickDelay: 240,
 };
 
 const QUICK_ITEMS: {
@@ -122,26 +124,33 @@ function QuickCircle({
     }, QUICK_ACTIONS.doubleClickDelay);
   }
 
+  function setButtonBg(
+    event: React.PointerEvent<HTMLButtonElement>,
+    background: string
+  ) {
+    event.currentTarget.style.background = background;
+  }
+
   return (
     <button
       type="button"
       disabled={disabled}
-      onPointerDown={(e) => {
+      onPointerDown={(event) => {
         if (!disabled) {
-          e.currentTarget.style.background = QUICK_ACTIONS.buttonActiveBg;
+          setButtonBg(event, QUICK_ACTIONS.buttonActiveBg);
         }
       }}
-      onPointerUp={(e) => {
-        e.currentTarget.style.background = QUICK_ACTIONS.buttonBg;
+      onPointerUp={(event) => {
+        setButtonBg(event, QUICK_ACTIONS.buttonBg);
       }}
-      onPointerCancel={(e) => {
-        e.currentTarget.style.background = QUICK_ACTIONS.buttonBg;
+      onPointerCancel={(event) => {
+        setButtonBg(event, QUICK_ACTIONS.buttonBg);
       }}
-      onPointerLeave={(e) => {
-        e.currentTarget.style.background = QUICK_ACTIONS.buttonBg;
+      onPointerLeave={(event) => {
+        setButtonBg(event, QUICK_ACTIONS.buttonBg);
       }}
       onClick={handleClick}
-      onContextMenu={(e) => e.preventDefault()}
+      onContextMenu={(event) => event.preventDefault()}
       style={{
         width: QUICK_ACTIONS.buttonSize,
         height: QUICK_ACTIONS.buttonSize,
@@ -161,6 +170,9 @@ function QuickCircle({
         userSelect: "none",
         WebkitUserSelect: "none",
         WebkitTouchCallout: "none",
+        WebkitTapHighlightColor: "transparent",
+        transition:
+          "background .16s ease, box-shadow .16s ease, transform .16s ease",
       }}
     >
       <img

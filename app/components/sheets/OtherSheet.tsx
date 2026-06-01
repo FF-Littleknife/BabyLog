@@ -7,43 +7,43 @@ import LoopWheelColumn from "@/app/components/LoopWheelColumn";
 const SHEET = {
   maxWidth: 430,
 
-  bg: "rgba(255, 255, 255, 0.9)",
+  bg: "var(--glass-bg)",
   radius: 28,
   padding: 18,
   outerGap: 18,
 
   title: "记录其他",
-  titleColor: "#111111",
+  titleColor: "var(--text)",
   titleSize: 24,
   titleWeight: 760,
 
-  labelColor: "#8e8e93",
+  labelColor: "var(--muted)",
   labelSize: 13,
 
-  inputBg: "rgba(0, 0, 0, 0.045)",
-  inputColor: "#111111",
+  inputBg: "var(--input-bg)",
+  inputColor: "var(--input-text)",
   inputRadius: 18,
   inputPadding: 14,
-  inputBorder: "1px solid rgba(0,0,0,.06)",
+  inputBorder: "1px solid var(--border)",
 
-  timePickerBg: "rgba(0, 0, 0, 0.045)",
+  timePickerBg: "var(--input-bg)",
   timePickerRadius: 22,
   timePickerPadding: 8,
-  timePickerBorder: "1px solid rgba(0,0,0,.06)",
+  timePickerBorder: "1px solid var(--border)",
   timePickerGap: 6,
 
-  colonColor: "#8e8e93",
+  colonColor: "var(--muted)",
   colonSize: 24,
   colonWeight: 760,
 
   wheelHeight: 138,
   wheelItemHeight: 46,
   wheelRadius: 18,
-  wheelBg: "rgba(255,255,255,.72)",
-  wheelMaskBg: "rgba(0,0,0,.06)",
-  wheelMaskBorder: "1px solid rgba(0,0,0,.08)",
-  wheelTextColor: "rgba(0,0,0,.38)",
-  wheelActiveColor: "#111111",
+  wheelBg: "var(--wheel-bg)",
+  wheelMaskBg: "var(--wheel-mask-bg)",
+  wheelMaskBorder: "var(--wheel-mask-border)",
+  wheelTextColor: "var(--wheel-text)",
+  wheelActiveColor: "var(--wheel-active)",
   wheelTextSize: 20,
   wheelActiveSize: 24,
   wheelTextWeight: 680,
@@ -52,13 +52,15 @@ const SHEET = {
   wheelLoopCycles: 21,
   wheelRecenterDelay: 760,
 
-  closeBg: "rgba(0,0,0,.08)",
-  closeColor: "#0a84ff",
+  closeBg: "var(--surface-muted)",
+  closeColor: "var(--blue)",
   closeSize: 44,
   closeLineWidth: 22,
   closeLineHeight: 3,
 
-  submitBg: "#0a84ff",
+  submitBg: "var(--blue)",
+  submitDisabledBg: "var(--surface-muted)",
+  submitDisabledColor: "var(--muted)",
 
   sheetEnterMs: 420,
   sheetExitMs: 280,
@@ -176,7 +178,7 @@ export default function OtherSheet({
     background: SHEET.inputBg,
     backgroundColor: SHEET.inputBg,
     color: SHEET.inputColor,
-    colorScheme: "light",
+    colorScheme: "light dark",
 
     borderRadius: SHEET.inputRadius,
     padding: SHEET.inputPadding,
@@ -214,6 +216,8 @@ export default function OtherSheet({
       note: trimmedNote || undefined,
     });
   }
+
+  const canSubmit = Boolean(content.trim());
 
   return (
     <div
@@ -261,7 +265,7 @@ export default function OtherSheet({
 
           marginBottom: `calc(${SHEET.outerGap}px + env(safe-area-inset-bottom))`,
 
-          boxShadow: "0 -24px 80px rgba(0,0,0,.16)",
+          boxShadow: "var(--shadow-sheet)",
 
           animation: closing
             ? `sheetSlideDown ${SHEET.sheetExitMs}ms ${SHEET.sheetExitEasing} both`
@@ -412,10 +416,10 @@ export default function OtherSheet({
           <button
             className="record-submit"
             onClick={save}
-            disabled={!content.trim()}
+            disabled={!canSubmit}
             style={{
-              background: content.trim() ? SHEET.submitBg : "rgba(0,0,0,.12)",
-              color: "white",
+              background: canSubmit ? SHEET.submitBg : SHEET.submitDisabledBg,
+              color: canSubmit ? "var(--white)" : SHEET.submitDisabledColor,
               borderRadius: 20,
               padding: 16,
               fontWeight: 760,

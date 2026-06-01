@@ -35,6 +35,10 @@ export type StatusCardConfig = {
 
 export const STATUS_STACK_GAP = 10;
 
+const CARD_BG = "var(--glass-bg)";
+const CARD_SHADOW = "var(--shadow-card)";
+const CARD_VALUE_COLOR = "var(--text)";
+
 export const STATUS_CARD_CONFIG: StatusCardConfig[] = [
   {
     key: "feed",
@@ -47,20 +51,20 @@ export const STATUS_CARD_CONFIG: StatusCardConfig[] = [
     radius: 28,
     paddingX: 22,
     paddingY: 14,
-    background: "rgba(255, 255, 255, 0.88)",
-    shadow: "0 10px 34px rgba(0,0,0,.05)",
+    background: CARD_BG,
+    shadow: CARD_SHADOW,
 
     iconSize: 15,
     iconOpacity: 1,
     iconMarginBottom: 0,
 
-    labelColor: "#ff3b30",
+    labelColor: "var(--feed-label-color)",
     labelSize: 12,
     labelWeight: 700,
     labelLetterSpacing: "0.05em",
     labelMarginBottom: 7,
 
-    valueColor: "#111111",
+    valueColor: CARD_VALUE_COLOR,
     valueSize: 28,
     valueWeight: 780,
     valueLetterSpacing: "0.02em",
@@ -77,20 +81,20 @@ export const STATUS_CARD_CONFIG: StatusCardConfig[] = [
     radius: 28,
     paddingX: 22,
     paddingY: 14,
-    background: "rgba(255, 255, 255, 0.88)",
-    shadow: "0 10px 34px rgba(0,0,0,.05)",
+    background: CARD_BG,
+    shadow: CARD_SHADOW,
 
     iconSize: 15,
     iconOpacity: 1,
     iconMarginBottom: 0,
 
-    labelColor: "#7ac70c",
+    labelColor: "var(--poop-label-color)",
     labelSize: 12,
     labelWeight: 700,
     labelLetterSpacing: "0.05em",
     labelMarginBottom: 7,
 
-    valueColor: "#111111",
+    valueColor: CARD_VALUE_COLOR,
     valueSize: 28,
     valueWeight: 780,
     valueLetterSpacing: "0.02em",
@@ -107,20 +111,20 @@ export const STATUS_CARD_CONFIG: StatusCardConfig[] = [
     radius: 28,
     paddingX: 22,
     paddingY: 14,
-    background: "rgba(255, 255, 255, 0.88)",
-    shadow: "0 10px 34px rgba(0,0,0,.05)",
+    background: CARD_BG,
+    shadow: CARD_SHADOW,
 
     iconSize: 15,
     iconOpacity: 1,
     iconMarginBottom: 0,
 
-    labelColor: "#00b8c8",
+    labelColor: "var(--pee-label-color)",
     labelSize: 12,
     labelWeight: 700,
     labelLetterSpacing: "0.05em",
     labelMarginBottom: 7,
 
-    valueColor: "#111111",
+    valueColor: CARD_VALUE_COLOR,
     valueSize: 28,
     valueWeight: 780,
     valueLetterSpacing: "0.02em",
