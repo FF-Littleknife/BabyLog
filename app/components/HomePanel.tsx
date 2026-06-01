@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import type { BabyRecord, RecordType } from "@/lib/types";
 import type { GrowthRecord } from "@/lib/growthApi";
@@ -105,9 +105,9 @@ export default function HomePanel({
   onOpenTimelineFilter: (key: TimelineFilterKey) => void;
   onOpenGrowth: () => void;
 }) {
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(() => getHomeZoom());
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     function updateZoom() {
       setZoom(getHomeZoom());
     }

@@ -32,16 +32,22 @@ const BOTTOM_BAR_CONFIG = {
   pillShadow:
     "var(--bottom-pill-shadow, 0 16px 44px rgba(0, 0, 0, 0.12))",
 
-  tabPadding: "12px 18px",
+  tabWidth: 72,
+  tabPadding: "12px 0",
   tabRadius: 999,
   tabColor: "var(--muted, #8e8e93)",
   tabActiveColor: "var(--blue, #0a84ff)",
-  tabActiveBg:
-    "var(--bottom-tab-active-bg, rgba(255, 255, 255, 0.96))",
-  tabActiveShadow:
-    "var(--bottom-tab-active-shadow, 0 8px 22px rgba(0, 0, 0, 0.10))",
-  tabSize: 17,
+  tabSize: 13.4,
   tabWeight: 720,
+
+  activeThumbBg:
+    "var(--bottom-tab-active-bg, rgba(255, 255, 255, 0.96))",
+  activeThumbShadow:
+    "var(--bottom-tab-active-shadow, 0 8px 22px rgba(0, 0, 0, 0.10))",
+
+  // iOS 感滑动：起步快，中后段柔和吸附到位
+  activeThumbTransition:
+    "transform .42s cubic-bezier(0.16, 1, 0.3, 1), background .18s ease, box-shadow .18s ease",
 
   fabGap: 10,
   fabSize: 68,
@@ -61,6 +67,13 @@ export default function BottomBar({
   nursingSeconds = 0,
   showNurse = true,
 }: BottomBarProps) {
+  const activeIndex = view === "timeline" ? 1 : 0;
+
+  const activeThumbTranslateX =
+    activeIndex === 0
+      ? 0
+      : BOTTOM_BAR_CONFIG.tabWidth + BOTTOM_BAR_CONFIG.pillGap;
+
   return (
     <>
       <style jsx global>{`
@@ -71,6 +84,12 @@ export default function BottomBar({
             --bottom-pill-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
             --bottom-tab-active-bg: rgba(58, 58, 60, 0.92);
             --bottom-tab-active-shadow: none;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .bottom-active-thumb {
+            transition: none !important;
           }
         }
       `}</style>
@@ -97,8 +116,30 @@ export default function BottomBar({
             borderRadius: BOTTOM_BAR_CONFIG.pillRadius,
             border: BOTTOM_BAR_CONFIG.pillBorder,
             boxShadow: BOTTOM_BAR_CONFIG.pillShadow,
+            position: "relative",
+            overflow: "hidden",
+            isolation: "isolate",
           }}
         >
+          <span
+            aria-hidden
+            className="bottom-active-thumb"
+            style={{
+              position: "absolute",
+              left: BOTTOM_BAR_CONFIG.pillPadding,
+              top: BOTTOM_BAR_CONFIG.pillPadding,
+              bottom: BOTTOM_BAR_CONFIG.pillPadding,
+              width: BOTTOM_BAR_CONFIG.tabWidth,
+              borderRadius: BOTTOM_BAR_CONFIG.tabRadius,
+              background: BOTTOM_BAR_CONFIG.activeThumbBg,
+              boxShadow: BOTTOM_BAR_CONFIG.activeThumbShadow,
+              transform: `translateX(${activeThumbTranslateX}px)`,
+              transition: BOTTOM_BAR_CONFIG.activeThumbTransition,
+              zIndex: 0,
+              willChange: "transform",
+            }}
+          />
+
           {TABS.map((item) => {
             const active = view === item.view;
 
@@ -108,22 +149,23 @@ export default function BottomBar({
                 type="button"
                 onClick={() => onChange(item.view)}
                 style={{
+                  width: BOTTOM_BAR_CONFIG.tabWidth,
                   padding: BOTTOM_BAR_CONFIG.tabPadding,
                   borderRadius: BOTTOM_BAR_CONFIG.tabRadius,
                   color: active
                     ? BOTTOM_BAR_CONFIG.tabActiveColor
                     : BOTTOM_BAR_CONFIG.tabColor,
-                  background: active
-                    ? BOTTOM_BAR_CONFIG.tabActiveBg
-                    : "transparent",
-                  boxShadow: active
-                    ? BOTTOM_BAR_CONFIG.tabActiveShadow
-                    : "none",
+                  background: "transparent",
+                  boxShadow: "none",
                   fontSize: BOTTOM_BAR_CONFIG.tabSize,
                   fontWeight: BOTTOM_BAR_CONFIG.tabWeight,
                   border: 0,
+                  position: "relative",
+                  zIndex: 1,
+                  textAlign: "center",
                   transition:
-                    "background .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease",
+                    "color .22s ease, transform .16s ease, opacity .16s ease",
+                  WebkitTapHighlightColor: "transparent",
                 }}
               >
                 {item.label}
