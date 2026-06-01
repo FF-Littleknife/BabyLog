@@ -24,6 +24,7 @@ import {
 import type { TimelineFilterKey } from "./components/TimelineFilterBar";
 
 import BottomBar from "./components/BottomBar";
+import NoticePill, { NOTICE_EXIT_MS } from "./components/NoticePill";
 import HomePanel from "./components/HomePanel";
 import NursingTimer from "./components/NursingTimer";
 import TimelinePanel from "./components/TimelinePanel";
@@ -69,37 +70,8 @@ const TOP_FADE = {
   height: 64,
   zIndex: 35,
   background:
-    "linear-gradient(to bottom, rgba(244,241,246,1) 0%, rgba(244,241,246,.86) 36%, rgba(244,241,246,0) 100%)",
+    "linear-gradient(to bottom, rgba(var(--app-bg-rgb),1) 0%, rgba(var(--app-bg-rgb),.86) 36%, rgba(var(--app-bg-rgb),0) 100%)",
 };
-
-const NOTICE_STYLE = {
-  top: 16,
-  left: "50%",
-  width: "fit-content",
-  maxWidth: "min(calc(100% - 28px), 420px)",
-  zIndex: 130,
-
-  height: 50,
-  padding: "0 20px",
-  radius: 999,
-
-  bg: "rgba(255,255,255,.86)",
-  color: "#111111",
-  warnColor: "#ff9500",
-  fontSize: 14,
-  fontWeight: 470,
-  lineHeight: "1",
-
-  shadow: "0 14px 34px rgba(0,0,0,.14)",
-  blur: "blur(18px)",
-
-  gap: 12,
-  undoColor: "#0a84ff",
-  fontFamily:
-    '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", sans-serif',
-  letterSpacing: "-0.01em",
-  WebkitFontSmoothing: "antialiased",
-} as const;
 
 const seedRecords: BabyRecord[] = [
   {
@@ -298,11 +270,14 @@ export default function Home() {
   const [editingRecord, setEditingRecord] = useState<BabyRecord | null>(null);
   const [growthOpen, setGrowthOpen] = useState(false);
   const [view, setView] = useState<ViewType>("home");
+
   const [toast, setToast] = useState("");
+  const [toastLeaving, setToastLeaving] = useState(false);
 
   const [smartReceipt, setSmartReceipt] = useState("");
   const [smartReceiptWarn, setSmartReceiptWarn] = useState(false);
   const [smartReceiptUndoIds, setSmartReceiptUndoIds] = useState<string[]>([]);
+  const [smartReceiptLeaving, setSmartReceiptLeaving] = useState(false);
 
   const [nursingOpen, setNursingOpen] = useState(false);
   const [timelineFilter, setTimelineFilter] = useState<TimelineFilterKey[]>([]);
@@ -313,50 +288,130 @@ export default function Home() {
 
   const touchStartYRef = useRef<number | null>(null);
   const pullingRef = useRef(false);
+
   const toastTimerRef = useRef<number | null>(null);
+  const toastExitTimerRef = useRef<number | null>(null);
+
   const smartReceiptTimerRef = useRef<number | null>(null);
+  const smartReceiptExitTimerRef = useRef<number | null>(null);
+
   const syncingPendingRef = useRef(false);
 
-  function showToast(text: string) {
-    clearSmartReceipt();
-    setToast(text);
-
-    if (toastTimerRef.current) {
-      window.clearTimeout(toastTimerRef.current);
-    }
-
-    toastTimerRef.current = window.setTimeout(() => setToast(""), 1200);
-  }
-
-  function clearSmartReceipt() {
-    setSmartReceipt("");
-    setSmartReceiptWarn(false);
-    setSmartReceiptUndoIds([]);
-
-    if (smartReceiptTimerRef.current) {
-      window.clearTimeout(smartReceiptTimerRef.current);
-      smartReceiptTimerRef.current = null;
-    }
-  }
-
-  function showSmartReceipt(text: string, warn = false, undoIds: string[] = []) {
+  function clearToastNow() {
     setToast("");
+    setToastLeaving(false);
 
     if (toastTimerRef.current) {
       window.clearTimeout(toastTimerRef.current);
       toastTimerRef.current = null;
     }
 
+    if (toastExitTimerRef.current) {
+      window.clearTimeout(toastExitTimerRef.current);
+      toastExitTimerRef.current = null;
+    }
+  }
+
+  function hideToastWithAnimation() {
+    setToastLeaving(true);
+
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = null;
+    }
+
+    if (toastExitTimerRef.current) {
+      window.clearTimeout(toastExitTimerRef.current);
+    }
+
+    toastExitTimerRef.current = window.setTimeout(() => {
+      setToast("");
+      setToastLeaving(false);
+      toastExitTimerRef.current = null;
+    }, NOTICE_EXIT_MS);
+  }
+
+  function clearSmartReceiptNow() {
+    setSmartReceipt("");
+    setSmartReceiptWarn(false);
+    setSmartReceiptUndoIds([]);
+    setSmartReceiptLeaving(false);
+
+    if (smartReceiptTimerRef.current) {
+      window.clearTimeout(smartReceiptTimerRef.current);
+      smartReceiptTimerRef.current = null;
+    }
+
+    if (smartReceiptExitTimerRef.current) {
+      window.clearTimeout(smartReceiptExitTimerRef.current);
+      smartReceiptExitTimerRef.current = null;
+    }
+  }
+
+  function hideSmartReceiptWithAnimation() {
+    setSmartReceiptLeaving(true);
+
+    if (smartReceiptTimerRef.current) {
+      window.clearTimeout(smartReceiptTimerRef.current);
+      smartReceiptTimerRef.current = null;
+    }
+
+    if (smartReceiptExitTimerRef.current) {
+      window.clearTimeout(smartReceiptExitTimerRef.current);
+    }
+
+    smartReceiptExitTimerRef.current = window.setTimeout(() => {
+      setSmartReceipt("");
+      setSmartReceiptWarn(false);
+      setSmartReceiptUndoIds([]);
+      setSmartReceiptLeaving(false);
+      smartReceiptExitTimerRef.current = null;
+    }, NOTICE_EXIT_MS);
+  }
+
+  function showToast(text: string) {
+    clearSmartReceiptNow();
+
+    if (toastExitTimerRef.current) {
+      window.clearTimeout(toastExitTimerRef.current);
+      toastExitTimerRef.current = null;
+    }
+
+    setToast(text);
+    setToastLeaving(false);
+
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+
+    toastTimerRef.current = window.setTimeout(() => {
+      hideToastWithAnimation();
+    }, 1200);
+  }
+
+  function clearSmartReceipt() {
+    hideSmartReceiptWithAnimation();
+  }
+
+  function showSmartReceipt(text: string, warn = false, undoIds: string[] = []) {
+    clearToastNow();
+
+    if (smartReceiptExitTimerRef.current) {
+      window.clearTimeout(smartReceiptExitTimerRef.current);
+      smartReceiptExitTimerRef.current = null;
+    }
+
     setSmartReceipt(text);
     setSmartReceiptWarn(warn);
     setSmartReceiptUndoIds(undoIds);
+    setSmartReceiptLeaving(false);
 
     if (smartReceiptTimerRef.current) {
       window.clearTimeout(smartReceiptTimerRef.current);
     }
 
     smartReceiptTimerRef.current = window.setTimeout(() => {
-      clearSmartReceipt();
+      hideSmartReceiptWithAnimation();
     }, 5200);
   }
 
@@ -411,7 +466,7 @@ export default function Home() {
 
     removePendingSyncItems(ids.map((id) => ({ kind: "record", id })));
 
-    clearSmartReceipt();
+    clearSmartReceiptNow();
     buzz();
     showToast("已撤销");
 
@@ -504,8 +559,16 @@ export default function Home() {
         window.clearTimeout(toastTimerRef.current);
       }
 
+      if (toastExitTimerRef.current) {
+        window.clearTimeout(toastExitTimerRef.current);
+      }
+
       if (smartReceiptTimerRef.current) {
         window.clearTimeout(smartReceiptTimerRef.current);
+      }
+
+      if (smartReceiptExitTimerRef.current) {
+        window.clearTimeout(smartReceiptExitTimerRef.current);
       }
     };
   }, []);
@@ -768,16 +831,17 @@ export default function Home() {
             height: PULL_REFRESH.indicatorSize,
             transform: "translateX(-50%)",
             borderRadius: 999,
-            background: "rgba(255,255,255,.72)",
+            background: "var(--surface-soft)",
             backdropFilter: "blur(18px)",
             WebkitBackdropFilter: "blur(18px)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             zIndex: 100,
-            color: "#8e8e93",
+            color: "var(--muted)",
             fontSize: 18,
             fontWeight: 760,
+            boxShadow: "var(--shadow-soft)",
           }}
         >
           <span
@@ -790,8 +854,7 @@ export default function Home() {
               transform: refreshing
                 ? undefined
                 : `rotate(${
-                    Math.min(pullDistance / PULL_REFRESH.triggerDistance, 1) *
-                    180
+                    Math.min(pullDistance / PULL_REFRESH.triggerDistance, 1) * 180
                   }deg)`,
             }}
           >
@@ -919,134 +982,19 @@ export default function Home() {
       )}
 
       {smartReceipt && (
-        <div
-          style={{
-            position: "fixed",
-            left: NOTICE_STYLE.left,
-            top: `calc(${NOTICE_STYLE.top}px + env(safe-area-inset-top))`,
-            transform: "translateX(-50%)",
-            width: NOTICE_STYLE.width,
-            maxWidth: NOTICE_STYLE.maxWidth,
-            zIndex: NOTICE_STYLE.zIndex,
-            height: NOTICE_STYLE.height,
-            padding: NOTICE_STYLE.padding,
-            borderRadius: NOTICE_STYLE.radius,
-            background: NOTICE_STYLE.bg,
-            color: smartReceiptWarn
-              ? NOTICE_STYLE.warnColor
-              : NOTICE_STYLE.color,
-            fontFamily: NOTICE_STYLE.fontFamily,
-            fontSize: NOTICE_STYLE.fontSize,
-            fontWeight: NOTICE_STYLE.fontWeight,
-            lineHeight: NOTICE_STYLE.lineHeight,
-            letterSpacing: NOTICE_STYLE.letterSpacing,
-            WebkitFontSmoothing: NOTICE_STYLE.WebkitFontSmoothing,
-            boxShadow: NOTICE_STYLE.shadow,
-            backdropFilter: NOTICE_STYLE.blur,
-            WebkitBackdropFilter: NOTICE_STYLE.blur,
-            pointerEvents: "auto",
-            textAlign: "center",
-            whiteSpace: "nowrap",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: NOTICE_STYLE.gap,
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              lineHeight: NOTICE_STYLE.lineHeight,
-            }}
-          >
-            {smartReceipt}
-          </span>
-
-          {smartReceiptUndoIds.length > 0 && (
-            <button
-              type="button"
-              onClick={undoSmartReceipt}
-              style={{
-                appearance: "none",
-                WebkitAppearance: "none",
-                border: 0,
-                padding: 0,
-                margin: 0,
-                background: "transparent",
-                color: NOTICE_STYLE.undoColor,
-                fontFamily: NOTICE_STYLE.fontFamily,
-                fontSize: NOTICE_STYLE.fontSize,
-                fontWeight: NOTICE_STYLE.fontWeight,
-                lineHeight: NOTICE_STYLE.lineHeight,
-                letterSpacing: NOTICE_STYLE.letterSpacing,
-                WebkitFontSmoothing: NOTICE_STYLE.WebkitFontSmoothing,
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                height: "100%",
-                textDecoration: "none",
-                opacity: 1,
-              }}
-            >
-              撤销
-            </button>
-          )}
-        </div>
+        <NoticePill
+          text={smartReceipt}
+          tone={smartReceiptWarn ? "warn" : "default"}
+          leaving={smartReceiptLeaving}
+          action={
+            smartReceiptUndoIds.length > 0
+              ? { label: "撤销", onClick: undoSmartReceipt }
+              : undefined
+          }
+        />
       )}
 
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            left: NOTICE_STYLE.left,
-            top: `calc(${NOTICE_STYLE.top}px + env(safe-area-inset-top))`,
-            transform: "translateX(-50%)",
-            width: NOTICE_STYLE.width,
-            maxWidth: NOTICE_STYLE.maxWidth,
-            zIndex: NOTICE_STYLE.zIndex,
-            height: NOTICE_STYLE.height,
-
-            padding: NOTICE_STYLE.padding,
-            borderRadius: NOTICE_STYLE.radius,
-
-            background: NOTICE_STYLE.bg,
-            color: NOTICE_STYLE.color,
-            fontFamily: NOTICE_STYLE.fontFamily,
-            fontSize: NOTICE_STYLE.fontSize,
-            fontWeight: NOTICE_STYLE.fontWeight,
-            lineHeight: NOTICE_STYLE.lineHeight,
-            letterSpacing: NOTICE_STYLE.letterSpacing,
-            WebkitFontSmoothing: NOTICE_STYLE.WebkitFontSmoothing,
-
-            boxShadow: NOTICE_STYLE.shadow,
-            backdropFilter: NOTICE_STYLE.blur,
-            WebkitBackdropFilter: NOTICE_STYLE.blur,
-
-            textAlign: "center",
-            pointerEvents: "none",
-            whiteSpace: "nowrap",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              height: "100%",
-              lineHeight: NOTICE_STYLE.lineHeight,
-            }}
-          >
-            {toast}
-          </span>
-        </div>
-      )}
+      {toast && <NoticePill text={toast} leaving={toastLeaving} />}
     </main>
   );
 }
