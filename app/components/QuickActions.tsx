@@ -8,19 +8,21 @@ type SheetMode = "quick" | "full";
 const QUICK_ACTIONS = {
   margin: "18px 0 28px",
   columns: 4,
-  gap: 18,
 
-  buttonSize: 88,
+  // 响应式尺寸：小屏自动缩，大屏保持原来的 88px
+  gap: "clamp(8px, 3vw, 18px)",
+  buttonSize: "clamp(72px, 20vw, 88px)",
+
   buttonBg: "var(--glass-bg)",
   buttonActiveBg: "var(--surface-strong)",
   buttonRadius: 999,
   buttonShadow: "var(--shadow-card)",
 
-  iconSize: 30,
-  iconMarginBottom: 9,
+  iconSize: "clamp(25px, 7vw, 30px)",
+  iconMarginBottom: "clamp(7px, 2vw, 9px)",
 
   titleColor: "var(--text)",
-  titleSize: 14,
+  titleSize: "clamp(12px, 3.4vw, 14px)",
   titleWeight: 760,
   titleLetterSpacing: "-0.03em",
 
@@ -154,23 +156,30 @@ function QuickCircle({
       style={{
         width: QUICK_ACTIONS.buttonSize,
         height: QUICK_ACTIONS.buttonSize,
-        minWidth: QUICK_ACTIONS.buttonSize,
-        minHeight: QUICK_ACTIONS.buttonSize,
+        minWidth: 0,
+        minHeight: 0,
+        maxWidth: "100%",
+        maxHeight: "100%",
+        aspectRatio: "1 / 1",
+
         border: 0,
         borderRadius: QUICK_ACTIONS.buttonRadius,
         background: QUICK_ACTIONS.buttonBg,
         boxShadow: QUICK_ACTIONS.buttonShadow,
         color: QUICK_ACTIONS.titleColor,
+
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         textAlign: "center",
+
         opacity: disabled ? QUICK_ACTIONS.disabledOpacity : 1,
         userSelect: "none",
         WebkitUserSelect: "none",
         WebkitTouchCallout: "none",
         WebkitTapHighlightColor: "transparent",
+
         transition:
           "background .16s ease, box-shadow .16s ease, transform .16s ease",
       }}
@@ -194,6 +203,7 @@ function QuickCircle({
           fontWeight: QUICK_ACTIONS.titleWeight,
           letterSpacing: QUICK_ACTIONS.titleLetterSpacing,
           lineHeight: 1,
+          whiteSpace: "nowrap",
         }}
       >
         {title}
@@ -215,11 +225,16 @@ export default function QuickActions({
   return (
     <section
       style={{
+        width: "100%",
+        minWidth: 0,
+        maxWidth: "100%",
         display: "grid",
-        gridTemplateColumns: `repeat(${QUICK_ACTIONS.columns}, ${QUICK_ACTIONS.buttonSize}px)`,
+        gridTemplateColumns: `repeat(${QUICK_ACTIONS.columns}, minmax(0, 1fr))`,
         gap: QUICK_ACTIONS.gap,
         margin: QUICK_ACTIONS.margin,
-        justifyContent: "center",
+        justifyItems: "center",
+        alignItems: "center",
+        overflow: "visible",
       }}
     >
       {QUICK_ITEMS.map((item) => (

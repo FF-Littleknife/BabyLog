@@ -4,50 +4,50 @@ import { useState } from "react";
 import type { BabyRecord } from "@/lib/types";
 
 const SUMMARY_CONFIG = {
-  stackGap: 10,
+  stackGap: 10, // 摘要卡片之间的纵向间距
 
-  cardBg: "var(--glass-bg)",
-  cardRadius: 30,
-  cardPadding: "22px 20px 20px",
-  cardShadow: "var(--shadow-card)",
+  cardBg: "var(--glass-bg)", // 摘要卡片背景，跟随亮暗模式
+  cardRadius: 30, // 摘要卡片圆角
+  cardPadding: "15px 20px 15px", // 摘要卡片内边距：上22 / 左右20 / 下20
+  cardShadow: "var(--shadow-card)", // 摘要卡片阴影
 
-  icon: "/time.svg",
-  iconSize: 15,
-  iconMarginRight: 7,
+  icon: "/time.svg", // 标题左侧图标路径
+  iconSize: 15, // 标题图标尺寸
+  iconMarginRight: 7, // 图标和标题文字之间的距离
 
-  titleColor: "var(--blue)",
-  titleSize: 12,
-  titleWeight: 760,
+  titleColor: "var(--blue)", // 标题颜色
+  titleSize: 12, // 标题字号
+  titleWeight: 760, // 标题字重
 
-  chevronSize: 7,
-  chevronBorder: "1.5px solid var(--muted)",
-  chevronOffsetRight: 2,
-  chevronTransition: "transform 0.18s ease",
+  chevronSize: 7, // 右侧展开箭头尺寸
+  chevronBorder: "1.5px solid var(--muted)", // 展开箭头线条样式
+  chevronOffsetRight: 2, // 展开箭头向右偏移量
+  chevronTransition: "transform 0.18s ease", // 展开箭头旋转动画速度
 
-  statGap: 18,
+  statGap: 18, // 三项统计之间的横向间距
 
-  labelSize: 13,
-  labelWeight: 760,
+  labelSize: 13, // 统计标签字号，比如“喂养”
+  labelWeight: 760, // 统计标签字重
 
-  numberColor: "var(--text)",
-  numberSize: 24,
-  numberWeight: 780,
+  numberColor: "var(--text)", // 统计数字颜色
+  numberSize: 24, // 统计数字字号
+  numberWeight: 780, // 统计数字字重
 
-  unitColor: "var(--muted)",
-  unitSize: 13,
-  unitWeight: 600,
+  unitColor: "var(--muted)", // 单位文字颜色，比如“次 / ml”
+  unitSize: 13, // 单位文字字号
+  unitWeight: 600, // 单位文字字重
 
-  detailColor: "var(--muted)",
-  detailSize: 11,
-  detailWeight: 500,
-  detailMarginTop: 4,
-  detailLineHeight: 1.35,
+  detailColor: "var(--muted)", // 详情说明文字颜色
+  detailSize: 11, // 详情说明文字字号
+  detailWeight: 500, // 详情说明文字字重
+  detailMarginTop: 4, // 详情说明距离上方数字的距离
+  detailLineHeight: 1.35, // 详情说明行高
 
-  detailPanelMarginTop: 10,
+  detailPanelMarginTop: 10, // 展开详情区域距离上方统计区域的距离
 
-  feedColor: "var(--feed-label-color)",
-  poopColor: "var(--poop-label-color)",
-  peeColor: "var(--pee-label-color)",
+  feedColor: "var(--feed-label-color)", // 喂养统计颜色
+  poopColor: "var(--poop-label-color)", // 大便统计颜色
+  peeColor: "var(--pee-label-color)", // 小便统计颜色
 };
 
 function getStartOfToday() {

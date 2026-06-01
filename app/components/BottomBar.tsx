@@ -17,40 +17,41 @@ type BottomBarProps = {
 };
 
 const BOTTOM_BAR_CONFIG = {
-  maxWidth: 430,
-  paddingX: 26,
-  bottom: 0,
-  zIndex: 40,
+  maxWidth: 430, // 底部导航最大宽度，对应整体 App 宽度
+  paddingX: 26, // 底部导航左右安全边距
+  bottom: 0, // 距离屏幕底部的距离；实际还会叠加 safe-area
+  wideBreakpoint: 860, // 宽屏断点：屏幕宽度 >= 860px 时启用宽屏上移
+  wideLiftY: 10, // 宽屏时整个底部导航向上移动距离
+  zIndex: 40, // 层级，保证浮在页面内容上方
 
-  pillGap: 4,
-  pillPadding: 5,
-  pillBg: "var(--bottom-pill-bg, rgba(255, 255, 255, 0.62))",
-  pillBlur: "blur(34px) saturate(180%)",
-  pillRadius: 999,
+  pillGap: 4, // 左侧“记录/时间线”两个按钮之间的间距
+  pillPadding: 5, // 左侧大胶囊内部边距
+  pillBg: "var(--bottom-pill-bg, rgba(255, 255, 255, 0.62))", // 左侧大胶囊背景
+  pillBlur: "blur(34px) saturate(180%)", // 左侧大胶囊毛玻璃模糊强度
+  pillRadius: 999, // 左侧大胶囊圆角；999就是胶囊
   pillBorder:
-    "1px solid var(--bottom-pill-border, rgba(255, 255, 255, 0.78))",
+    "1px solid var(--bottom-pill-border, rgba(255, 255, 255, 0.78))", // 左侧大胶囊描边
   pillShadow:
-    "var(--bottom-pill-shadow, 0 16px 44px rgba(0, 0, 0, 0.12))",
+    "var(--bottom-pill-shadow, 0 16px 44px rgba(0, 0, 0, 0.12))", // 左侧大胶囊阴影
 
-  tabWidth: 72,
-  tabPadding: "12px 0",
-  tabRadius: 999,
-  tabColor: "var(--muted, #8e8e93)",
-  tabActiveColor: "var(--blue, #0a84ff)",
-  tabSize: 13.4,
-  tabWeight: 720,
+  tabWidth: 72, // “记录/时间线”单个按钮宽度
+  tabPadding: "12px 0", // 单个按钮内边距：上下12 / 左右0
+  tabRadius: 999, // 单个按钮圆角；和选中滑块一致
+  tabColor: "var(--muted, #8e8e93)", // 未选中文字颜色
+  tabActiveColor: "var(--blue, #0a84ff)", // 选中文字颜色
+  tabSize: 13.4, // “记录/时间线”文字字号
+  tabWeight: 720, // “记录/时间线”文字字重
 
   activeThumbBg:
-    "var(--bottom-tab-active-bg, rgba(255, 255, 255, 0.96))",
+    "var(--bottom-tab-active-bg, rgba(255, 255, 255, 0.96))", // 选中滑块背景
   activeThumbShadow:
-    "var(--bottom-tab-active-shadow, 0 8px 22px rgba(0, 0, 0, 0.10))",
+    "var(--bottom-tab-active-shadow, 0 8px 22px rgba(0, 0, 0, 0.10))", // 选中滑块阴影
 
-  // iOS 感滑动：起步快，中后段柔和吸附到位
   activeThumbTransition:
-    "transform .42s cubic-bezier(0.16, 1, 0.3, 1), background .18s ease, box-shadow .18s ease",
+    "transform .42s cubic-bezier(0.16, 1, 0.3, 1), background .18s ease, box-shadow .18s ease", // 选中滑块切换动画；偏 iOS 的丝滑吸附感
 
-  fabGap: 10,
-  fabSize: 68,
+  fabGap: 10, // 右侧白噪音按钮和哺乳按钮之间的距离
+  fabSize: 68, // 右侧两个圆形按钮尺寸
 };
 
 const TABS: { view: ViewType; label: string }[] = [
@@ -84,6 +85,13 @@ export default function BottomBar({
             --bottom-pill-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
             --bottom-tab-active-bg: rgba(58, 58, 60, 0.92);
             --bottom-tab-active-shadow: none;
+          }
+        }
+
+        @media (min-width: ${BOTTOM_BAR_CONFIG.wideBreakpoint}px) {
+          .bottom-bar {
+            transform: translateX(-50%)
+              translateY(-${BOTTOM_BAR_CONFIG.wideLiftY}px) !important;
           }
         }
 

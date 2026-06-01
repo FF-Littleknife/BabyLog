@@ -67,7 +67,7 @@ const AUTO_REFRESH = {
  * 页面内容向上滚动消失时，会先进入这层渐变，不会被屏幕边缘硬切。
  */
 const TOP_FADE = {
-  height: 64,
+  height: 48,
   zIndex: 35,
   background:
     "linear-gradient(to bottom, rgba(var(--app-bg-rgb),1) 0%, rgba(var(--app-bg-rgb),.86) 36%, rgba(var(--app-bg-rgb),0) 100%)",

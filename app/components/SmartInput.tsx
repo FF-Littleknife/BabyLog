@@ -14,59 +14,33 @@ import { formatClock } from "@/lib/time";
  * 这里不再单独显示标题，避免 Safari / PWA 模式下字号不一致。
  */
 const SMART_INPUT_CONFIG = {
-  /* =========================
-     输入框外壳
-     ========================= */
+  placeholder: "", // 输入框占位文字；空字符串就是不显示提示
 
-  placeholder: "",
+  boxGap: 8, // 输入框和右侧 add 按钮之间的距离
+  boxPadding: "6px 7px 6px 16px", // 外壳内边距：左边多一点，更像胶囊输入框
+  boxBg: "var(--glass-bg)", // 输入框外壳背景，跟随亮暗模式
+  boxRadius: 999, // 输入框外壳圆角；999 就是胶囊形状
+  boxShadow: "var(--shadow-card)", // 输入框外壳阴影
 
-  boxGap: 8,
-  boxPadding: 7,
-  boxBg: "var(--glass-bg)",
-  boxRadius: 22,
-  boxShadow: "var(--shadow-card)",
+  inputColor: "var(--text)", // 输入文字颜色
+  inputPlaceholderColor: "var(--placeholder)", // 占位文字颜色
+  inputPadding: "9px 0", // 输入文字区域内边距；左右交给外壳控制
+  inputSize: 16, // 输入文字字号；iOS 小于16px 会触发页面自动放大
+  inputLineHeight: 1.2, // 输入文字行高
 
-  /* =========================
-     输入文字
-     ========================= */
+  buttonSize: 44, // 右侧 add 按钮点击区域尺寸
+  iconSize: 28, // add 图标视觉尺寸
+  iconOpacity: 0.9, // add 图标透明度
+  iconTranslateY: 0, // add 图标上下微调；正数向下，负数向上
 
-  inputColor: "var(--text)",
-  inputPlaceholderColor: "var(--placeholder)",
-  inputPadding: "13px 10px",
+  previewPrefix: "将记录", // 解析预览前缀文字
+  previewMarginTop: 8, // 解析预览距离输入框的上边距
+  previewSize: 12, // 解析预览文字字号
+  previewColor: "var(--muted)", // 普通解析预览文字颜色
+  previewPastDateColor: "var(--orange)", // 过去日期提示颜色
+  previewWarnColor: "var(--orange)", // 警告提示颜色
 
-  // iOS Safari 里 input 字号小于 16px 会自动放大页面。
-  // 由于首页在小屏会整体 zoom 缩放，所以这里用 20 更稳。
-  inputSize: 16,
-  inputLineHeight: 1.2,
-
-  /* =========================
-     add 图标按钮
-     ========================= */
-
-  buttonSize: 44,
-  iconSize: 28,
-  iconOpacity: 0.9,
-
-  // add.svg 的视觉重心微调。
-  // 正数向下，负数向上。比如 1 / -1。
-  iconTranslateY: 0,
-
-  /* =========================
-     记录预览
-     ========================= */
-
-  previewPrefix: "将记录",
-  previewMarginTop: 8,
-  previewSize: 12,
-  previewColor: "var(--muted)",
-  previewPastDateColor: "var(--orange)",
-  previewWarnColor: "var(--orange)",
-
-  /* =========================
-     提交反馈小票
-     ========================= */
-
-  receiptPrefix: "已记录",
+  receiptPrefix: "已记录", // 提交成功后小票前缀文字
 };
 
 type ParseResult = {

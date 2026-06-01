@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 export type SoundItem = {
   id: string;
   title: string;
@@ -43,6 +45,8 @@ const WHITE_NOISE_SHEET = {
   enterEase: "cubic-bezier(0.2, 0.85, 0.2, 1)",
   exitEase: "cubic-bezier(0.4, 0, 1, 1)",
 
+  loadingDelayMs: 3000,
+
   emptyColor: "var(--muted)",
   emptySize: 13,
 };
@@ -66,6 +70,26 @@ export default function WhiteNoiseSheet({
   onToggleSound: (sound: SoundItem) => void;
   onClose: () => void;
 }) {
+  const [showLoadingText, setShowLoadingText] = useState(false);
+
+  useEffect(() => {
+    if (!loading || sounds.length) {
+      setShowLoadingText(false);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setShowLoadingText(true);
+    }, WHITE_NOISE_SHEET.loadingDelayMs);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [loading, sounds.length]);
+
+  const shouldShowLoading = loading && !sounds.length && showLoadingText;
+  const shouldShowEmpty = !loading && !sounds.length;
+
   return (
     <>
       <style>{`
@@ -195,9 +219,7 @@ export default function WhiteNoiseSheet({
             willChange: "transform, opacity, filter",
           }}
         >
-          {loading ? (
-            <EmptyPill text="正在读取声音…" />
-          ) : sounds.length ? (
+          {sounds.length ? (
             sounds.map((sound) => {
               const active = activeSoundId === sound.id && playing;
 
@@ -263,9 +285,11 @@ export default function WhiteNoiseSheet({
                 </button>
               );
             })
-          ) : (
+          ) : shouldShowLoading ? (
+            <EmptyPill text="正在读取声音…" />
+          ) : shouldShowEmpty ? (
             <EmptyPill text="暂无可用声音" />
-          )}
+          ) : null}
         </div>
       </div>
     </>

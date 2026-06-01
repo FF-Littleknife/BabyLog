@@ -13,34 +13,33 @@ type NoticePillProps = {
 };
 
 const NOTICE = {
-  top: 16,
+  top: 2, // 通知框距离屏幕顶部的距离；实际还会叠加 safe-area
 
-  // 允许通知框接近屏幕等宽，但保留左右 16px 安全边距
-  maxWidth: "calc(100vw - 32px)",
+  maxWidth: "calc(100vw - 32px)", // 通知框最大宽度；保留左右各16px安全边距
 
-  zIndex: 160,
-  minHeight: 42,
-  padding: "10px 15px",
-  radius: 999,
-  gap: 10,
+  zIndex: 160, // 通知框层级，保证盖在普通弹窗和页面内容上方
+  minHeight: 42, // 通知框最小高度
+  padding: "10px 15px", // 通知框内边距：上下10 / 左右15
+  radius: 999, // 通知框圆角；999就是胶囊形状
+  gap: 10, // 文本和“撤销”等操作按钮之间的距离
 
-  bg: "var(--glass-bg)",
-  textColor: "var(--text)",
-  warnColor: "var(--orange)",
-  actionColor: "var(--blue)",
+  bg: "var(--glass-bg)", // 通知框背景，跟随亮暗模式
+  textColor: "var(--text)", // 普通通知文字颜色
+  warnColor: "var(--orange)", // 警告通知文字颜色
+  actionColor: "var(--blue)", // 操作按钮文字颜色，比如“撤销”
 
-  fontSize: 13,
-  fontWeight: 470,
-  lineHeight: 1.28,
-  letterSpacing: "0.01em",
+  fontSize: 13, // 通知文字字号
+  fontWeight: 470, // 通知文字字重
+  lineHeight: 1.28, // 通知文字行高；多行文字时会影响舒适度
+  letterSpacing: "0.01em", // 通知文字字距
 
-  shadow: "0 12px 30px var(--surface-muted-strong)",
-  blur: "blur(18px)",
+  shadow: "0 12px 30px var(--surface-muted-strong)", // 亮色模式下通知框阴影
+  blur: "blur(18px)", // 通知框毛玻璃模糊强度
 
-  enterDurationMs: 340,
-  exitDurationMs: 240,
-  enterEase: "cubic-bezier(0.2, 0.85, 0.2, 1)",
-  exitEase: "cubic-bezier(0.4, 0, 1, 1)",
+  enterDurationMs: 340, // 滑入动画时长
+  exitDurationMs: 240, // 滑出动画时长
+  enterEase: "cubic-bezier(0.2, 0.85, 0.2, 1)", // 滑入动画曲线
+  exitEase: "cubic-bezier(0.4, 0, 1, 1)", // 滑出动画曲线
 };
 
 export const NOTICE_EXIT_MS = NOTICE.exitDurationMs;

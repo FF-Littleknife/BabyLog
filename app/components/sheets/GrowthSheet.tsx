@@ -10,142 +10,113 @@ import GrowthCharts from "@/app/components/GrowthCharts";
  * 后面想调背景、标题、卡片、按钮、输入框、间距、字号，优先改这里。
  */
 const GROWTH_SHEET = {
-  /* =========================
-     整体遮罩 / 背景毛玻璃
-     ========================= */
+  overlayBg: "var(--surface-overlay)", // 弹窗遮罩背景，跟随亮暗模式
+  overlayBlur: "blur(18px) saturate(120%)", // 背景毛玻璃模糊强度
+  overlayPadding: "10px", // 弹窗整体离屏幕边缘的安全距离
 
-  overlayBg: "var(--surface-overlay)",
-  overlayBlur: "blur(18px) saturate(120%)",
-  overlayPadding: "10px",
+  overlayEnterMs: 130, // 遮罩淡入动画时长
+  overlayEnterEasing: "ease-out", // 遮罩淡入动画曲线
 
-  overlayEnterMs: 130,
-  overlayEnterEasing: "ease-out",
+  scrollWidth: "100%", // 全屏滚动容器宽度
+  scrollMaxHeight: "calc(100svh - 20px)", // 滚动容器最大高度，避免顶到屏幕边缘
+  scrollPadding: "12px 22px 26px", // 滚动容器内边距：上12 / 左右22 / 下26，给阴影留空间
 
-  /* =========================
-     内容容器
-     ========================= */
+  panelWidth: "min(100%, 410px)", // 内容容器宽度，最大410px，小屏自动收缩
+  panelRadius: 0, // 内容容器圆角；这里透明容器所以为0
+  panelBg: "transparent", // 内容容器背景
+  panelPadding: "0", // 内容容器内边距
+  panelShadow: "none", // 内容容器阴影；真正阴影在内部卡片上
 
-  panelWidth: "min(calc(100% - 20px), 410px)",
-  panelMaxHeight: "calc(100svh - 20px)",
-  panelRadius: 0,
-  panelBg: "transparent",
-  panelPadding: "12px",
-  panelShadow: "none",
+  panelEnterMs: 170, // 内容容器入场动画时长
+  panelEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)", // 内容容器入场动画曲线
+  panelEnterMoveY: 8, // 内容容器入场时向上浮动距离
 
-  panelEnterMs: 170,
-  panelEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
-  panelEnterMoveY: 8,
+  contentEnterMs: 150, // 切换内容时的动画时长
+  contentEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)", // 切换内容时的动画曲线
+  contentEnterMoveY: 6, // 切换内容时向上浮动距离
 
-  contentEnterMs: 150,
-  contentEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
-  contentEnterMoveY: 6,
+  titleText: "叶票票成长记录", // 弹窗主标题文字
+  titleColor: "var(--text)", // 主标题颜色
+  titleSize: 20, // 主标题字号
+  titleWeight: 820, // 主标题字重
+  titleMarginBottom: 12, // 主标题区域和下面卡片之间的距离
 
-  /* =========================
-     主标题
-     ========================= */
+  ageTextColor: "var(--muted)", // 出生天数 / 月龄文字颜色
+  ageTextSize: 12, // 出生天数 / 月龄文字字号
+  ageTextWeight: 400, // 出生天数 / 月龄文字字重
+  ageTextMarginTop: 0, // 出生天数文字距离标题的上边距
 
-  titleText: "叶票票成长记录",
-  titleColor: "var(--text)",
-  titleSize: 20,
-  titleWeight: 820,
-  titleMarginBottom: 12,
+  cardBg: "var(--glass-bg)", // 顶部数据卡片背景
+  cardRadius: 28, // 顶部数据卡片圆角
+  cardPadding: "20px 16px 18px", // 顶部数据卡片内边距：上20 / 左右16 / 下18
+  cardShadow: "var(--shadow-card)", // 顶部数据卡片阴影
 
-  /* =========================
-     出生天数 / 月龄文字
-     ========================= */
+  statGap: 10, // 身高 / 体重 / 头围三项之间的间距
 
-  ageTextColor: "var(--muted)",
-  ageTextSize: 12,
-  ageTextWeight: 400,
-  ageTextMarginTop: 0,
+  valueColor: "var(--text)", // 数值颜色
+  valueSize: 28, // 数值字号
+  valueWeight: 820, // 数值字重
 
-  /* =========================
-     顶部三项最新数据卡片
-     ========================= */
+  unitColor: "var(--muted)", // 单位颜色，比如 cm / kg
+  unitSize: 13, // 单位字号
+  unitWeight: 600, // 单位字重
+  unitMarginLeft: 3, // 单位和数值之间的距离
 
-  cardBg: "var(--glass-bg)",
-  cardRadius: 28,
-  cardPadding: "20px 16px 18px",
-  cardShadow: "var(--shadow-card)",
+  statDateColor: "color-mix(in srgb, var(--muted) 72%, transparent)", // 日期文字颜色
+  statDateSize: 10, // 日期文字字号
+  statDateMarginTop: 2, // 日期距离数值的距离
 
-  statGap: 10,
+  statValueRowHeight: 32, // 数值行高度，用来让三项视觉对齐
+  statDateRowHeight: 12, // 日期行高度，用来让三项视觉对齐
 
-  valueColor: "var(--text)",
-  valueSize: 28,
-  valueWeight: 820,
+  actionRowMarginTop: 22, // 底部圆形按钮区域距离上方内容的距离
+  actionRowGap: 18, // 新增按钮和关闭按钮之间的距离
 
-  unitColor: "var(--muted)",
-  unitSize: 13,
-  unitWeight: 600,
-  unitMarginLeft: 3,
-
-  statDateColor: "color-mix(in srgb, var(--muted) 72%, transparent)",
-  statDateSize: 10,
-  statDateMarginTop: 2,
-
-  statValueRowHeight: 32,
-  statDateRowHeight: 12,
-
-  /* =========================
-     底部圆形操作按钮
-     ========================= */
-
-  actionRowMarginTop: 22,
-  actionRowGap: 18,
-
-  iconButtonSize: 58,
-  iconButtonBg: "var(--glass-bg)",
-  iconButtonShadow: "var(--shadow-card)",
-  iconButtonActiveScale: 0.94,
+  iconButtonSize: 58, // 底部圆形按钮尺寸
+  iconButtonBg: "var(--glass-bg)", // 底部圆形按钮背景
+  iconButtonShadow: "var(--shadow-card)", // 底部圆形按钮阴影
+  iconButtonActiveScale: 0.94, // 底部圆形按钮按下时缩放比例
   iconButtonTransition:
-    "transform .12s ease, background .18s ease, box-shadow .18s ease",
+    "transform .12s ease, background .18s ease, box-shadow .18s ease", // 底部圆形按钮动效
 
-  addIcon: "/add.svg",
-  addIconSize: 30,
-  addIconOpacity: 1,
+  addIcon: "/add.svg", // 新增按钮图标路径
+  addIconSize: 30, // 新增按钮图标尺寸
+  addIconOpacity: 1, // 新增按钮图标透明度
 
-  closeIcon: "/delete.svg",
-  closeIconSize: 26,
-  closeIconOpacity: 1,
+  closeIcon: "/delete.svg", // 关闭按钮图标路径
+  closeIconSize: 26, // 关闭按钮图标尺寸
+  closeIconOpacity: 1, // 关闭按钮图标透明度
 
-  /* =========================
-     新增数据表单卡片
-     ========================= */
+  fieldGap: 12, // 新增表单每一项之间的纵向间距
 
-  fieldGap: 12,
+  labelColor: "var(--muted)", // 表单 label 文字颜色
+  labelSize: 12, // 表单 label 字号
+  labelWeight: 700, // 表单 label 字重
+  labelMarginBottom: 6, // 表单 label 和输入框之间的距离
 
-  labelColor: "var(--muted)",
-  labelSize: 12,
-  labelWeight: 700,
-  labelMarginBottom: 6,
+  inputBg: "var(--input-bg)", // 表单输入框背景
+  inputColor: "var(--input-text)", // 表单输入文字颜色
+  inputRadius: 18, // 表单输入框圆角
+  inputPadding: "14px 14px", // 表单输入框内边距
+  inputBorder: "1px solid var(--border)", // 表单输入框描边
 
-  inputBg: "var(--input-bg)",
-  inputColor: "var(--input-text)",
-  inputRadius: 18,
-  inputPadding: "14px 14px",
-  inputBorder: "1px solid var(--border)",
+  formGridGap: 10, // 身高 / 体重 / 头围三列输入框之间的间距
 
-  formGridGap: 10,
+  formButtonGap: 10, // 保存 / 返回按钮之间的距离
+  formButtonMarginTop: 18, // 表单按钮区域距离上方表单卡片的距离
 
-  /* =========================
-     新增数据表单按钮
-     ========================= */
+  saveBg: "var(--blue)", // 保存按钮背景
+  saveColor: "var(--white)", // 保存按钮文字颜色
 
-  formButtonGap: 10,
-  formButtonMarginTop: 18,
+  cancelBg: "var(--surface-muted)", // 返回按钮背景
+  cancelColor: "var(--muted)", // 返回按钮文字颜色
 
-  saveBg: "var(--blue)",
-  saveColor: "var(--white)",
-
-  cancelBg: "var(--surface-muted)",
-  cancelColor: "var(--muted)",
-
-  buttonRadius: 22,
-  buttonPadding: 16,
-  buttonWeight: 760,
-  buttonActiveScale: 0.97,
+  buttonRadius: 22, // 表单按钮圆角
+  buttonPadding: 16, // 表单按钮内边距
+  buttonWeight: 760, // 表单按钮文字字重
+  buttonActiveScale: 0.97, // 表单按钮按下时缩放比例
   buttonTransition:
-    "transform .12s ease, background .18s ease, color .18s ease, box-shadow .18s ease",
+    "transform .12s ease, background .18s ease, color .18s ease, box-shadow .18s ease", // 表单按钮动效
 };
 
 const BABY_BIRTH_DATE = "2026-04-19";
@@ -558,12 +529,12 @@ export default function GrowthSheet({
           }
         }
 
-        .growth-sheet-panel {
+        .growth-sheet-scroll {
           scrollbar-width: none;
           -ms-overflow-style: none;
         }
 
-        .growth-sheet-panel::-webkit-scrollbar {
+        .growth-sheet-scroll::-webkit-scrollbar {
           display: none;
           width: 0;
           height: 0;
@@ -578,254 +549,265 @@ export default function GrowthSheet({
         }
       `}</style>
 
-      <section
-        className="growth-sheet-panel"
+      <div
+        className="growth-sheet-scroll"
         style={{
-          width: GROWTH_SHEET.panelWidth,
-          maxHeight: GROWTH_SHEET.panelMaxHeight,
+          width: GROWTH_SHEET.scrollWidth,
+          maxHeight: GROWTH_SHEET.scrollMaxHeight,
           overflowY: "auto",
-          borderRadius: GROWTH_SHEET.panelRadius,
-          background: GROWTH_SHEET.panelBg,
-          padding: GROWTH_SHEET.panelPadding,
-          boxShadow: GROWTH_SHEET.panelShadow,
+          overflowX: "visible",
+          padding: GROWTH_SHEET.scrollPadding,
           boxSizing: "border-box",
-          animation: `growthPanelIn ${GROWTH_SHEET.panelEnterMs}ms ${GROWTH_SHEET.panelEnterEasing} both`,
-          willChange: "transform, opacity",
         }}
       >
-        <div
-          className="growth-sheet-safe"
+        <section
+          className="growth-sheet-panel"
           style={{
-            textAlign: "center",
-            marginBottom: GROWTH_SHEET.titleMarginBottom,
+            width: GROWTH_SHEET.panelWidth,
+            margin: "0 auto",
+            borderRadius: GROWTH_SHEET.panelRadius,
+            background: GROWTH_SHEET.panelBg,
+            padding: GROWTH_SHEET.panelPadding,
+            boxShadow: GROWTH_SHEET.panelShadow,
+            boxSizing: "border-box",
+            animation: `growthPanelIn ${GROWTH_SHEET.panelEnterMs}ms ${GROWTH_SHEET.panelEnterEasing} both`,
+            willChange: "transform, opacity",
           }}
         >
           <div
+            className="growth-sheet-safe"
             style={{
-              color: GROWTH_SHEET.titleColor,
-              fontSize: GROWTH_SHEET.titleSize,
-              fontWeight: GROWTH_SHEET.titleWeight,
+              textAlign: "center",
+              marginBottom: GROWTH_SHEET.titleMarginBottom,
             }}
           >
-            {GROWTH_SHEET.titleText}
-          </div>
-
-          <div
-            style={{
-              marginTop: GROWTH_SHEET.ageTextMarginTop,
-              color: GROWTH_SHEET.ageTextColor,
-              fontSize: GROWTH_SHEET.ageTextSize,
-              fontWeight: GROWTH_SHEET.ageTextWeight,
-            }}
-          >
-            {getBabyAgeText()}
-          </div>
-        </div>
-
-        {!adding ? (
-          <div
-            key="growth-view"
-            style={{
-              animation: `growthContentIn ${GROWTH_SHEET.contentEnterMs}ms ${GROWTH_SHEET.contentEnterEasing} both`,
-              willChange: "transform, opacity",
-            }}
-          >
-            <section
-              className="growth-sheet-safe"
+            <div
               style={{
-                width: "100%",
-                background: GROWTH_SHEET.cardBg,
-                borderRadius: GROWTH_SHEET.cardRadius,
-                padding: GROWTH_SHEET.cardPadding,
-                boxShadow: GROWTH_SHEET.cardShadow,
-                boxSizing: "border-box",
+                color: GROWTH_SHEET.titleColor,
+                fontSize: GROWTH_SHEET.titleSize,
+                fontWeight: GROWTH_SHEET.titleWeight,
               }}
             >
-              <div
+              {GROWTH_SHEET.titleText}
+            </div>
+
+            <div
+              style={{
+                marginTop: GROWTH_SHEET.ageTextMarginTop,
+                color: GROWTH_SHEET.ageTextColor,
+                fontSize: GROWTH_SHEET.ageTextSize,
+                fontWeight: GROWTH_SHEET.ageTextWeight,
+              }}
+            >
+              {getBabyAgeText()}
+            </div>
+          </div>
+
+          {!adding ? (
+            <div
+              key="growth-view"
+              style={{
+                animation: `growthContentIn ${GROWTH_SHEET.contentEnterMs}ms ${GROWTH_SHEET.contentEnterEasing} both`,
+                willChange: "transform, opacity",
+              }}
+            >
+              <section
+                className="growth-sheet-safe"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                  gap: GROWTH_SHEET.statGap,
-                  alignItems: "start",
-                  justifyItems: "stretch",
+                  width: "100%",
+                  background: GROWTH_SHEET.cardBg,
+                  borderRadius: GROWTH_SHEET.cardRadius,
+                  padding: GROWTH_SHEET.cardPadding,
+                  boxShadow: GROWTH_SHEET.cardShadow,
+                  boxSizing: "border-box",
                 }}
               >
-                <StatItem
-                  value={latestHeight?.heightCm}
-                  unit="cm"
-                  date={latestHeight?.date}
-                />
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: GROWTH_SHEET.statGap,
+                    alignItems: "start",
+                    justifyItems: "stretch",
+                  }}
+                >
+                  <StatItem
+                    value={latestHeight?.heightCm}
+                    unit="cm"
+                    date={latestHeight?.date}
+                  />
 
-                <StatItem
-                  value={latestWeight?.weightKg}
-                  unit="kg"
-                  date={latestWeight?.date}
-                />
+                  <StatItem
+                    value={latestWeight?.weightKg}
+                    unit="kg"
+                    date={latestWeight?.date}
+                  />
 
-                <StatItem
-                  value={latestHead?.headCm}
-                  unit="cm"
-                  date={latestHead?.date}
-                />
+                  <StatItem
+                    value={latestHead?.headCm}
+                    unit="cm"
+                    date={latestHead?.date}
+                  />
+                </div>
+              </section>
+
+              <div className="growth-sheet-safe">
+                <GrowthCharts records={records} />
               </div>
-            </section>
-
-            <div className="growth-sheet-safe">
-              <GrowthCharts records={records} />
-            </div>
-
-            <div
-              style={{
-                marginTop: GROWTH_SHEET.actionRowMarginTop,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: GROWTH_SHEET.actionRowGap,
-                pointerEvents: "none",
-              }}
-            >
-              <div style={{ pointerEvents: "auto" }}>
-                <CircleIconButton
-                  label="新增数据"
-                  icon={GROWTH_SHEET.addIcon}
-                  iconSize={GROWTH_SHEET.addIconSize}
-                  iconOpacity={GROWTH_SHEET.addIconOpacity}
-                  onClick={() => setAdding(true)}
-                />
-              </div>
-
-              <div style={{ pointerEvents: "auto" }}>
-                <CircleIconButton
-                  label="关闭"
-                  icon={GROWTH_SHEET.closeIcon}
-                  iconSize={GROWTH_SHEET.closeIconSize}
-                  iconOpacity={GROWTH_SHEET.closeIconOpacity}
-                  onClick={onClose}
-                />
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div
-            key="growth-form"
-            style={{
-              animation: `growthContentIn ${GROWTH_SHEET.contentEnterMs}ms ${GROWTH_SHEET.contentEnterEasing} both`,
-              willChange: "transform, opacity",
-            }}
-          >
-            <div
-              className="growth-sheet-safe"
-              style={{
-                display: "grid",
-                gap: GROWTH_SHEET.fieldGap,
-                background: GROWTH_SHEET.cardBg,
-                borderRadius: GROWTH_SHEET.cardRadius,
-                padding: GROWTH_SHEET.cardPadding,
-                boxShadow: GROWTH_SHEET.cardShadow,
-                boxSizing: "border-box",
-              }}
-            >
-              <Field label="日期">
-                <DateField
-                  value={date}
-                  onChange={setDate}
-                  inputStyle={inputStyle()}
-                />
-              </Field>
 
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr 1fr",
-                  gap: GROWTH_SHEET.formGridGap,
+                  marginTop: GROWTH_SHEET.actionRowMarginTop,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  gap: GROWTH_SHEET.actionRowGap,
+                  pointerEvents: "none",
                 }}
               >
-                <Field label="身高 cm">
-                  <input
-                    inputMode="decimal"
-                    value={heightCm}
-                    onChange={(e) => setHeightCm(e.target.value)}
-                    style={inputStyle()}
+                <div style={{ pointerEvents: "auto" }}>
+                  <CircleIconButton
+                    label="新增数据"
+                    icon={GROWTH_SHEET.addIcon}
+                    iconSize={GROWTH_SHEET.addIconSize}
+                    iconOpacity={GROWTH_SHEET.addIconOpacity}
+                    onClick={() => setAdding(true)}
+                  />
+                </div>
+
+                <div style={{ pointerEvents: "auto" }}>
+                  <CircleIconButton
+                    label="关闭"
+                    icon={GROWTH_SHEET.closeIcon}
+                    iconSize={GROWTH_SHEET.closeIconSize}
+                    iconOpacity={GROWTH_SHEET.closeIconOpacity}
+                    onClick={onClose}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div
+              key="growth-form"
+              style={{
+                animation: `growthContentIn ${GROWTH_SHEET.contentEnterMs}ms ${GROWTH_SHEET.contentEnterEasing} both`,
+                willChange: "transform, opacity",
+              }}
+            >
+              <div
+                className="growth-sheet-safe"
+                style={{
+                  display: "grid",
+                  gap: GROWTH_SHEET.fieldGap,
+                  background: GROWTH_SHEET.cardBg,
+                  borderRadius: GROWTH_SHEET.cardRadius,
+                  padding: GROWTH_SHEET.cardPadding,
+                  boxShadow: GROWTH_SHEET.cardShadow,
+                  boxSizing: "border-box",
+                }}
+              >
+                <Field label="日期">
+                  <DateField
+                    value={date}
+                    onChange={setDate}
+                    inputStyle={inputStyle()}
                   />
                 </Field>
 
-                <Field label="体重 kg">
-                  <input
-                    inputMode="decimal"
-                    value={weightKg}
-                    onChange={(e) => setWeightKg(e.target.value)}
-                    style={inputStyle()}
-                  />
-                </Field>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr",
+                    gap: GROWTH_SHEET.formGridGap,
+                  }}
+                >
+                  <Field label="身高 cm">
+                    <input
+                      inputMode="decimal"
+                      value={heightCm}
+                      onChange={(e) => setHeightCm(e.target.value)}
+                      style={inputStyle()}
+                    />
+                  </Field>
 
-                <Field label="头围 cm">
+                  <Field label="体重 kg">
+                    <input
+                      inputMode="decimal"
+                      value={weightKg}
+                      onChange={(e) => setWeightKg(e.target.value)}
+                      style={inputStyle()}
+                    />
+                  </Field>
+
+                  <Field label="头围 cm">
+                    <input
+                      inputMode="decimal"
+                      value={headCm}
+                      onChange={(e) => setHeadCm(e.target.value)}
+                      style={inputStyle()}
+                    />
+                  </Field>
+                </div>
+
+                <Field label="备注">
                   <input
-                    inputMode="decimal"
-                    value={headCm}
-                    onChange={(e) => setHeadCm(e.target.value)}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
                     style={inputStyle()}
+                    placeholder="可不填"
                   />
                 </Field>
               </div>
 
-              <Field label="备注">
-                <input
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  style={inputStyle()}
-                  placeholder="可不填"
-                />
-              </Field>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gap: GROWTH_SHEET.formButtonGap,
-                marginTop: GROWTH_SHEET.formButtonMarginTop,
-              }}
-            >
-              <button
-                type="button"
-                className="growth-form-button growth-sheet-safe"
-                onClick={save}
+              <div
                 style={{
-                  border: 0,
-                  borderRadius: GROWTH_SHEET.buttonRadius,
-                  padding: GROWTH_SHEET.buttonPadding,
-                  background: GROWTH_SHEET.saveBg,
-                  color: GROWTH_SHEET.saveColor,
-                  fontWeight: GROWTH_SHEET.buttonWeight,
-                  boxShadow: GROWTH_SHEET.cardShadow,
-                  transition: GROWTH_SHEET.buttonTransition,
-                  WebkitTapHighlightColor: "transparent",
+                  display: "grid",
+                  gap: GROWTH_SHEET.formButtonGap,
+                  marginTop: GROWTH_SHEET.formButtonMarginTop,
                 }}
               >
-                保存记录
-              </button>
+                <button
+                  type="button"
+                  className="growth-form-button growth-sheet-safe"
+                  onClick={save}
+                  style={{
+                    border: 0,
+                    borderRadius: GROWTH_SHEET.buttonRadius,
+                    padding: GROWTH_SHEET.buttonPadding,
+                    background: GROWTH_SHEET.saveBg,
+                    color: GROWTH_SHEET.saveColor,
+                    fontWeight: GROWTH_SHEET.buttonWeight,
+                    boxShadow: GROWTH_SHEET.cardShadow,
+                    transition: GROWTH_SHEET.buttonTransition,
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  保存记录
+                </button>
 
-              <button
-                type="button"
-                className="growth-form-button growth-sheet-safe"
-                onClick={() => setAdding(false)}
-                style={{
-                  border: 0,
-                  borderRadius: GROWTH_SHEET.buttonRadius,
-                  padding: GROWTH_SHEET.buttonPadding,
-                  background: GROWTH_SHEET.cancelBg,
-                  color: GROWTH_SHEET.cancelColor,
-                  fontWeight: GROWTH_SHEET.buttonWeight,
-                  boxShadow: GROWTH_SHEET.cardShadow,
-                  transition: GROWTH_SHEET.buttonTransition,
-                  WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                返回
-              </button>
+                <button
+                  type="button"
+                  className="growth-form-button growth-sheet-safe"
+                  onClick={() => setAdding(false)}
+                  style={{
+                    border: 0,
+                    borderRadius: GROWTH_SHEET.buttonRadius,
+                    padding: GROWTH_SHEET.buttonPadding,
+                    background: GROWTH_SHEET.cancelBg,
+                    color: GROWTH_SHEET.cancelColor,
+                    fontWeight: GROWTH_SHEET.buttonWeight,
+                    boxShadow: GROWTH_SHEET.cardShadow,
+                    transition: GROWTH_SHEET.buttonTransition,
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                >
+                  返回
+                </button>
+              </div>
             </div>
-          </div>
-        )}
-      </section>
+          )}
+        </section>
+      </div>
     </div>
   );
 }
