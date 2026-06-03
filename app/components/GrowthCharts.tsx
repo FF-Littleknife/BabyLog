@@ -12,121 +12,117 @@ const CHARTS = {
      整体布局
      ========================= */
 
-  marginTop: 10,
-  listGap: 10,
+  marginTop: 10, // 成长曲线模块距离上方内容的距离；越大越往下
+  listGap: 10, // 三张曲线卡片之间的垂直间距；越大越松
 
   /* =========================
      单张曲线卡片
      ========================= */
 
-  cardMinHeight: 160,
-  cardBg: "var(--glass-bg)",
-  cardRadius: 26,
-  cardPadding: 14,
-  cardShadow: "var(--shadow-card)",
-  cardTransition: "height .22s ease, box-shadow .22s ease",
+  cardMinHeight: 160, // 单张曲线卡片最小高度；越大卡片越高
+  cardBg: "var(--glass-bg)", // 曲线卡片背景；跟随浅色 / 深色模式
+  cardRadius: 26, // 曲线卡片圆角；越大越圆润
+  cardPadding: 14, // 曲线卡片内部边距；越大内容离边缘越远
+  cardShadow: "var(--shadow-card)", // 曲线卡片阴影；控制卡片浮起感
+  cardTransition: "height .22s ease, box-shadow .22s ease", // 卡片展开 / 阴影变化动画
 
   /* =========================
      卡片标题
      ========================= */
 
-  titleColor: "var(--muted)",
-  titleSize: 12,
-  titleWeight: 400,
+  titleColor: "var(--muted)", // 卡片标题颜色
+  titleSize: 12, // 卡片标题字号
+  titleWeight: 400, // 卡片标题字重
 
   /* =========================
      右上角展开箭头
      ========================= */
 
-  arrowSize: 16,
-  arrowStrokeWidth: 3.2,
-  arrowColor: "color-mix(in srgb, var(--muted) 72%, transparent)",
-  arrowTransition: "transform .18s ease",
+  arrowSize: 16, // 展开箭头尺寸
+  arrowStrokeWidth: 3.2, // 展开箭头线条粗细
+  arrowColor: "color-mix(in srgb, var(--muted) 72%, transparent)", // 展开箭头颜色
+  arrowTransition: "transform .18s ease", // 展开箭头旋转动画
 
   /* =========================
      曲线区域
      ========================= */
 
-  chartMarginTop: 8,
-  chartHeight: 108,
+  chartMarginTop: 8, // 曲线区域距离标题行的距离
+  chartHeight: 108, // 曲线区域高度
 
-  pointGap: 54,
-  chartPaddingX: 18,
+  pointGap: 54, // 曲线点之间的横向距离；越大横向滚动越明显
+  chartPaddingX: 18, // 曲线左右内边距；避免点贴边
 
-  lineWidth: 3,
-  pointRadius: 4.2,
-  pointHitRadius: 17,
+  lineWidth: 3, // 曲线线条粗细
+  pointRadius: 4.2, // 曲线圆点半径
+  pointHitRadius: 17, // 曲线圆点点击热区半径；越大越容易点中
 
-  // 横轴 / 日期整体下移
-  axisY: 86,
-  labelY: 102,
+  axisY: 86, // 横轴 Y 坐标；越大横轴越往下
+  labelY: 102, // 横轴日期文字 Y 坐标；越大日期越往下
 
-  axisColor: "var(--border)",
-  labelColor: "color-mix(in srgb, var(--muted) 72%, transparent)",
-  labelSize: 10,
-  labelWeight: 400,
+  axisColor: "var(--border)", // 横轴颜色
+  labelColor: "color-mix(in srgb, var(--muted) 72%, transparent)", // 横轴日期颜色
+  labelSize: 10, // 横轴日期字号
+  labelWeight: 400, // 横轴日期字重
 
-  // 当前查看点的定位虚线
-  // 默认跟最新点；点击历史点后，切换到历史点。
-  guideLineColor: "color-mix(in srgb, var(--muted) 42%, transparent)",
-  guideLineWidth: 1.1,
-  guideLineDash: "3 4",
-  guideLineGapFromPoint: 7,
+  guideLineColor: "color-mix(in srgb, var(--muted) 42%, transparent)", // 选中点到横轴的虚线颜色
+  guideLineWidth: 1.1, // 选中点虚线粗细
+  guideLineDash: "3 4", // 选中点虚线样式；第一个数字是线段，第二个数字是间隔
+  guideLineGapFromPoint: 7, // 虚线距离圆点的间隙
 
-  // 圆点数值
-  // 默认最新点显示；点击历史点后，切到历史点。
-  tooltipSize: 10,
-  tooltipWeight: 760,
-  tooltipOffsetY: 7,
+  tooltipSize: 10, // 曲线点数值文字字号
+  tooltipWeight: 760, // 曲线点数值文字字重
+  tooltipOffsetY: 7, // 曲线点数值距离圆点的垂直距离
 
-  // 数值左右避让参数
-  tooltipSideOffsetX: 18,
-  tooltipEdgePadding: 18,
+  tooltipSideOffsetX: 18, // 曲线点数值左右避让距离
+  tooltipEdgePadding: 18, // 曲线点数值靠近边缘时的安全距离
 
   /* =========================
      展开明细
      ========================= */
 
-  detailMarginTop: 10,
-  detailPaddingTop: 10,
-  detailBorderTop: "1px solid var(--border)",
-  detailMaxHeight: 156,
-  detailRowPadding: "8px 0",
-  detailRowBorder: "1px solid var(--border)",
+  detailMarginTop: 10, // 展开明细距离曲线区域的距离
+  detailPaddingTop: 0, // 展开明细顶部内边距；设为0，让明细滚动裁切点和上方横线齐平
+  detailBorderTop: "1px solid var(--border)", // 展开明细顶部横线；明细会像消失在这条线下面
+  detailMaxHeight: 184, // 展开明细最大高度；加高一点，避免最后一行被卡片圆角裁掉
+  detailListPaddingBottom: 4, // 展开明细列表底部安全距离；避免最后一行贴到卡片底部
+  detailRowPadding: "12px 0", // 明细每一行内边距；让第一行文字不要贴线，但裁切点仍然贴着横线
+  detailRowDivider: "1px solid var(--border)", // 明细行之间的细分割线
+  detailRowActiveRadius: 10, // 长按明细行时的高亮圆角；只用于按压反馈，不是常驻边框
 
-  detailDateColor: "color-mix(in srgb, var(--muted) 82%, transparent)",
-  detailDateSize: 11,
-  detailDateWeight: 500,
+  detailDateColor: "color-mix(in srgb, var(--muted) 82%, transparent)", // 明细日期颜色
+  detailDateSize: 11, // 明细日期字号
+  detailDateWeight: 500, // 明细日期字重
 
-  detailValueColor: "var(--text)",
-  detailValueSize: 13,
-  detailValueWeight: 760,
+  detailValueColor: "var(--text)", // 明细数值颜色
+  detailValueSize: 13, // 明细数值字号
+  detailValueWeight: 760, // 明细数值字重
 
-  detailUnitColor: "var(--muted)",
-  detailUnitSize: 11,
-  detailUnitWeight: 650,
+  detailUnitColor: "var(--muted)", // 明细单位颜色
+  detailUnitSize: 11, // 明细单位字号
+  detailUnitWeight: 650, // 明细单位字重
 
-  detailEmptyText: "暂无记录",
-  detailEmptyColor: "color-mix(in srgb, var(--muted) 68%, transparent)",
-  detailEmptySize: 12,
+  detailEmptyText: "暂无记录", // 明细空状态文案
+  detailEmptyColor: "color-mix(in srgb, var(--muted) 68%, transparent)", // 明细空状态文字颜色
+  detailEmptySize: 12, // 明细空状态文字字号
 
-  longPressMs: 520,
-  detailRowActiveBg: "color-mix(in srgb, var(--blue) 12%, transparent)",
+  longPressMs: 520, // 明细行长按触发编辑 / 删除的时间，单位毫秒
+  detailRowActiveBg: "color-mix(in srgb, var(--blue) 12%, transparent)", // 明细行长按时的临时高亮背景
 
   /* =========================
      空状态
      ========================= */
 
-  emptyColor: "color-mix(in srgb, var(--muted) 68%, transparent)",
-  emptySize: 12,
+  emptyColor: "color-mix(in srgb, var(--muted) 68%, transparent)", // 曲线空状态文字颜色
+  emptySize: 12, // 曲线空状态文字字号
 
   /* =========================
      三项曲线颜色
      ========================= */
 
-  heightColor: "var(--blue)",
-  weightColor: "var(--feed-label-color)",
-  headColor: "var(--pump-label-color)",
+  heightColor: "var(--blue)", // 身高曲线颜色
+  weightColor: "var(--feed-label-color)", // 体重曲线颜色
+  headColor: "var(--pump-label-color)", // 头围曲线颜色
 };
 
 type GrowthMetric = {
@@ -291,8 +287,6 @@ function normalizeMetricPoints({
 
       const x = getXForDateIndex(index, metricDates.length, chartWidth);
       const ratio = range === 0 ? 0.5 : (point.value - min) / range;
-
-      // 横轴下移后，曲线高度同步拉开一点
       const y = CHARTS.axisY - ratio * 56 - 10;
 
       return {
@@ -357,9 +351,11 @@ function GrowthDetailList({
     <div
       style={{
         maxHeight: CHARTS.detailMaxHeight,
+        paddingBottom: CHARTS.detailListPaddingBottom,
         overflowY: "auto",
         WebkitOverflowScrolling: "touch",
         scrollbarWidth: "none",
+        boxSizing: "border-box",
       }}
     >
       <style jsx>{`
@@ -392,8 +388,10 @@ function GrowthDetailList({
             justifyContent: "space-between",
             gap: 12,
             padding: CHARTS.detailRowPadding,
-            borderTop: index === 0 ? 0 : CHARTS.detailRowBorder,
-            borderRadius: 12,
+            borderBottom:
+              index < list.length - 1 ? CHARTS.detailRowDivider : "none",
+            borderRadius:
+              pressingId === point.id ? CHARTS.detailRowActiveRadius : 0,
             background:
               pressingId === point.id ? CHARTS.detailRowActiveBg : "transparent",
             transition: "background .14s ease",
@@ -504,19 +502,15 @@ function GrowthMiniChartCard({
   });
 
   const path = makePath(normalizedPoints);
-
   const latestPoint = normalizedPoints[normalizedPoints.length - 1] ?? null;
-
   const selectedPoint =
     normalizedPoints.find((point) => point.id === selectedPointId) || null;
-
   const activePoint = selectedPoint ?? latestPoint;
 
   useEffect(() => {
     const scrollEl = scrollRef.current;
     if (!scrollEl) return;
 
-    // 默认展示该指标自己的最新数据：滚到最右侧
     scrollEl.scrollLeft = scrollEl.scrollWidth;
   }, [metricDates.length, chartWidth]);
 
