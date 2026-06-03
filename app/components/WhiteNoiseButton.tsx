@@ -18,16 +18,16 @@ type WhiteNoiseButtonProps = {
  * 后面想调按钮背景、描边、阴影、图标、播放动效、默认声音列表，优先改这里。
  */
 const WHITE_NOISE_BUTTON_CONFIG = {
-  bg: "var(--white-noise-button-bg, var(--glass-bg))", // 默认按钮背景；不依赖 BottomBar，避免互相影响
+  bg: "var(--bottom-pill-bg, rgba(255, 255, 255, 0.62))", // 默认按钮背景；和 BottomBar 左侧胶囊保持一致
   activeBg: "#0a84ff", // 播放中按钮背景色；系统蓝
 
-  border: "1px solid var(--white-noise-button-border, var(--border))", // 默认按钮描边；补回边界感
+  border: "1px solid var(--bottom-pill-border, rgba(255, 255, 255, 0.78))", // 默认按钮描边；和 BottomBar 左侧胶囊保持一致
   activeBorder: "1px solid transparent", // 播放中按钮描边；透明避免蓝色状态出现杂边
 
   blur: "blur(34px) saturate(180%)", // 按钮毛玻璃强度
   color: "var(--text)", // 默认按钮文字 / 图标兜底颜色
 
-  shadow: "var(--white-noise-button-shadow, var(--shadow-card))", // 默认按钮阴影；不依赖 BottomBar
+  shadow: "var(--bottom-pill-shadow, 0 16px 44px rgba(0, 0, 0, 0.12))", // 默认按钮阴影；和 BottomBar 左侧胶囊保持一致
   activeShadow: "0 18px 54px rgba(10, 132, 255, 0.34)", // 播放中按钮阴影
 
   activeScale: 0.93, // 按钮按下时缩放比例

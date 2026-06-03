@@ -15,17 +15,17 @@ type NursingFabButtonProps = {
  * 后面想调按钮背景、描边、阴影、图标、计时文字、按压反馈，优先改这里。
  */
 const NURSING_FAB_CONFIG = {
-  bg: "var(--glass-bg)", // 默认按钮背景；吃全局亮暗模式变量，不再依赖 BottomBar 变量
+  bg: "var(--bottom-pill-bg, rgba(255, 255, 255, 0.62))", // 默认按钮背景；和 BottomBar 左侧胶囊保持一致
   activeBg: "#ff0063", // 哺乳计时中按钮背景色；粉色高亮
 
-  border: "1px solid var(--border)", // 默认按钮描边；补回边界感，并避免被 BottomBar 样式影响
+  border: "1px solid var(--bottom-pill-border, rgba(255, 255, 255, 0.78))", // 默认按钮描边；和 BottomBar 左侧胶囊保持一致
   activeBorder: "1px solid transparent", // 哺乳计时中按钮描边；透明避免粉色状态出现杂边
 
   blur: "blur(34px) saturate(180%)", // 按钮毛玻璃强度
   color: "var(--text)", // 默认文字 / 图标理论颜色；主要给无图标状态兜底
   activeColor: "#ffffff", // 哺乳计时中文字颜色
 
-  shadow: "var(--shadow-card)", // 默认按钮阴影；吃全局变量，亮暗模式稳定
+  shadow: "var(--bottom-pill-shadow, 0 16px 44px rgba(0, 0, 0, 0.12))", // 默认按钮阴影；和 BottomBar 左侧胶囊保持一致
   activeShadow: "0 18px 54px rgba(255, 0, 99, 0.32)", // 哺乳计时中按钮阴影
 
   activeScale: 0.93, // 按钮按下时缩放比例
