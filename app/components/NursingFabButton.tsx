@@ -10,27 +10,31 @@ type NursingFabButtonProps = {
   onClick: () => void;
 };
 
+/**
+ * 哺乳悬浮按钮参数
+ * 后面想调按钮背景、描边、阴影、图标、计时文字、按压反馈，优先改这里。
+ */
 const NURSING_FAB_CONFIG = {
-  bg: "var(--bottom-pill-bg, var(--surface-soft, rgba(255, 255, 255, 0.74)))",
-  activeBg: "#ff0063",
+  bg: "var(--glass-bg)", // 默认按钮背景；吃全局亮暗模式变量，不再依赖 BottomBar 变量
+  activeBg: "#ff0063", // 哺乳计时中按钮背景色；粉色高亮
 
-  border:
-    "1px solid var(--bottom-pill-border, var(--surface, rgba(255, 255, 255, 0.82)))",
+  border: "1px solid var(--border)", // 默认按钮描边；补回边界感，并避免被 BottomBar 样式影响
+  activeBorder: "1px solid transparent", // 哺乳计时中按钮描边；透明避免粉色状态出现杂边
 
-  blur: "blur(34px) saturate(180%)",
-  color: "var(--text, #1c1c1e)",
-  activeColor: "#ffffff",
+  blur: "blur(34px) saturate(180%)", // 按钮毛玻璃强度
+  color: "var(--text)", // 默认文字 / 图标理论颜色；主要给无图标状态兜底
+  activeColor: "#ffffff", // 哺乳计时中文字颜色
 
-  shadow:
-    "var(--bottom-pill-shadow, var(--shadow-float, 0 14px 34px rgba(0, 0, 0, 0.14)))",
-  activeShadow: "0 18px 54px rgba(255, 0, 99, 0.32)",
+  shadow: "var(--shadow-card)", // 默认按钮阴影；吃全局变量，亮暗模式稳定
+  activeShadow: "0 18px 54px rgba(255, 0, 99, 0.32)", // 哺乳计时中按钮阴影
 
-  activeScale: 0.93,
+  activeScale: 0.93, // 按钮按下时缩放比例
 
-  iconSize: 48,
+  icon: "/moon.svg", // 默认按钮图标路径
+  iconSize: 48, // 默认按钮图标尺寸
 
-  timerSize: 20,
-  timerWeight: 640,
+  timerSize: 20, // 计时文字字号
+  timerWeight: 640, // 计时文字字重
 };
 
 function formatNursingButtonTime(seconds: number) {
@@ -78,13 +82,16 @@ export default function NursingFabButton({
           alignItems: "center",
           justifyContent: "center",
           padding: 0,
-          border: nursing ? 0 : NURSING_FAB_CONFIG.border,
+          border: nursing
+            ? NURSING_FAB_CONFIG.activeBorder
+            : NURSING_FAB_CONFIG.border,
           borderRadius: 999,
           position: "relative",
           overflow: "visible",
           flexShrink: 0,
           pointerEvents: "auto",
           cursor: "pointer",
+          boxSizing: "border-box",
           WebkitTapHighlightColor: "transparent",
           transition:
             "background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
@@ -110,7 +117,7 @@ export default function NursingFabButton({
         </span>
       ) : (
         <img
-          src="/moon.svg"
+          src={NURSING_FAB_CONFIG.icon}
           alt=""
           style={{
             width: NURSING_FAB_CONFIG.iconSize,

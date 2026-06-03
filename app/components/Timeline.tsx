@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import { Fragment, useRef } from "react";
 import type { BabyRecord } from "@/lib/types";
 import { RECORD_LABEL } from "@/lib/types";
-import { formatClock, formatDayTitle, groupByDay } from "@/lib/time";
+import { formatClock, groupByDay } from "@/lib/time";
 
 /**
  * 时间线参数
@@ -24,6 +24,11 @@ const TIMELINE_CONFIG = {
   dayTitleColor: "var(--muted)",
   dayTitleSize: 12,
   dayTitleWeight: 400,
+
+  dayTitleYearColor: "color-mix(in srgb, var(--muted) 48%, transparent)",
+  dayTitleYearSize: 10,
+  dayTitleYearWeight: 400,
+  dayTitleYearMarginTop: 3,
 
   /* =========================
      左侧时间
@@ -112,6 +117,37 @@ const TIMELINE_CONFIG = {
 
   longPressMs: 650,
 };
+
+function parseDay(day: string) {
+  const normalizedDay = String(day || "").trim();
+
+  if (!normalizedDay) return null;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedDay)) {
+    const date = new Date(`${normalizedDay}T00:00:00`);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const date = new Date(normalizedDay);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatWheelDate(day: string) {
+  const normalizedDay = String(day || "").trim();
+  const date = parseDay(normalizedDay);
+
+  if (!date) return normalizedDay;
+
+  return `${date.getMonth() + 1}.${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function formatDayYear(day: string) {
+  const date = parseDay(day);
+
+  if (!date) return "";
+
+  return String(date.getFullYear());
+}
 
 function formatSmallDate(dateString: string) {
   const date = new Date(dateString);
@@ -295,6 +331,7 @@ function TimelineItem({
         }}
       >
         <div>{formatClock(record.time)}</div>
+
         <div
           style={{
             marginTop: TIMELINE_CONFIG.dateMarginTop,
@@ -410,9 +447,14 @@ export default function Timeline({
       >
         {days.map((day) => {
           const dayRecords = grouped[day];
+          const year = formatDayYear(day);
 
           return (
-            <section className="timeline-day" key={day}>
+            <section
+              className="timeline-day"
+              key={day}
+              data-timeline-day={day}
+            >
               <div
                 className="timeline-day-title"
                 style={{
@@ -423,9 +465,26 @@ export default function Timeline({
                   fontSize: TIMELINE_CONFIG.dayTitleSize,
                   fontWeight: TIMELINE_CONFIG.dayTitleWeight,
                   textAlign: "center",
+                  lineHeight: 1,
+                  fontVariantNumeric: "tabular-nums",
                 }}
               >
-                {formatDayTitle(day)}
+                <div>{formatWheelDate(day)}</div>
+
+                {year && (
+                  <div
+                    style={{
+                      marginTop: TIMELINE_CONFIG.dayTitleYearMarginTop,
+                      color: TIMELINE_CONFIG.dayTitleYearColor,
+                      fontSize: TIMELINE_CONFIG.dayTitleYearSize,
+                      fontWeight: TIMELINE_CONFIG.dayTitleYearWeight,
+                      lineHeight: 1,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {year}
+                  </div>
+                )}
               </div>
 
               <div className="timeline-list" style={{ position: "relative" }}>

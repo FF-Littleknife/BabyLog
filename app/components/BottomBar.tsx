@@ -16,47 +16,62 @@ type BottomBarProps = {
   showNurse?: boolean;
 };
 
+/**
+ * 底部导航参数
+ * 后面想调底部导航尺寸、位置、图标、字体、颜色、圆角、阴影，优先改这里。
+ */
 const BOTTOM_BAR_CONFIG = {
   maxWidth: 430, // 底部导航最大宽度，对应整体 App 宽度
   paddingX: 26, // 底部导航左右安全边距
-  bottom: 0, // 距离屏幕底部的距离；实际还会叠加 safe-area
-  wideBreakpoint: 860, // 宽屏断点：屏幕宽度 >= 860px 时启用宽屏上移
+  bottom: 0, // 距离屏幕底部的基础距离；实际还会叠加 safe-area
+  wideBreakpoint: 860, // 宽屏断点；屏幕宽度 >= 860px 时启用宽屏上移
   wideLiftY: 0, // 宽屏时整个底部导航向上移动距离
-  zIndex: 40, // 层级，保证浮在页面内容上方
+  zIndex: 40, // 底部导航层级，保证浮在页面内容上方
 
   pillGap: 4, // 左侧“记录/时间线”两个按钮之间的间距
   pillPadding: 5, // 左侧大胶囊内部边距
-  pillBg: "var(--bottom-pill-bg, rgba(255, 255, 255, 0.62))", // 左侧大胶囊背景
+  pillBg: "var(--glass-bg)", // 左侧大胶囊背景；吃全局亮暗变量，避免刷新瞬间闪白
   pillBlur: "blur(34px) saturate(180%)", // 左侧大胶囊毛玻璃模糊强度
-  pillRadius: 999, // 左侧大胶囊圆角；999就是胶囊
-  pillBorder:
-    "1px solid var(--bottom-pill-border, rgba(255, 255, 255, 0.78))", // 左侧大胶囊描边
-  pillShadow:
-    "var(--bottom-pill-shadow, 0 16px 44px rgba(0, 0, 0, 0.12))", // 左侧大胶囊阴影
+  pillRadius: 999, // 左侧大胶囊圆角；999 就是胶囊
+  pillBorder: "1px solid var(--border)", // 左侧大胶囊描边；吃全局变量，避免暗色首帧错色
+  pillShadow: "var(--shadow-card)", // 左侧大胶囊阴影；吃全局变量，避免首帧切换
 
-  tabWidth: 72, // “记录/时间线”单个按钮宽度
-  tabPadding: "12px 0", // 单个按钮内边距：上下12 / 左右0
+  tabWidth: 76, // “记录/时间线”单个按钮宽度
+  tabPadding: "8px 4px 7px", // 单个按钮内边距；上8 / 左右4 / 下7
   tabRadius: 999, // 单个按钮圆角；和选中滑块一致
-  tabColor: "var(--muted, #8e8e93)", // 未选中文字颜色
-  tabActiveColor: "var(--blue, #0a84ff)", // 选中文字颜色
-  tabSize: 13.4, // “记录/时间线”文字字号
-  tabWeight: 720, // “记录/时间线”文字字重
+  tabColor: "var(--muted)", // 未选中文字颜色；吃全局变量，避免 fallback 闪色
+  tabActiveColor: "var(--blue)", // 选中文字颜色；吃全局系统蓝
+  tabSize: 10, // “记录/时间线”文字字号
+  tabWeight: 520, // “记录/时间线”文字字重
+  tabLineHeight: 1, // “记录/时间线”文字行高
 
-  activeThumbBg:
-    "var(--bottom-tab-active-bg, rgba(255, 255, 255, 0.96))", // 选中滑块背景
-  activeThumbShadow:
-    "var(--bottom-tab-active-shadow, 0 8px 22px rgba(0, 0, 0, 0.10))", // 选中滑块阴影
+  tabIconSize: 24, // tab 顶部 icon 尺寸
+  tabIconMarginBottom: 6, // icon 和文字之间的距离
+  tabIconActiveOpacity: 1, // 选中 icon 透明度
+  tabIconInactiveOpacity: 0.58, // 未选中 icon 透明度
+
+  tabIconActiveFilter:
+    "var(--bottom-tab-icon-active-filter, invert(47%) sepia(99%) saturate(2720%) hue-rotate(194deg) brightness(101%) contrast(101%))", // 选中 icon 滤镜；统一压成系统蓝 #0a84ff 附近
+  tabIconInactiveFilter:
+    "var(--bottom-tab-icon-inactive-filter, grayscale(1) brightness(0) opacity(0.55))", // 未选中 icon 滤镜；浅色模式转深灰
+
+  activeThumbBg: "var(--surface-strong)", // 选中滑块背景；吃全局亮暗变量，避免刷新瞬间闪白
+  activeThumbShadow: "var(--shadow-soft)", // 选中滑块阴影；吃全局变量，避免首帧错色
 
   activeThumbTransition:
-    "transform .42s cubic-bezier(0.16, 1, 0.3, 1), background .18s ease, box-shadow .18s ease", // 选中滑块切换动画；偏 iOS 的丝滑吸附感
+    "transform .42s cubic-bezier(0.16, 1, 0.3, 1), background .18s ease, box-shadow .18s ease", // 选中滑块切换动画
+
+  tabActiveScale: 0.98, // tab 按下时缩放比例
+  tabTransition:
+    "color .22s ease, transform .16s ease, opacity .16s ease", // tab 颜色 / 按压 / 透明度动效
 
   fabGap: 10, // 右侧白噪音按钮和哺乳按钮之间的距离
   fabSize: 68, // 右侧两个圆形按钮尺寸
 };
 
-const TABS: { view: ViewType; label: string }[] = [
-  { view: "home", label: "记录" },
-  { view: "timeline", label: "时间线" },
+const TABS: { view: ViewType; label: string; icon: string }[] = [
+  { view: "home", label: "记录", icon: "/add.svg" },
+  { view: "timeline", label: "时间线", icon: "/timeline.svg" },
 ];
 
 export default function BottomBar({
@@ -80,11 +95,8 @@ export default function BottomBar({
       <style jsx global>{`
         @media (prefers-color-scheme: dark) {
           :root {
-            --bottom-pill-bg: rgba(44, 44, 46, 0.72);
-            --bottom-pill-border: rgba(99, 99, 102, 0.36);
-            --bottom-pill-shadow: 0 14px 34px rgba(0, 0, 0, 0.48);
-            --bottom-tab-active-bg: rgba(58, 58, 60, 0.92);
-            --bottom-tab-active-shadow: none;
+            --bottom-tab-icon-inactive-filter: grayscale(1) brightness(5)
+              opacity(0.52);
           }
         }
 
@@ -99,6 +111,10 @@ export default function BottomBar({
           .bottom-active-thumb {
             transition: none !important;
           }
+        }
+
+        .bottom-tab-button:active {
+          transform: scale(${BOTTOM_BAR_CONFIG.tabActiveScale});
         }
       `}</style>
 
@@ -155,6 +171,7 @@ export default function BottomBar({
               <button
                 key={item.view}
                 type="button"
+                className="bottom-tab-button"
                 onClick={() => onChange(item.view)}
                 style={{
                   width: BOTTOM_BAR_CONFIG.tabWidth,
@@ -171,12 +188,44 @@ export default function BottomBar({
                   position: "relative",
                   zIndex: 1,
                   textAlign: "center",
-                  transition:
-                    "color .22s ease, transform .16s ease, opacity .16s ease",
+                  transition: BOTTOM_BAR_CONFIG.tabTransition,
                   WebkitTapHighlightColor: "transparent",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  lineHeight: BOTTOM_BAR_CONFIG.tabLineHeight,
                 }}
               >
-                {item.label}
+                <img
+                  src={item.icon}
+                  alt=""
+                  aria-hidden
+                  style={{
+                    width: BOTTOM_BAR_CONFIG.tabIconSize,
+                    height: BOTTOM_BAR_CONFIG.tabIconSize,
+                    objectFit: "contain",
+                    display: "block",
+                    marginBottom: BOTTOM_BAR_CONFIG.tabIconMarginBottom,
+                    opacity: active
+                      ? BOTTOM_BAR_CONFIG.tabIconActiveOpacity
+                      : BOTTOM_BAR_CONFIG.tabIconInactiveOpacity,
+                    filter: active
+                      ? BOTTOM_BAR_CONFIG.tabIconActiveFilter
+                      : BOTTOM_BAR_CONFIG.tabIconInactiveFilter,
+                    pointerEvents: "none",
+                  }}
+                />
+
+                <span
+                  style={{
+                    display: "block",
+                    lineHeight: BOTTOM_BAR_CONFIG.tabLineHeight,
+                    pointerEvents: "none",
+                  }}
+                >
+                  {item.label}
+                </span>
               </button>
             );
           })}

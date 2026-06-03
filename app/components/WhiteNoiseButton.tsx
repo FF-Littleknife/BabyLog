@@ -13,30 +13,35 @@ type WhiteNoiseButtonProps = {
   size: number;
 };
 
+/**
+ * 白噪音悬浮按钮参数
+ * 后面想调按钮背景、描边、阴影、图标、播放动效、默认声音列表，优先改这里。
+ */
 const WHITE_NOISE_BUTTON_CONFIG = {
-  bg: "var(--bottom-pill-bg, var(--surface-soft, rgba(255, 255, 255, 0.74)))",
-  activeBg: "#0a84ff",
+  bg: "var(--white-noise-button-bg, var(--glass-bg))", // 默认按钮背景；不依赖 BottomBar，避免互相影响
+  activeBg: "#0a84ff", // 播放中按钮背景色；系统蓝
 
-  border:
-    "1px solid var(--bottom-pill-border, var(--surface, rgba(255, 255, 255, 0.82)))",
+  border: "1px solid var(--white-noise-button-border, var(--border))", // 默认按钮描边；补回边界感
+  activeBorder: "1px solid transparent", // 播放中按钮描边；透明避免蓝色状态出现杂边
 
-  blur: "blur(34px) saturate(180%)",
-  color: "var(--text, #1c1c1e)",
-  shadow:
-    "var(--bottom-pill-shadow, var(--shadow-float, 0 14px 34px rgba(0, 0, 0, 0.14)))",
-  activeShadow: "0 18px 54px rgba(10, 132, 255, 0.34)",
+  blur: "blur(34px) saturate(180%)", // 按钮毛玻璃强度
+  color: "var(--text)", // 默认按钮文字 / 图标兜底颜色
 
-  activeScale: 0.93,
+  shadow: "var(--white-noise-button-shadow, var(--shadow-card))", // 默认按钮阴影；不依赖 BottomBar
+  activeShadow: "0 18px 54px rgba(10, 132, 255, 0.34)", // 播放中按钮阴影
 
-  iconSize: 38,
-  iconWhiteFilter: "brightness(0) invert(1)",
+  activeScale: 0.93, // 按钮按下时缩放比例
 
-  pulseColor: "rgba(100, 190, 255, 0.52)",
-  pulseShadow: "0 0 34px rgba(10, 132, 255, 0.28)",
-  pulseDuration: 2.05,
-  pulseScale: 1.9,
-  pulseInset: -6,
-  pulseDelayRatio: 0.5,
+  icon: "/whitenoise.svg", // 白噪音按钮图标路径
+  iconSize: 38, // 白噪音按钮图标尺寸
+  iconWhiteFilter: "brightness(0) invert(1)", // 播放中图标滤镜；把图标压成白色
+
+  pulseColor: "rgba(100, 190, 255, 0.52)", // 播放中扩散波纹颜色
+  pulseShadow: "0 0 34px rgba(10, 132, 255, 0.28)", // 播放中扩散波纹阴影
+  pulseDuration: 2.05, // 播放中扩散波纹一轮动画时长，单位秒
+  pulseScale: 1.9, // 播放中扩散波纹最终放大倍数
+  pulseInset: -6, // 播放中扩散波纹外扩距离；负数越大波纹越大
+  pulseDelayRatio: 0.5, // 第二个波纹延迟比例；0.5 表示半程后出现
 
   fallbackSounds: [
     {
@@ -57,7 +62,7 @@ const WHITE_NOISE_BUTTON_CONFIG = {
       src: "/white-noise/3-%E6%95%B0%E9%B8%AD%E5%AD%90.m4a",
       fallbackSrc: "/white-noise/3-%E6%95%B0%E9%B8%AD%E5%AD%90.m4a",
     },
-  ] satisfies SoundItem[],
+  ] satisfies SoundItem[], // 本地兜底声音列表；读取 white-noise.json 失败时使用
 };
 
 function isAbortError(error: unknown) {
@@ -202,7 +207,9 @@ export default function WhiteNoiseButton({ size }: WhiteNoiseButtonProps) {
               alignItems: "center",
               justifyContent: "center",
               padding: 0,
-              border: playing ? 0 : WHITE_NOISE_BUTTON_CONFIG.border,
+              border: playing
+                ? WHITE_NOISE_BUTTON_CONFIG.activeBorder
+                : WHITE_NOISE_BUTTON_CONFIG.border,
               borderRadius: 999,
               position: "relative",
               overflow: "visible",
@@ -210,6 +217,7 @@ export default function WhiteNoiseButton({ size }: WhiteNoiseButtonProps) {
               isolation: "isolate",
               pointerEvents: "auto",
               cursor: "pointer",
+              boxSizing: "border-box",
               WebkitTapHighlightColor: "transparent",
               transition:
                 "background .18s ease, border-color .18s ease, box-shadow .18s ease, transform .18s ease",
@@ -218,7 +226,7 @@ export default function WhiteNoiseButton({ size }: WhiteNoiseButtonProps) {
           }
         >
           <img
-            src="/whitenoise.svg"
+            src={WHITE_NOISE_BUTTON_CONFIG.icon}
             alt=""
             style={{
               width: WHITE_NOISE_BUTTON_CONFIG.iconSize,
