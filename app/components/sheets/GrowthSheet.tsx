@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode, PointerEvent } from "react";
 import type { GrowthRecord } from "@/lib/growthApi";
 import DateField from "@/app/components/DateField";
 import GrowthCharts from "@/app/components/GrowthCharts";
@@ -14,156 +15,138 @@ const GROWTH_SHEET = {
      整体遮罩 / 背景毛玻璃
      ========================= */
 
-  overlayBg: "var(--surface-overlay)",
-  overlayBlur: "blur(18px) saturate(120%)",
-  overlayPadding: "10px",
+  overlayBg: "var(--surface-overlay)", // 整个弹窗背后的半透明遮罩背景
+  overlayBlur: "blur(18px) saturate(120%)", // 整体遮罩毛玻璃强度
+  overlayPadding: "10px", // 弹窗距离屏幕边缘的安全距离
 
-  overlayEnterMs: 130,
-  overlayEnterEasing: "ease-out",
+  overlayEnterMs: 130, // 遮罩淡入动画时长
+  overlayEnterEasing: "ease-out", // 遮罩淡入动画曲线
 
   /* =========================
      内容容器
      ========================= */
 
-  panelWidth: "min(calc(100% - 20px), 410px)",
-  panelMaxHeight: "calc(100svh - 20px)",
-  panelRadius: 0,
-  panelBg: "transparent",
-  panelPadding: "12px",
-  panelShadow: "none",
+  panelWidth: "min(calc(100% - 20px), 410px)", // 弹窗内容最大宽度
+  panelMaxHeight: "calc(100svh - 20px)", // 弹窗内容最大高度
+  panelRadius: 0, // 弹窗容器圆角；当前透明容器，所以为0
+  panelBg: "transparent", // 弹窗容器背景；当前让内部卡片自己负责背景
+  panelPadding: "12px", // 弹窗内容内边距
+  panelShadow: "none", // 弹窗容器阴影；当前不用
 
-  panelEnterMs: 170,
-  panelEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
-  panelEnterMoveY: 8,
+  panelEnterMs: 170, // 弹窗容器进入动画时长
+  panelEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)", // 弹窗容器进入动画曲线
+  panelEnterMoveY: 8, // 弹窗容器进入时向下偏移距离
 
-  contentEnterMs: 150,
-  contentEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)",
-  contentEnterMoveY: 6,
+  contentEnterMs: 150, // 内容区域切换进入动画时长
+  contentEnterEasing: "cubic-bezier(0.16, 1, 0.3, 1)", // 内容区域切换动画曲线
+  contentEnterMoveY: 6, // 内容区域切换时向下偏移距离
 
   /* =========================
      主标题
      ========================= */
 
-  titleText: "叶票票成长记录",
-  titleColor: "var(--text)",
-  titleSize: 20,
-  titleWeight: 820,
-  titleMarginBottom: 12,
+  titleText: "叶票票成长记录", // 弹窗主标题文案
+  titleColor: "var(--text)", // 弹窗主标题颜色
+  titleSize: 20, // 弹窗主标题字号
+  titleWeight: 820, // 弹窗主标题字重
+  titleMarginBottom: 12, // 标题区域和下方内容的距离
 
   /* =========================
      出生天数 / 月龄文字
      ========================= */
 
-  ageTextColor: "var(--muted)",
-  ageTextSize: 12,
-  ageTextWeight: 400,
-  ageTextMarginTop: 0,
+  ageTextColor: "var(--muted)", // 出生天数 / 月龄文字颜色
+  ageTextSize: 12, // 出生天数 / 月龄文字字号
+  ageTextWeight: 400, // 出生天数 / 月龄文字字重
+  ageTextMarginTop: 0, // 出生天数 / 月龄距离主标题的距离
 
   /* =========================
      顶部三项最新数据卡片
      ========================= */
 
-  cardBg: "var(--glass-bg)",
-  cardRadius: 28,
-  cardPadding: "20px 16px 18px",
-  cardShadow: "var(--shadow-card)",
+  cardBg: "var(--glass-bg)", // 顶部数据卡片背景
+  cardRadius: 28, // 顶部数据卡片圆角
+  cardPadding: "20px 16px 18px", // 顶部数据卡片内边距
+  cardShadow: "var(--shadow-card)", // 顶部数据卡片阴影
 
-  statGap: 10,
+  statGap: 10, // 三个最新数据之间的横向间距
 
-  valueColor: "var(--text)",
-  valueSize: 28,
-  valueWeight: 820,
+  valueColor: "var(--text)", // 最新数据数值颜色
+  valueSize: 28, // 最新数据数值字号
+  valueWeight: 820, // 最新数据数值字重
 
-  unitColor: "var(--muted)",
-  unitSize: 13,
-  unitWeight: 600,
-  unitMarginLeft: 3,
+  unitColor: "var(--muted)", // 最新数据单位颜色
+  unitSize: 13, // 最新数据单位字号
+  unitWeight: 600, // 最新数据单位字重
+  unitMarginLeft: 3, // 数值和单位之间的距离
 
-  statDateColor: "color-mix(in srgb, var(--muted) 72%, transparent)",
-  statDateSize: 10,
-  statDateMarginTop: 2,
+  statDateColor: "color-mix(in srgb, var(--muted) 72%, transparent)", // 最新数据日期颜色
+  statDateSize: 10, // 最新数据日期字号
+  statDateMarginTop: 2, // 最新数据日期距离数值的距离
 
-  statValueRowHeight: 32,
-  statDateRowHeight: 12,
+  statValueRowHeight: 32, // 最新数据数值行高度
+  statDateRowHeight: 12, // 最新数据日期行高度
 
   /* =========================
      底部圆形操作按钮
      ========================= */
 
-  actionRowMarginTop: 22,
-  actionRowGap: 18,
+  actionRowMarginTop: 22, // 底部按钮行距离上方内容的距离
+  actionRowGap: 18, // 底部两个圆形按钮之间的距离
 
-  iconButtonSize: 58,
-  iconButtonBg: "var(--glass-bg)",
-  iconButtonShadow: "var(--shadow-card)",
-  iconButtonActiveScale: 0.94,
+  iconButtonSize: 58, // 底部圆形按钮尺寸
+  iconButtonBg: "var(--glass-bg)", // 底部圆形按钮背景
+  iconButtonShadow: "var(--shadow-card)", // 底部圆形按钮阴影
+  iconButtonActiveScale: 0.94, // 底部圆形按钮按下缩放比例
   iconButtonTransition:
-    "transform .12s ease, background .18s ease, box-shadow .18s ease",
+    "transform .12s ease, background .18s ease, box-shadow .18s ease", // 底部圆形按钮动画
 
-  addIcon: "/add.svg",
-  addIconSize: 30,
-  addIconOpacity: 1,
+  addIcon: "/add.svg", // 新增按钮图标路径
+  addIconSize: 30, // 新增按钮图标尺寸
+  addIconOpacity: 1, // 新增按钮图标透明度
 
-  closeIcon: "/delete.svg",
-  closeIconSize: 26,
-  closeIconOpacity: 1,
+  closeIcon: "/delete.svg", // 关闭按钮图标路径
+  closeIconSize: 26, // 关闭按钮图标尺寸
+  closeIconOpacity: 1, // 关闭按钮图标透明度
 
   /* =========================
      新增 / 编辑数据表单卡片
      ========================= */
 
-  fieldGap: 12,
+  fieldGap: 12, // 表单字段之间的垂直间距
 
-  labelColor: "var(--muted)",
-  labelSize: 12,
-  labelWeight: 700,
-  labelMarginBottom: 6,
+  labelColor: "var(--muted)", // 表单标签颜色
+  labelSize: 12, // 表单标签字号
+  labelWeight: 700, // 表单标签字重
+  labelMarginBottom: 6, // 表单标签和输入框之间的距离
 
-  inputBg: "var(--input-bg)",
-  inputColor: "var(--input-text)",
-  inputRadius: 18,
-  inputPadding: "14px 14px",
-  inputBorder: "1px solid var(--border)",
+  inputBg: "var(--input-bg)", // 表单输入框背景
+  inputColor: "var(--input-text)", // 表单输入框文字颜色
+  inputRadius: 18, // 表单输入框圆角
+  inputPadding: "14px 14px", // 表单输入框内边距
+  inputBorder: "1px solid var(--border)", // 表单输入框描边
 
-  formGridGap: 10,
+  formGridGap: 10, // 身高 / 体重 / 头围三个输入框之间的横向间距
 
   /* =========================
      新增 / 编辑数据表单按钮
      ========================= */
 
-  formButtonGap: 10,
-  formButtonMarginTop: 18,
+  formButtonGap: 10, // 表单按钮之间的距离
+  formButtonMarginTop: 18, // 表单按钮距离表单卡片的距离
 
-  saveBg: "var(--blue)",
-  saveColor: "var(--white)",
+  saveBg: "var(--blue)", // 保存按钮背景色
+  saveColor: "var(--white)", // 保存按钮文字颜色
 
-  cancelBg: "var(--surface-muted)",
-  cancelColor: "var(--muted)",
+  cancelBg: "var(--surface-muted)", // 返回按钮背景色
+  cancelColor: "var(--muted)", // 返回按钮文字颜色
 
-  buttonRadius: 22,
-  buttonPadding: 16,
-  buttonWeight: 760,
-  buttonActiveScale: 0.97,
+  buttonRadius: 22, // 表单按钮圆角
+  buttonPadding: 16, // 表单按钮内边距
+  buttonWeight: 760, // 表单按钮文字字重
+  buttonActiveScale: 0.97, // 表单按钮按下缩放比例
   buttonTransition:
-    "transform .12s ease, background .18s ease, color .18s ease, box-shadow .18s ease",
-
-  /* =========================
-     长按操作菜单
-     ========================= */
-
-  actionMenuBackdropBg: "rgba(0,0,0,.08)",
-  actionMenuBg: "var(--glass-bg)",
-  actionMenuRadius: 26,
-  actionMenuPadding: 8,
-  actionMenuGap: 6,
-  actionMenuShadow: "var(--shadow-float)",
-  actionMenuButtonHeight: 48,
-  actionMenuButtonRadius: 20,
-  actionMenuButtonSize: 15,
-  actionMenuButtonWeight: 760,
-  actionMenuEditColor: "var(--blue)",
-  actionMenuDeleteColor: "var(--red)",
-  actionMenuCancelColor: "var(--muted)",
+    "transform .12s ease, background .18s ease, color .18s ease, box-shadow .18s ease", // 表单按钮动画
 };
 
 const BABY_BIRTH_DATE = "2026-04-19";
@@ -258,13 +241,7 @@ function findLatestValueRecord(records: GrowthRecord[], key: StatKey) {
     })[0];
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="field">
       <span
@@ -459,7 +436,6 @@ export default function GrowthSheet({
   const [headCm, setHeadCm] = useState("");
   const [note, setNote] = useState("");
   const [editingRecord, setEditingRecord] = useState<GrowthRecord | null>(null);
-  const [actionRecord, setActionRecord] = useState<GrowthRecord | null>(null);
 
   const latestWeight = useMemo(
     () => findLatestValueRecord(records, "weightKg"),
@@ -511,14 +487,12 @@ export default function GrowthSheet({
 
   function openAddForm() {
     setEditingRecord(null);
-    setActionRecord(null);
     resetForm();
     setAdding(true);
   }
 
   function openEditForm(record: GrowthRecord) {
     setEditingRecord(record);
-    setActionRecord(null);
     fillForm(record);
     setAdding(true);
   }
@@ -553,8 +527,6 @@ export default function GrowthSheet({
   }
 
   function requestDelete(record: GrowthRecord) {
-    setActionRecord(null);
-
     const ok = window.confirm("确定删除这条成长记录吗？");
     if (!ok) return;
 
@@ -567,14 +539,21 @@ export default function GrowthSheet({
     onDelete(record.id);
   }
 
-  function handleLongPressRecord(recordId: string) {
+  function handleEditGrowthRecord(recordId: string) {
     const record = records.find((item) => item.id === recordId);
     if (!record) return;
 
-    setActionRecord(record);
+    openEditForm(record);
   }
 
-  function handleBackdropPointerDown(event: React.PointerEvent<HTMLDivElement>) {
+  function handleDeleteGrowthRecord(recordId: string) {
+    const record = records.find((item) => item.id === recordId);
+    if (!record) return;
+
+    requestDelete(record);
+  }
+
+  function handleBackdropPointerDown(event: PointerEvent<HTMLDivElement>) {
     const target = event.target as HTMLElement | null;
 
     if (target?.closest(".growth-sheet-safe")) return;
@@ -769,7 +748,8 @@ export default function GrowthSheet({
             <div className="growth-sheet-safe">
               <GrowthCharts
                 records={records}
-                onLongPressRecord={handleLongPressRecord}
+                onEditRecord={handleEditGrowthRecord}
+                onDeleteRecord={handleDeleteGrowthRecord}
               />
             </div>
 
@@ -920,90 +900,6 @@ export default function GrowthSheet({
                 }}
               >
                 返回
-              </button>
-            </div>
-          </div>
-        )}
-
-        {actionRecord && (
-          <div
-            className="growth-sheet-safe"
-            onClick={() => setActionRecord(null)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 2,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: 24,
-              background: GROWTH_SHEET.actionMenuBackdropBg,
-              boxSizing: "border-box",
-            }}
-          >
-            <div
-              onClick={(event) => event.stopPropagation()}
-              style={{
-                width: "min(100%, 260px)",
-                display: "grid",
-                gap: GROWTH_SHEET.actionMenuGap,
-                padding: GROWTH_SHEET.actionMenuPadding,
-                borderRadius: GROWTH_SHEET.actionMenuRadius,
-                background: GROWTH_SHEET.actionMenuBg,
-                boxShadow: GROWTH_SHEET.actionMenuShadow,
-                backdropFilter: "blur(22px) saturate(160%)",
-                WebkitBackdropFilter: "blur(22px) saturate(160%)",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => openEditForm(actionRecord)}
-                style={{
-                  height: GROWTH_SHEET.actionMenuButtonHeight,
-                  border: 0,
-                  borderRadius: GROWTH_SHEET.actionMenuButtonRadius,
-                  background: "transparent",
-                  color: GROWTH_SHEET.actionMenuEditColor,
-                  fontSize: GROWTH_SHEET.actionMenuButtonSize,
-                  fontWeight: GROWTH_SHEET.actionMenuButtonWeight,
-                  WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                编辑
-              </button>
-
-              <button
-                type="button"
-                onClick={() => requestDelete(actionRecord)}
-                style={{
-                  height: GROWTH_SHEET.actionMenuButtonHeight,
-                  border: 0,
-                  borderRadius: GROWTH_SHEET.actionMenuButtonRadius,
-                  background: "transparent",
-                  color: GROWTH_SHEET.actionMenuDeleteColor,
-                  fontSize: GROWTH_SHEET.actionMenuButtonSize,
-                  fontWeight: GROWTH_SHEET.actionMenuButtonWeight,
-                  WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                删除
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActionRecord(null)}
-                style={{
-                  height: GROWTH_SHEET.actionMenuButtonHeight,
-                  border: 0,
-                  borderRadius: GROWTH_SHEET.actionMenuButtonRadius,
-                  background: "transparent",
-                  color: GROWTH_SHEET.actionMenuCancelColor,
-                  fontSize: GROWTH_SHEET.actionMenuButtonSize,
-                  fontWeight: GROWTH_SHEET.actionMenuButtonWeight,
-                  WebkitTapHighlightColor: "transparent",
-                }}
-              >
-                取消
               </button>
             </div>
           </div>

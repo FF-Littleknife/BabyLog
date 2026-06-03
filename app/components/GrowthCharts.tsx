@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent } from "react";
 import type { GrowthRecord } from "@/lib/growthApi";
 
 /**
  * 成长曲线卡片参数
- * 后面想调卡片高度、曲线颜色、日期、点间距、默认滚动位置、展开明细，优先改这里。
+ * 后面想调卡片高度、曲线颜色、日期、点间距、默认滚动位置、展开明细、侧滑按钮，优先改这里。
  */
 const CHARTS = {
   /* =========================
@@ -81,14 +82,12 @@ const CHARTS = {
      展开明细
      ========================= */
 
-  detailMarginTop: 10, // 展开明细距离曲线区域的距离
-  detailPaddingTop: 0, // 展开明细顶部内边距；设为0，让明细滚动裁切点和上方横线齐平
-  detailBorderTop: "1px solid var(--border)", // 展开明细顶部横线；明细会像消失在这条线下面
+  detailMarginTop: 4, // 展开明细距离曲线区域的距离；分割线删掉后稍微收紧
+  detailPaddingTop: 0, // 展开明细顶部内边距；设为0，让明细自然接在曲线下面
   detailMaxHeight: 184, // 展开明细最大高度；加高一点，避免最后一行被卡片圆角裁掉
   detailListPaddingBottom: 4, // 展开明细列表底部安全距离；避免最后一行贴到卡片底部
-  detailRowPadding: "12px 0", // 明细每一行内边距；让第一行文字不要贴线，但裁切点仍然贴着横线
+  detailRowPadding: "12px 0", // 明细每一行内边距；上下越大行距越松
   detailRowDivider: "1px solid var(--border)", // 明细行之间的细分割线
-  detailRowActiveRadius: 10, // 长按明细行时的高亮圆角；只用于按压反馈，不是常驻边框
 
   detailDateColor: "color-mix(in srgb, var(--muted) 82%, transparent)", // 明细日期颜色
   detailDateSize: 11, // 明细日期字号
@@ -106,8 +105,25 @@ const CHARTS = {
   detailEmptyColor: "color-mix(in srgb, var(--muted) 68%, transparent)", // 明细空状态文字颜色
   detailEmptySize: 12, // 明细空状态文字字号
 
-  longPressMs: 520, // 明细行长按触发编辑 / 删除的时间，单位毫秒
-  detailRowActiveBg: "color-mix(in srgb, var(--blue) 12%, transparent)", // 明细行长按时的临时高亮背景
+  /* =========================
+     明细行侧滑
+     ========================= */
+
+  swipeActionWidth: 58, // 单个侧滑按钮宽度；越大按钮越宽
+  swipeActionGap: 2, // 侧滑按钮之间的间距；0就是连在一起
+  swipeOpenThreshold: 42, // 左滑超过多少 px 后自动展开按钮
+  swipeCloseThreshold: 18, // 右滑回到多少 px 内自动收起按钮
+  swipeStartThreshold: 8, // 横向滑动超过多少 px 才判定为侧滑，避免误伤上下滚动
+  swipeVerticalTolerance: 8, // 纵向移动比横向多多少时，判定为上下滚动而不是侧滑
+  swipeTransition: "transform .22s cubic-bezier(0.16, 1, 0.3, 1)", // 明细行侧滑动画
+  swipeActionTransition:
+    "transform .22s cubic-bezier(0.16, 1, 0.3, 1)", // 侧滑按钮从右侧外面推进来的动画
+  swipeActionRadius: 18, // 侧滑按钮圆角
+  swipeEditBg: "color-mix(in srgb, var(--blue) 92%, transparent)", // 编辑按钮背景色
+  swipeDeleteBg: "#ff3b30", // 删除按钮背景色
+  swipeActionColor: "#ffffff", // 侧滑按钮文字颜色
+  swipeActionSize: 12, // 侧滑按钮文字字号
+  swipeActionWeight: 760, // 侧滑按钮文字字重
 
   /* =========================
      空状态
@@ -299,38 +315,278 @@ function normalizeMetricPoints({
     .filter((point): point is NormalizedGrowthPoint => Boolean(point));
 }
 
+function SwipeGrowthDetailRow({
+  point,
+  unit,
+  opened,
+  canDelete,
+  onOpen,
+  onClose,
+  onEdit,
+  onDelete,
+}: {
+  point: GrowthPoint;
+  unit: string;
+  opened: boolean;
+  canDelete: boolean;
+  onOpen: () => void;
+  onClose: () => void;
+  onEdit?: (recordId: string) => void;
+  onDelete?: (recordId: string) => void;
+}) {
+  const startXRef = useRef(0);
+  const startYRef = useRef(0);
+  const draggingRef = useRef(false);
+  const horizontalRef = useRef(false);
+  const [dragX, setDragX] = useState(0);
+
+  const actionCount = canDelete ? 2 : 1;
+  const actionsWidth =
+    actionCount * CHARTS.swipeActionWidth +
+    Math.max(0, actionCount - 1) * CHARTS.swipeActionGap;
+
+  const translateX = draggingRef.current
+    ? dragX
+    : opened
+    ? -actionsWidth
+    : 0;
+
+  const actionTranslateX = Math.max(0, actionsWidth + translateX);
+
+  function clampDragX(value: number) {
+    return Math.max(-actionsWidth, Math.min(0, value));
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    startXRef.current = event.clientX;
+    startYRef.current = event.clientY;
+    draggingRef.current = true;
+    horizontalRef.current = false;
+    setDragX(opened ? -actionsWidth : 0);
+  }
+
+  function handlePointerMove(event: PointerEvent<HTMLDivElement>) {
+    if (!draggingRef.current) return;
+
+    const deltaX = event.clientX - startXRef.current;
+    const deltaY = event.clientY - startYRef.current;
+
+    if (!horizontalRef.current) {
+      const absX = Math.abs(deltaX);
+      const absY = Math.abs(deltaY);
+
+      if (absY > absX + CHARTS.swipeVerticalTolerance) {
+        draggingRef.current = false;
+        setDragX(opened ? -actionsWidth : 0);
+        return;
+      }
+
+      if (absX < CHARTS.swipeStartThreshold) return;
+
+      horizontalRef.current = true;
+      onOpen();
+    }
+
+    const baseX = opened ? -actionsWidth : 0;
+    setDragX(clampDragX(baseX + deltaX));
+  }
+
+  function finishDrag() {
+    if (!draggingRef.current) return;
+
+    draggingRef.current = false;
+
+    if (!horizontalRef.current) {
+      setDragX(opened ? -actionsWidth : 0);
+      return;
+    }
+
+    if (dragX <= -CHARTS.swipeOpenThreshold) {
+      onOpen();
+      setDragX(-actionsWidth);
+      return;
+    }
+
+    if (Math.abs(dragX) <= CHARTS.swipeCloseThreshold) {
+      onClose();
+      setDragX(0);
+      return;
+    }
+
+    if (opened && dragX < -CHARTS.swipeCloseThreshold) {
+      onOpen();
+      setDragX(-actionsWidth);
+      return;
+    }
+
+    onClose();
+    setDragX(0);
+  }
+
+  function handleContentClick(event: React.MouseEvent<HTMLDivElement>) {
+    if (!opened) return;
+
+    event.stopPropagation();
+    onClose();
+    setDragX(0);
+  }
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        background: "transparent",
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          bottom: 0,
+          width: actionsWidth,
+          display: "flex",
+          alignItems: "stretch",
+          justifyContent: "flex-end",
+          gap: CHARTS.swipeActionGap,
+          transform: `translateX(${actionTranslateX}px)`,
+          transition: draggingRef.current ? "none" : CHARTS.swipeActionTransition,
+          pointerEvents: opened ? "auto" : "none",
+        }}
+      >
+        <button
+          type="button"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            onClose();
+            setDragX(0);
+            onEdit?.(point.id);
+          }}
+          style={{
+            width: CHARTS.swipeActionWidth,
+            border: 0,
+            borderRadius: CHARTS.swipeActionRadius,
+            background: CHARTS.swipeEditBg,
+            color: CHARTS.swipeActionColor,
+            fontSize: CHARTS.swipeActionSize,
+            fontWeight: CHARTS.swipeActionWeight,
+            padding: 0,
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          编辑
+        </button>
+
+        {canDelete && (
+          <button
+            type="button"
+            onPointerDown={(event) => event.stopPropagation()}
+            onClick={(event) => {
+              event.stopPropagation();
+              onClose();
+              setDragX(0);
+              onDelete?.(point.id);
+            }}
+            style={{
+              width: CHARTS.swipeActionWidth,
+              border: 0,
+              borderRadius: CHARTS.swipeActionRadius,
+              background: CHARTS.swipeDeleteBg,
+              color: CHARTS.swipeActionColor,
+              fontSize: CHARTS.swipeActionSize,
+              fontWeight: CHARTS.swipeActionWeight,
+              padding: 0,
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            删除
+          </button>
+        )}
+      </div>
+
+      <div
+        onClick={handleContentClick}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+        onPointerLeave={finishDrag}
+        style={{
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 12,
+          padding: CHARTS.detailRowPadding,
+          background: CHARTS.cardBg,
+          transform: `translateX(${translateX}px)`,
+          transition: draggingRef.current ? "none" : CHARTS.swipeTransition,
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          WebkitTouchCallout: "none",
+          touchAction: "pan-y",
+        }}
+      >
+        <div
+          style={{
+            color: CHARTS.detailDateColor,
+            fontSize: CHARTS.detailDateSize,
+            fontWeight: CHARTS.detailDateWeight,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {formatFullDate(point.date)}
+        </div>
+
+        <div
+          style={{
+            whiteSpace: "nowrap",
+            textAlign: "right",
+          }}
+        >
+          <span
+            style={{
+              color: CHARTS.detailValueColor,
+              fontSize: CHARTS.detailValueSize,
+              fontWeight: CHARTS.detailValueWeight,
+            }}
+          >
+            {formatValue(point.value)}
+          </span>
+
+          <span
+            style={{
+              marginLeft: 3,
+              color: CHARTS.detailUnitColor,
+              fontSize: CHARTS.detailUnitSize,
+              fontWeight: CHARTS.detailUnitWeight,
+            }}
+          >
+            {unit}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function GrowthDetailList({
   points,
   unit,
-  onLongPressRecord,
+  onEditRecord,
+  onDeleteRecord,
 }: {
   points: GrowthPoint[];
   unit: string;
-  onLongPressRecord?: (recordId: string) => void;
+  onEditRecord?: (recordId: string) => void;
+  onDeleteRecord?: (recordId: string) => void;
 }) {
-  const longPressTimerRef = useRef<number | null>(null);
-  const [pressingId, setPressingId] = useState<string | null>(null);
+  const [openedId, setOpenedId] = useState<string | null>(null);
   const list = [...points].reverse();
-
-  function clearLongPress() {
-    if (longPressTimerRef.current) {
-      window.clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-    }
-
-    setPressingId(null);
-  }
-
-  function startLongPress(recordId: string) {
-    clearLongPress();
-    setPressingId(recordId);
-
-    longPressTimerRef.current = window.setTimeout(() => {
-      longPressTimerRef.current = null;
-      setPressingId(null);
-      onLongPressRecord?.(recordId);
-    }, CHARTS.longPressMs);
-  }
 
   if (!list.length) {
     return (
@@ -349,6 +605,7 @@ function GrowthDetailList({
 
   return (
     <div
+      onClick={() => setOpenedId(null)}
       style={{
         maxHeight: CHARTS.detailMaxHeight,
         paddingBottom: CHARTS.detailListPaddingBottom,
@@ -369,76 +626,23 @@ function GrowthDetailList({
       {list.map((point, index) => (
         <div
           key={`${point.id}-${point.date}-${index}`}
-          onPointerDown={(event) => {
-            event.stopPropagation();
-            startLongPress(point.id);
-          }}
-          onPointerUp={clearLongPress}
-          onPointerCancel={clearLongPress}
-          onPointerLeave={clearLongPress}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            clearLongPress();
-            onLongPressRecord?.(point.id);
-          }}
           style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: 12,
-            padding: CHARTS.detailRowPadding,
             borderBottom:
               index < list.length - 1 ? CHARTS.detailRowDivider : "none",
-            borderRadius:
-              pressingId === point.id ? CHARTS.detailRowActiveRadius : 0,
-            background:
-              pressingId === point.id ? CHARTS.detailRowActiveBg : "transparent",
-            transition: "background .14s ease",
-            userSelect: "none",
-            WebkitUserSelect: "none",
-            WebkitTouchCallout: "none",
-            touchAction: "manipulation",
           }}
         >
-          <div
-            style={{
-              color: CHARTS.detailDateColor,
-              fontSize: CHARTS.detailDateSize,
-              fontWeight: CHARTS.detailDateWeight,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {formatFullDate(point.date)}
-          </div>
-
-          <div
-            style={{
-              whiteSpace: "nowrap",
-              textAlign: "right",
-            }}
-          >
-            <span
-              style={{
-                color: CHARTS.detailValueColor,
-                fontSize: CHARTS.detailValueSize,
-                fontWeight: CHARTS.detailValueWeight,
-              }}
-            >
-              {formatValue(point.value)}
-            </span>
-
-            <span
-              style={{
-                marginLeft: 3,
-                color: CHARTS.detailUnitColor,
-                fontSize: CHARTS.detailUnitSize,
-                fontWeight: CHARTS.detailUnitWeight,
-              }}
-            >
-              {unit}
-            </span>
-          </div>
+          <SwipeGrowthDetailRow
+            point={point}
+            unit={unit}
+            opened={openedId === point.id}
+            canDelete={Boolean(onDeleteRecord)}
+            onOpen={() => setOpenedId(point.id)}
+            onClose={() =>
+              setOpenedId((current) => (current === point.id ? null : current))
+            }
+            onEdit={onEditRecord}
+            onDelete={onDeleteRecord}
+          />
         </div>
       ))}
     </div>
@@ -448,11 +652,13 @@ function GrowthDetailList({
 function GrowthMiniChartCard({
   metric,
   records,
-  onLongPressRecord,
+  onEditRecord,
+  onDeleteRecord,
 }: {
   metric: GrowthMetric;
   records: GrowthRecord[];
-  onLongPressRecord?: (recordId: string) => void;
+  onEditRecord?: (recordId: string) => void;
+  onDeleteRecord?: (recordId: string) => void;
 }) {
   const cardRef = useRef<HTMLElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -801,14 +1007,14 @@ function GrowthMiniChartCard({
           style={{
             marginTop: CHARTS.detailMarginTop,
             paddingTop: CHARTS.detailPaddingTop,
-            borderTop: CHARTS.detailBorderTop,
             cursor: "default",
           }}
         >
           <GrowthDetailList
             points={points}
             unit={metric.unit}
-            onLongPressRecord={onLongPressRecord}
+            onEditRecord={onEditRecord}
+            onDeleteRecord={onDeleteRecord}
           />
         </div>
       )}
@@ -818,10 +1024,12 @@ function GrowthMiniChartCard({
 
 export default function GrowthCharts({
   records,
-  onLongPressRecord,
+  onEditRecord,
+  onDeleteRecord,
 }: {
   records: GrowthRecord[];
-  onLongPressRecord?: (recordId: string) => void;
+  onEditRecord?: (recordId: string) => void;
+  onDeleteRecord?: (recordId: string) => void;
 }) {
   return (
     <section
@@ -837,7 +1045,8 @@ export default function GrowthCharts({
           key={metric.key}
           metric={metric}
           records={records}
-          onLongPressRecord={onLongPressRecord}
+          onEditRecord={onEditRecord}
+          onDeleteRecord={onDeleteRecord}
         />
       ))}
     </section>
