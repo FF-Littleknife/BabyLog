@@ -21,7 +21,7 @@ const BOTTOM_BAR_CONFIG = {
   paddingX: 26, // 底部导航左右安全边距
   bottom: 0, // 距离屏幕底部的距离；实际还会叠加 safe-area
   wideBreakpoint: 860, // 宽屏断点：屏幕宽度 >= 860px 时启用宽屏上移
-  wideLiftY: 10, // 宽屏时整个底部导航向上移动距离
+  wideLiftY: 0, // 宽屏时整个底部导航向上移动距离
   zIndex: 40, // 层级，保证浮在页面内容上方
 
   pillGap: 4, // 左侧“记录/时间线”两个按钮之间的间距
