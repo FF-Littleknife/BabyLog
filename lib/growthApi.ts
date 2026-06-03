@@ -28,6 +28,19 @@ function toDbRecord(record: GrowthRecord) {
   };
 }
 
+function toDbUpdateRecord(record: GrowthRecord) {
+  return {
+    baby_id: BABY_ID,
+    date: record.date,
+    weight_kg: record.weightKg ?? null,
+    height_cm: record.heightCm ?? null,
+    head_cm: record.headCm ?? null,
+    note: record.note ?? null,
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  };
+}
+
 function fromDbRecord(row: any): GrowthRecord {
   return {
     id: row.id,
@@ -71,6 +84,37 @@ export async function insertGrowthRecord(record: GrowthRecord) {
 
   if (error) {
     console.error("insertGrowthRecord error:", error);
+    throw error;
+  }
+}
+
+export async function updateGrowthRecordToCloud(record: GrowthRecord) {
+  const { error } = await supabase
+    .from("growth_records")
+    .update(toDbUpdateRecord(record))
+    .eq("id", record.id)
+    .eq("baby_id", BABY_ID)
+    .is("deleted_at", null);
+
+  if (error) {
+    console.error("updateGrowthRecordToCloud error:", error);
+    throw error;
+  }
+}
+
+export async function deleteGrowthRecordFromCloud(id: string) {
+  const { error } = await supabase
+    .from("growth_records")
+    .update({
+      updated_at: new Date().toISOString(),
+      deleted_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("baby_id", BABY_ID)
+    .is("deleted_at", null);
+
+  if (error) {
+    console.error("deleteGrowthRecordFromCloud error:", error);
     throw error;
   }
 }

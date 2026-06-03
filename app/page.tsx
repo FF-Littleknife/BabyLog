@@ -11,8 +11,10 @@ import {
   updateRecordToCloud,
 } from "@/lib/recordsApi";
 import {
+  deleteGrowthRecordFromCloud,
   fetchGrowthRecords,
   insertGrowthRecord,
+  updateGrowthRecordToCloud,
   type GrowthRecord,
 } from "@/lib/growthApi";
 import {
@@ -693,6 +695,54 @@ export default function Home() {
     }
   }
 
+  async function updateGrowthRecord(record: GrowthRecord) {
+    const oldRecord = growthRecords.find((item) => item.id === record.id);
+
+    setGrowthRecords((prev) =>
+      sortGrowthRecords(prev.map((item) => (item.id === record.id ? record : item)))
+    );
+
+    buzz();
+    showToast("✓ 已更新");
+
+    try {
+      await updateGrowthRecordToCloud(record);
+    } catch (error) {
+      console.error(error);
+
+      if (oldRecord) {
+        setGrowthRecords((prev) =>
+          sortGrowthRecords(
+            prev.map((item) => (item.id === oldRecord.id ? oldRecord : item))
+          )
+        );
+      }
+
+      showToast("云端更新失败，已恢复");
+    }
+  }
+
+  async function deleteGrowthRecord(id: string) {
+    const deletedRecord = growthRecords.find((record) => record.id === id);
+
+    setGrowthRecords((prev) => prev.filter((record) => record.id !== id));
+
+    buzz();
+    showToast("已删除");
+
+    try {
+      await deleteGrowthRecordFromCloud(id);
+    } catch (error) {
+      console.error(error);
+
+      if (deletedRecord) {
+        setGrowthRecords((prev) => sortGrowthRecords([deletedRecord, ...prev]));
+      }
+
+      showToast("云端删除失败，已恢复记录");
+    }
+  }
+
   async function updateRecord(record: BabyRecord) {
     const oldRecord = records.find((item) => item.id === record.id);
 
@@ -952,6 +1002,8 @@ export default function Home() {
           records={growthRecords}
           onClose={() => setGrowthOpen(false)}
           onSave={addGrowthRecord}
+          onUpdate={updateGrowthRecord}
+          onDelete={deleteGrowthRecord}
         />
       )}
 

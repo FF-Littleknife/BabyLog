@@ -40,7 +40,7 @@ const CHARTS = {
 
   arrowSize: 16,
   arrowStrokeWidth: 3.2,
-  arrowColor: "var(--muted)",
+  arrowColor: "color-mix(in srgb, var(--muted) 72%, transparent)",
   arrowTransition: "transform .18s ease",
 
   /* =========================
@@ -61,14 +61,14 @@ const CHARTS = {
   axisY: 86,
   labelY: 102,
 
-  axisColor: "var(--chart-axis-color, rgba(60, 60, 67, 0.10))",
-  labelColor: "var(--muted)",
+  axisColor: "var(--border)",
+  labelColor: "color-mix(in srgb, var(--muted) 72%, transparent)",
   labelSize: 10,
   labelWeight: 400,
 
   // 当前查看点的定位虚线
   // 默认跟最新点；点击历史点后，切换到历史点。
-  guideLineColor: "var(--chart-guide-color, rgba(142, 142, 147, 0.42))",
+  guideLineColor: "color-mix(in srgb, var(--muted) 42%, transparent)",
   guideLineWidth: 1.1,
   guideLineDash: "3 4",
   guideLineGapFromPoint: 7,
@@ -94,7 +94,7 @@ const CHARTS = {
   detailRowPadding: "8px 0",
   detailRowBorder: "1px solid var(--border)",
 
-  detailDateColor: "var(--muted)",
+  detailDateColor: "color-mix(in srgb, var(--muted) 82%, transparent)",
   detailDateSize: 11,
   detailDateWeight: 500,
 
@@ -107,14 +107,17 @@ const CHARTS = {
   detailUnitWeight: 650,
 
   detailEmptyText: "暂无记录",
-  detailEmptyColor: "var(--muted)",
+  detailEmptyColor: "color-mix(in srgb, var(--muted) 68%, transparent)",
   detailEmptySize: 12,
+
+  longPressMs: 520,
+  detailRowActiveBg: "color-mix(in srgb, var(--blue) 12%, transparent)",
 
   /* =========================
      空状态
      ========================= */
 
-  emptyColor: "var(--muted)",
+  emptyColor: "color-mix(in srgb, var(--muted) 68%, transparent)",
   emptySize: 12,
 
   /* =========================
@@ -123,7 +126,7 @@ const CHARTS = {
 
   heightColor: "var(--blue)",
   weightColor: "var(--feed-label-color)",
-  headColor: "var(--purple)",
+  headColor: "var(--pump-label-color)",
 };
 
 type GrowthMetric = {
@@ -166,24 +169,6 @@ const METRICS: GrowthMetric[] = [
     color: CHARTS.headColor,
   },
 ];
-
-function ChartThemeVars() {
-  return (
-    <style jsx global>{`
-      :root {
-        --chart-axis-color: rgba(60, 60, 67, 0.1);
-        --chart-guide-color: rgba(142, 142, 147, 0.42);
-      }
-
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --chart-axis-color: rgba(84, 84, 88, 0.42);
-          --chart-guide-color: rgba(142, 142, 147, 0.46);
-        }
-      }
-    `}</style>
-  );
-}
 
 function formatDate(dateString?: string) {
   if (!dateString) return "";
@@ -323,11 +308,35 @@ function normalizeMetricPoints({
 function GrowthDetailList({
   points,
   unit,
+  onLongPressRecord,
 }: {
   points: GrowthPoint[];
   unit: string;
+  onLongPressRecord?: (recordId: string) => void;
 }) {
+  const longPressTimerRef = useRef<number | null>(null);
+  const [pressingId, setPressingId] = useState<string | null>(null);
   const list = [...points].reverse();
+
+  function clearLongPress() {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+
+    setPressingId(null);
+  }
+
+  function startLongPress(recordId: string) {
+    clearLongPress();
+    setPressingId(recordId);
+
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressTimerRef.current = null;
+      setPressingId(null);
+      onLongPressRecord?.(recordId);
+    }, CHARTS.longPressMs);
+  }
 
   if (!list.length) {
     return (
@@ -364,6 +373,19 @@ function GrowthDetailList({
       {list.map((point, index) => (
         <div
           key={`${point.id}-${point.date}-${index}`}
+          onPointerDown={(event) => {
+            event.stopPropagation();
+            startLongPress(point.id);
+          }}
+          onPointerUp={clearLongPress}
+          onPointerCancel={clearLongPress}
+          onPointerLeave={clearLongPress}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            clearLongPress();
+            onLongPressRecord?.(point.id);
+          }}
           style={{
             display: "flex",
             alignItems: "baseline",
@@ -371,6 +393,14 @@ function GrowthDetailList({
             gap: 12,
             padding: CHARTS.detailRowPadding,
             borderTop: index === 0 ? 0 : CHARTS.detailRowBorder,
+            borderRadius: 12,
+            background:
+              pressingId === point.id ? CHARTS.detailRowActiveBg : "transparent",
+            transition: "background .14s ease",
+            userSelect: "none",
+            WebkitUserSelect: "none",
+            WebkitTouchCallout: "none",
+            touchAction: "manipulation",
           }}
         >
           <div
@@ -420,9 +450,11 @@ function GrowthDetailList({
 function GrowthMiniChartCard({
   metric,
   records,
+  onLongPressRecord,
 }: {
   metric: GrowthMetric;
   records: GrowthRecord[];
+  onLongPressRecord?: (recordId: string) => void;
 }) {
   const cardRef = useRef<HTMLElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -779,34 +811,41 @@ function GrowthMiniChartCard({
             cursor: "default",
           }}
         >
-          <GrowthDetailList points={points} unit={metric.unit} />
+          <GrowthDetailList
+            points={points}
+            unit={metric.unit}
+            onLongPressRecord={onLongPressRecord}
+          />
         </div>
       )}
     </article>
   );
 }
 
-export default function GrowthCharts({ records }: { records: GrowthRecord[] }) {
+export default function GrowthCharts({
+  records,
+  onLongPressRecord,
+}: {
+  records: GrowthRecord[];
+  onLongPressRecord?: (recordId: string) => void;
+}) {
   return (
-    <>
-      <ChartThemeVars />
-
-      <section
-        style={{
-          marginTop: CHARTS.marginTop,
-          display: "grid",
-          gap: CHARTS.listGap,
-          width: "100%",
-        }}
-      >
-        {METRICS.map((metric) => (
-          <GrowthMiniChartCard
-            key={metric.key}
-            metric={metric}
-            records={records}
-          />
-        ))}
-      </section>
-    </>
+    <section
+      style={{
+        marginTop: CHARTS.marginTop,
+        display: "grid",
+        gap: CHARTS.listGap,
+        width: "100%",
+      }}
+    >
+      {METRICS.map((metric) => (
+        <GrowthMiniChartCard
+          key={metric.key}
+          metric={metric}
+          records={records}
+          onLongPressRecord={onLongPressRecord}
+        />
+      ))}
+    </section>
   );
 }
