@@ -14,7 +14,7 @@ import TimelineFilterBar, { type TimelineFilterKey } from "./TimelineFilterBar";
 const TIMELINE_PANEL = {
   initialTopSpace: "18svh", // 时间线顶部预留空间；越大，第一天内容离屏幕顶部越远
 
-  bottomBarHeight: 72, // 底部 BottomBar 的视觉高度；用于计算筛选条在 BottomBar 上方的位置
+  bottomBarHeight: 66, // 底部 BottomBar 的视觉高度；用于计算筛选条在 BottomBar 上方的位置
   bottomBarBottom: 0, // BottomBar 距离屏幕底部的基础距离；实际还会叠加 safe-area
   filterGapAboveBottomBar: 6, // 筛选条和 BottomBar 之间的垂直间距；越大筛选条越往上
 
@@ -41,12 +41,44 @@ const TIMELINE_PANEL = {
   scrollDetectTop: 120, // 滚动时间线时，用距离屏幕顶部 120px 的位置判断当前日期
   scrollSyncDelayMs: 80, // 页面滚动后延迟多少毫秒同步日期滚轮；避免滚动时过于频繁计算
   scrollToOffsetTop: 94, // 点击 / 滚动日期滚轮跳转时，目标日期距离屏幕顶部的偏移量
+
+  timelineScrollDuration: 460, // 点击日期滚轮后，时间线自动滚动动画时长；越大越柔，越小越利落
+  wheelSelectingLockMs: 520, // 日期滚轮触发时间线跳转后，暂停反向同步的时间；避免互相抢控制权
 };
 
 const FILTER_BOTTOM =
   TIMELINE_PANEL.bottomBarHeight +
   TIMELINE_PANEL.bottomBarBottom +
   TIMELINE_PANEL.filterGapAboveBottomBar;
+
+function easeInOutCubic(t: number) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+function animateWindowScrollTo(targetTop: number, duration: number) {
+  const startTop = window.scrollY;
+  const distance = targetTop - startTop;
+  const startTime = performance.now();
+
+  if (duration <= 0 || Math.abs(distance) < 1) {
+    window.scrollTo(0, targetTop);
+    return;
+  }
+
+  function frame(now: number) {
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    const eased = easeInOutCubic(progress);
+
+    window.scrollTo(0, startTop + distance * eased);
+
+    if (progress < 1) {
+      window.requestAnimationFrame(frame);
+    }
+  }
+
+  window.requestAnimationFrame(frame);
+}
 
 function TopGradient() {
   return (
@@ -182,10 +214,10 @@ function scrollToDay(day: string) {
     window.scrollY -
     TIMELINE_PANEL.scrollToOffsetTop;
 
-  window.scrollTo({
-    top: Math.max(0, top),
-    behavior: "smooth",
-  });
+  animateWindowScrollTo(
+    Math.max(0, top),
+    TIMELINE_PANEL.timelineScrollDuration
+  );
 }
 
 export default function TimelinePanel({
@@ -289,7 +321,7 @@ export default function TimelinePanel({
 
     wheelSelectingTimerRef.current = window.setTimeout(() => {
       wheelSelectingRef.current = false;
-    }, 520);
+    }, TIMELINE_PANEL.wheelSelectingLockMs);
   }
 
   return (

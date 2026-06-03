@@ -14,7 +14,7 @@ const DATE_WHEEL = {
      轻胶囊外壳
      ========================= */
 
-  width: 200, // 整个日期滚轮宽度；右边固定对齐，越宽越向左靠近 BottomBar
+  width: 208, // 整个日期滚轮宽度；右边固定对齐，越宽越向左靠近 BottomBar
   height: 48, // 外层轻胶囊高度；比之前 54 更轻
   radius: 999, // 外层轻胶囊圆角
 
@@ -63,12 +63,50 @@ const DATE_WHEEL = {
 
   settleDelayMs: 120, // 用户横向滚动停止后，多久吸附到最近日期
 
-  programmaticScrollMs: 520, // 外部同步日期时的保护时间，防止误触发 onSelect
-  initialProgrammaticScrollMs: 180, // 首次进入时间线时的保护时间，防止初始化误跳转
+  programmaticScrollDuration: 480, // 日期滚轮自动同步时的非线性动画时长；越大越柔，越小越利落
+  initialProgrammaticScrollDuration: 0, // 首次进入时间线时的动画时长；0表示直接定位，避免进页面先动一下
+  internalLockExtraMs: 80, // 程序自动滚动后额外锁定 onScroll 的时间；避免自动动画误触发 onSelect
 };
 
 function getSidePadding() {
   return Math.max(0, (DATE_WHEEL.width - DATE_WHEEL.itemWidth) / 2);
+}
+
+function easeOutCubic(t: number) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function animateElementScrollLeft({
+  element,
+  targetLeft,
+  duration,
+}: {
+  element: HTMLElement;
+  targetLeft: number;
+  duration: number;
+}) {
+  const startLeft = element.scrollLeft;
+  const distance = targetLeft - startLeft;
+  const startTime = performance.now();
+
+  if (duration <= 0 || Math.abs(distance) < 1) {
+    element.scrollLeft = targetLeft;
+    return;
+  }
+
+  function frame(now: number) {
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    const eased = easeOutCubic(progress);
+
+    element.scrollLeft = startLeft + distance * eased;
+
+    if (progress < 1) {
+      window.requestAnimationFrame(frame);
+    }
+  }
+
+  window.requestAnimationFrame(frame);
 }
 
 function parseDay(day: string) {
@@ -105,6 +143,7 @@ export default function TimelineDateWheel({
 }) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const settleTimerRef = useRef<number | null>(null);
+  const internalUnlockTimerRef = useRef<number | null>(null);
   const internalScrollRef = useRef(false);
   const mountedRef = useRef(false);
 
@@ -118,6 +157,9 @@ export default function TimelineDateWheel({
     if (!scroller || activeIndex < 0) return;
 
     const targetLeft = activeIndex * (DATE_WHEEL.itemWidth + DATE_WHEEL.gap);
+    const duration = mountedRef.current
+      ? DATE_WHEEL.programmaticScrollDuration
+      : DATE_WHEEL.initialProgrammaticScrollDuration;
 
     internalScrollRef.current = true;
 
@@ -126,28 +168,39 @@ export default function TimelineDateWheel({
       settleTimerRef.current = null;
     }
 
-    scroller.scrollTo({
-      left: targetLeft,
-      behavior: mountedRef.current ? "smooth" : "auto",
+    if (internalUnlockTimerRef.current) {
+      window.clearTimeout(internalUnlockTimerRef.current);
+      internalUnlockTimerRef.current = null;
+    }
+
+    animateElementScrollLeft({
+      element: scroller,
+      targetLeft,
+      duration,
     });
 
-    const timer = window.setTimeout(
-      () => {
-        internalScrollRef.current = false;
-        mountedRef.current = true;
-      },
-      mountedRef.current
-        ? DATE_WHEEL.programmaticScrollMs
-        : DATE_WHEEL.initialProgrammaticScrollMs
-    );
+    internalUnlockTimerRef.current = window.setTimeout(() => {
+      internalScrollRef.current = false;
+      mountedRef.current = true;
+      internalUnlockTimerRef.current = null;
+    }, duration + DATE_WHEEL.internalLockExtraMs);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      if (internalUnlockTimerRef.current) {
+        window.clearTimeout(internalUnlockTimerRef.current);
+        internalUnlockTimerRef.current = null;
+      }
+    };
   }, [activeIndex]);
 
   useEffect(() => {
     return () => {
       if (settleTimerRef.current) {
         window.clearTimeout(settleTimerRef.current);
+      }
+
+      if (internalUnlockTimerRef.current) {
+        window.clearTimeout(internalUnlockTimerRef.current);
       }
     };
   }, []);
