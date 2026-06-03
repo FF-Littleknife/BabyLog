@@ -71,7 +71,7 @@ const BOTTOM_BAR_CONFIG = {
 
 const TABS: { view: ViewType; label: string; icon: string }[] = [
   { view: "home", label: "记录", icon: "/add.svg" },
-  { view: "timeline", label: "时间线", icon: "/timeline.svg" },
+  { view: "timeline", label: "时间线", icon: "/time.svg" },
 ];
 
 export default function BottomBar({
