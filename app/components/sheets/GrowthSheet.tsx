@@ -26,11 +26,11 @@ const GROWTH_SHEET = {
      内容容器
      ========================= */
 
-  panelWidth: "min(calc(100% - 20px), 410px)", // 弹窗内容最大宽度
+  panelWidth: "min(calc(100% - 20px), 430px)", // 弹窗内容最大宽度；加宽一点给卡片阴影留空间
   panelMaxHeight: "calc(100svh - 20px)", // 弹窗内容最大高度
   panelRadius: 0, // 弹窗容器圆角；当前透明容器，所以为0
   panelBg: "transparent", // 弹窗容器背景；当前让内部卡片自己负责背景
-  panelPadding: "12px", // 弹窗内容内边距
+  panelPadding: "12px 22px 18px", // 弹窗内容内边距；左右加大，避免卡片阴影被滚动容器裁掉
   panelShadow: "none", // 弹窗容器阴影；当前不用
 
   panelEnterMs: 170, // 弹窗容器进入动画时长
@@ -147,6 +147,24 @@ const GROWTH_SHEET = {
   buttonActiveScale: 0.97, // 表单按钮按下缩放比例
   buttonTransition:
     "transform .12s ease, background .18s ease, color .18s ease, box-shadow .18s ease", // 表单按钮动画
+
+  /* =========================
+     长按操作菜单
+     ========================= */
+
+  actionMenuBackdropBg: "rgba(0,0,0,.0)", // 长按菜单背后的轻遮罩
+  actionMenuBg: "var(--glass-bg)", // 长按菜单背景
+  actionMenuRadius: 26, // 长按菜单圆角
+  actionMenuPadding: 8, // 长按菜单内边距
+  actionMenuGap: 6, // 长按菜单按钮之间的距离
+  actionMenuShadow: "var(--shadow-float)", // 长按菜单阴影
+  actionMenuButtonHeight: 48, // 长按菜单每个按钮高度
+  actionMenuButtonRadius: 20, // 长按菜单按钮圆角
+  actionMenuButtonSize: 15, // 长按菜单按钮文字字号
+  actionMenuButtonWeight: 760, // 长按菜单按钮文字字重
+  actionMenuEditColor: "var(--blue)", // 长按菜单编辑按钮颜色
+  actionMenuDeleteColor: "var(--red)", // 长按菜单删除按钮颜色
+  actionMenuCancelColor: "var(--muted)", // 长按菜单取消按钮颜色
 };
 
 const BABY_BIRTH_DATE = "2026-04-19";
@@ -436,6 +454,7 @@ export default function GrowthSheet({
   const [headCm, setHeadCm] = useState("");
   const [note, setNote] = useState("");
   const [editingRecord, setEditingRecord] = useState<GrowthRecord | null>(null);
+  const [actionRecord, setActionRecord] = useState<GrowthRecord | null>(null);
 
   const latestWeight = useMemo(
     () => findLatestValueRecord(records, "weightKg"),
@@ -487,12 +506,14 @@ export default function GrowthSheet({
 
   function openAddForm() {
     setEditingRecord(null);
+    setActionRecord(null);
     resetForm();
     setAdding(true);
   }
 
   function openEditForm(record: GrowthRecord) {
     setEditingRecord(record);
+    setActionRecord(null);
     fillForm(record);
     setAdding(true);
   }
@@ -527,6 +548,8 @@ export default function GrowthSheet({
   }
 
   function requestDelete(record: GrowthRecord) {
+    setActionRecord(null);
+
     const ok = window.confirm("确定删除这条成长记录吗？");
     if (!ok) return;
 
@@ -539,18 +562,11 @@ export default function GrowthSheet({
     onDelete(record.id);
   }
 
-  function handleEditGrowthRecord(recordId: string) {
+  function handleLongPressRecord(recordId: string) {
     const record = records.find((item) => item.id === recordId);
     if (!record) return;
 
-    openEditForm(record);
-  }
-
-  function handleDeleteGrowthRecord(recordId: string) {
-    const record = records.find((item) => item.id === recordId);
-    if (!record) return;
-
-    requestDelete(record);
+    setActionRecord(record);
   }
 
   function handleBackdropPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -748,8 +764,7 @@ export default function GrowthSheet({
             <div className="growth-sheet-safe">
               <GrowthCharts
                 records={records}
-                onEditRecord={handleEditGrowthRecord}
-                onDeleteRecord={handleDeleteGrowthRecord}
+                onLongPressRecord={handleLongPressRecord}
               />
             </div>
 
@@ -900,6 +915,90 @@ export default function GrowthSheet({
                 }}
               >
                 返回
+              </button>
+            </div>
+          </div>
+        )}
+
+        {actionRecord && (
+          <div
+            className="growth-sheet-safe"
+            onClick={() => setActionRecord(null)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 24,
+              background: GROWTH_SHEET.actionMenuBackdropBg,
+              boxSizing: "border-box",
+            }}
+          >
+            <div
+              onClick={(event) => event.stopPropagation()}
+              style={{
+                width: "min(100%, 260px)",
+                display: "grid",
+                gap: GROWTH_SHEET.actionMenuGap,
+                padding: GROWTH_SHEET.actionMenuPadding,
+                borderRadius: GROWTH_SHEET.actionMenuRadius,
+                background: GROWTH_SHEET.actionMenuBg,
+                boxShadow: GROWTH_SHEET.actionMenuShadow,
+                backdropFilter: "blur(22px) saturate(160%)",
+                WebkitBackdropFilter: "blur(22px) saturate(160%)",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => openEditForm(actionRecord)}
+                style={{
+                  height: GROWTH_SHEET.actionMenuButtonHeight,
+                  border: 0,
+                  borderRadius: GROWTH_SHEET.actionMenuButtonRadius,
+                  background: "transparent",
+                  color: GROWTH_SHEET.actionMenuEditColor,
+                  fontSize: GROWTH_SHEET.actionMenuButtonSize,
+                  fontWeight: GROWTH_SHEET.actionMenuButtonWeight,
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                编辑
+              </button>
+
+              <button
+                type="button"
+                onClick={() => requestDelete(actionRecord)}
+                style={{
+                  height: GROWTH_SHEET.actionMenuButtonHeight,
+                  border: 0,
+                  borderRadius: GROWTH_SHEET.actionMenuButtonRadius,
+                  background: "transparent",
+                  color: GROWTH_SHEET.actionMenuDeleteColor,
+                  fontSize: GROWTH_SHEET.actionMenuButtonSize,
+                  fontWeight: GROWTH_SHEET.actionMenuButtonWeight,
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                删除
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActionRecord(null)}
+                style={{
+                  height: GROWTH_SHEET.actionMenuButtonHeight,
+                  border: 0,
+                  borderRadius: GROWTH_SHEET.actionMenuButtonRadius,
+                  background: "transparent",
+                  color: GROWTH_SHEET.actionMenuCancelColor,
+                  fontSize: GROWTH_SHEET.actionMenuButtonSize,
+                  fontWeight: GROWTH_SHEET.actionMenuButtonWeight,
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                取消
               </button>
             </div>
           </div>
